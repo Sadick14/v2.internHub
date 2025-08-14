@@ -7,6 +7,7 @@ import { collection, addDoc, getDocs, query, where, writeBatch, serverTimestamp,
 import { createInvite } from './invitesService';
 import { createAuditLog } from './auditLogService';
 import { auth } from '@/lib/firebase';
+import { getUserByEmail } from './userService';
 
 export interface InternshipProfile {
     id: string;
@@ -63,17 +64,28 @@ export async function createInternshipProfile(details: InternshipProfileDetails)
             companyId = companySnapshot.docs[0].id;
         }
 
-        // 2. Invite the supervisor
-        const supervisorInviteResult = await createInvite({
-            email: details.supervisorEmail,
-            firstName: details.supervisorName.split(' ')[0],
-            lastName: details.supervisorName.split(' ').slice(1).join(' ') || details.supervisorName.split(' ')[0],
-            role: 'supervisor',
-            invitedBy: {
-                id: details.studentId,
-                name: details.studentName,
-            }
-        });
+        // 2. Check if supervisor exists, if not, invite them.
+        let supervisorId: string;
+        const existingSupervisor = await getUserByEmail(details.supervisorEmail);
+
+        if (existingSupervisor && existingSupervisor.uid) {
+             // Supervisor already exists (active or pending), use their ID.
+            supervisorId = existingSupervisor.uid;
+        } else {
+            // Supervisor does not exist, invite them.
+            const supervisorInviteResult = await createInvite({
+                email: details.supervisorEmail,
+                firstName: details.supervisorName.split(' ')[0],
+                lastName: details.supervisorName.split(' ').slice(1).join(' ') || details.supervisorName.split(' ')[0],
+                role: 'supervisor',
+                invitedBy: {
+                    id: details.studentId,
+                    name: details.studentName,
+                }
+            });
+            supervisorId = supervisorInviteResult.pendingUserId;
+        }
+
 
         // 3. Create the internship profile record
         const profileCol = collection(db, 'internship_profiles');
@@ -83,7 +95,7 @@ export async function createInternshipProfile(details: InternshipProfileDetails)
             companyId: companyId,
             companyName: details.companyName,
             companyAddress: details.companyAddress,
-            supervisorId: supervisorInviteResult.pendingUserId,
+            supervisorId: supervisorId, // Use the determined supervisorId
             supervisorName: details.supervisorName,
             supervisorEmail: details.supervisorEmail,
             startDate: details.startDate,

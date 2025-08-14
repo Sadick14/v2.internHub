@@ -36,16 +36,10 @@ function generateSecureCode(): string {
 export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdAt' | 'id' | 'verificationCode' | 'pendingUserId'>): Promise<{pendingUserId: string}> {
     const { email, firstName, lastName, role, indexNumber, programOfStudy, facultyId, departmentId, invitedBy } = inviteData;
     
-    // 1. Check if an active user or a pending user already exists with this email
-    const usersCol = collection(db, 'users');
-    const existingUserQuery = query(usersCol, where('email', '==', email));
-    const existingUserSnap = await getDocs(existingUserQuery);
-    if (!existingUserSnap.empty) {
-        throw new Error(`A user with the email ${email} already exists or has a pending invite.`);
-    }
-
+    // The check for an existing user is now handled in internshipProfileService to allow multiple students to link to one supervisor.
+    
     try {
-        // 2. Create the user document with a 'pending' status
+        // 1. Create the user document with a 'pending' status
         const pendingUserRef = doc(collection(db, 'users'));
         const userData: Partial<UserProfile> = {
             fullName: `${firstName} ${lastName}`,
@@ -65,7 +59,7 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
         await setDoc(pendingUserRef, userData);
 
 
-        // 3. Create the invite document, linking it to the pending user
+        // 2. Create the invite document, linking it to the pending user
         const verificationCode = generateSecureCode();
         const invitesCol = collection(db, 'invites');
         
@@ -105,7 +99,7 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
         }
 
 
-        // 4. Create an audit log
+        // 3. Create an audit log
         if (invitedBy) {
             try {
                 await createAuditLog({
