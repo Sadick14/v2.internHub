@@ -11,6 +11,7 @@ export default function DashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
+    // Only redirect when loading is complete and we have a role.
     if (!loading && role) {
       router.push(`/${role}/dashboard`)
     }
