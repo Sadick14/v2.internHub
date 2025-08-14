@@ -5,7 +5,8 @@ import {
   Briefcase,
   CheckCircle2,
   Clock,
-  ArrowRight
+  ArrowRight,
+  CalendarCheck
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
