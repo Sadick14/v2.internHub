@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { verifyInvite, sendVerificationEmail } from '@/services/invitesService';
+import { sendVerificationEmail } from '@/services/invitesService';
 import { Mail, KeyRound } from 'lucide-react';
 
 export default function VerifyPage() {
@@ -23,6 +23,10 @@ export default function VerifyPage() {
 
   const handleSendCode = async (e?: React.FormEvent) => {
       e?.preventDefault();
+      if (!email) {
+          toast({ title: "Email required", description: "Please enter your email address.", variant: "destructive"});
+          return;
+      }
       const loadingSetter = emailConfirmed ? setIsResending : setIsLoading;
       loadingSetter(true);
 
@@ -58,36 +62,19 @@ export default function VerifyPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const invite = await verifyInvite(email, verificationCode);
-      if (invite) {
-        toast({
-          title: "Verification Successful",
-          description: "Please proceed to set up your account.",
-        });
-        // Pass invite data to the registration page via query params
+        // We don't need to call verifyInvite here. We pass the code to the register page for final validation there.
         const params = new URLSearchParams({
-          email: invite.email,
-          firstName: invite.firstName,
-          lastName: invite.lastName,
-          inviteId: invite.id!,
-          code: invite.verificationCode!,
+          email: email,
+          code: verificationCode,
         });
         router.push(`/register?${params.toString()}`);
-      } else {
-        toast({
-          title: "Verification Failed",
-          description: "Invalid verification code. Please try again.",
-          variant: "destructive",
-        });
-      }
     } catch (error: any)       {
        toast({
           title: "Error",
           description: `An unexpected error occurred: ${error.message}`,
           variant: "destructive",
         });
-    } finally {
-      setIsLoading(false);
+       setIsLoading(false);
     }
   };
 

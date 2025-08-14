@@ -12,47 +12,47 @@ import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import type { Role } from '@/hooks/use-role';
-import { acceptInvite, verifyInvite } from '@/services/invitesService';
+import { acceptInvite, verifyInvite, type Invite } from '@/services/invitesService';
 
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
 
-  const [email, setEmail] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [inviteId, setInviteId] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isFromInvite, setIsFromInvite] = useState(false);
-  const [inviteDetails, setInviteDetails] = useState<any>(null);
+  const [inviteDetails, setInviteDetails] = useState<Invite | null>(null);
+  const [isValidating, setIsValidating] = useState(true);
 
 
   useEffect(() => {
     const inviteEmail = searchParams.get('email');
-    const inviteFirstName = searchParams.get('firstName');
-    const inviteLastName = searchParams.get('lastName');
-    const id = searchParams.get('inviteId');
+    const verificationCode = searchParams.get('code');
 
-    if (inviteEmail && inviteFirstName && inviteLastName && id) {
-      setEmail(inviteEmail);
-      setFirstName(inviteFirstName);
-      setLastName(inviteLastName);
-      setInviteId(id);
-      setIsFromInvite(true);
-      // It's better to refetch the invite details here to get all data
-      const fetchInvite = async () => {
-          const code = searchParams.get('code'); // Assuming code is also passed
-          if (code) {
-             const details = await verifyInvite(inviteEmail, code);
-             setInviteDetails(details);
+    if (inviteEmail && verificationCode) {
+      const validateInvite = async () => {
+        setIsValidating(true);
+        try {
+          const details = await verifyInvite(inviteEmail, verificationCode);
+          if (details) {
+            setInviteDetails(details);
+          } else {
+            toast({ title: "Error", description: "Invalid invite link. Please try the verification process again.", variant: 'destructive'});
+            router.push('/verify');
           }
+        } catch (error) {
+          toast({ title: "Error", description: "Failed to validate invite.", variant: 'destructive'});
+          router.push('/verify');
+        } finally {
+          setIsValidating(false);
+        }
       };
-      fetchInvite();
+      validateInvite();
+    } else {
+        setIsValidating(false);
     }
-  }, [searchParams]);
+  }, [searchParams, router, toast]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,23 +63,23 @@ function RegisterForm() {
       });
       return;
     }
-    if (!inviteDetails) {
+    if (!inviteDetails || !inviteDetails.id) {
         toast({ title: "Error", description: "Invite details are missing. Please try the verification process again.", variant: 'destructive'});
         return;
     }
     setIsLoading(true);
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, inviteDetails.email, password);
       const user = userCredential.user;
       
-      const fullName = `${firstName} ${lastName}`;
+      const fullName = `${inviteDetails.firstName} ${inviteDetails.lastName}`;
       await updateProfile(user, { displayName: fullName });
 
       const userProfile = {
         uid: user.uid,
         fullName,
-        email,
+        email: inviteDetails.email,
         role: inviteDetails.role,
         status: 'active',
         createdAt: new Date(),
@@ -89,7 +89,7 @@ function RegisterForm() {
         departmentId: inviteDetails.departmentId || '',
       };
       
-      await acceptInvite(inviteId, user.uid, userProfile);
+      await acceptInvite(inviteDetails.id, user.uid, userProfile);
       
       toast({
         title: "Registration Successful",
@@ -108,14 +108,29 @@ function RegisterForm() {
     }
   };
   
-  if (!isFromInvite) {
+  if (isValidating) {
       return (
+         <div className="flex items-center justify-center min-h-screen bg-background">
+              <Card className="w-full max-w-md mx-auto p-4">
+                 <CardHeader>
+                    <CardTitle className="text-2xl font-headline">Validating Invite...</CardTitle>
+                    <CardDescription>
+                        Please wait while we verify your invitation link.
+                    </CardDescription>
+                </CardHeader>
+              </Card>
+         </div>
+      )
+  }
+
+  if (!inviteDetails) {
+       return (
          <div className="flex items-center justify-center min-h-screen bg-background">
               <Card className="w-full max-w-md mx-auto p-4">
                  <CardHeader>
                     <CardTitle className="text-2xl font-headline">Invalid Access</CardTitle>
                     <CardDescription>
-                    This page is for completing an invitation. Please use the link from your invite email.
+                    This page is for completing an invitation. Please use the link from your invite email or start the verification process.
                     </CardDescription>
                 </CardHeader>
                  <CardContent>
@@ -128,12 +143,13 @@ function RegisterForm() {
       )
   }
 
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md mx-auto p-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-headline">Welcome, {firstName}!</CardTitle>
+            <CardTitle className="text-2xl font-headline">Welcome, {inviteDetails.firstName}!</CardTitle>
             <CardDescription>
               Create a password to activate your InternshipTrack account.
             </CardDescription>
@@ -143,16 +159,16 @@ function RegisterForm() {
               <div className="grid gap-4">
                  <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" value={email} disabled />
+                  <Input id="email" type="email" value={inviteDetails.email} disabled />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
                         <Label htmlFor="firstName">First Name</Label>
-                        <Input id="firstName" value={firstName} disabled />
+                        <Input id="firstName" value={inviteDetails.firstName} disabled />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="lastName">Last Name</Label>
-                        <Input id="lastName" value={lastName} disabled />
+                        <Input id="lastName" value={inviteDetails.lastName} disabled />
                     </div>
                 </div>
                 <div className="grid gap-2">

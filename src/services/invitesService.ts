@@ -6,7 +6,6 @@ import { db, auth } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, getDocs, query, where, Timestamp, writeBatch, documentId, doc, updateDoc } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
 import { createAuditLog } from './auditLogService';
-import { getSettings } from './settingsService';
 import { sendMail } from '@/lib/email';
 
 export interface Invite {
@@ -20,7 +19,7 @@ export interface Invite {
     facultyId?: string;
     departmentId?: string;
     status: 'pending' | 'accepted';
-    createdAt?: Date;
+    createdAt?: string; // Serialized date
     verificationCode: string; // OTP
 }
 
@@ -91,7 +90,7 @@ export async function getPendingInvites(): Promise<Invite[]> {
     const inviteList = inviteSnapshot.docs.map(doc => {
         const data = doc.data();
         // Convert Firestore Timestamp to JS Date if it exists
-        const createdAt = data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date();
+        const createdAt = data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : new Date().toISOString();
         return { 
             id: doc.id,
             ...data,
@@ -117,7 +116,11 @@ export async function verifyInvite(email: string, code: string): Promise<Invite 
     }
 
     const inviteDoc = snapshot.docs[0];
-    return { id: inviteDoc.id, ...inviteDoc.data() } as Invite;
+    const data = inviteDoc.data();
+    // Ensure timestamp is serialized
+    const createdAt = data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : new Date().toISOString();
+
+    return { id: inviteDoc.id, ...data, createdAt } as Invite;
 }
 
 
