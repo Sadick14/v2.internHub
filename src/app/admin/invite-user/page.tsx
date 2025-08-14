@@ -125,11 +125,11 @@ export default function InviteUserPage() {
 
         switch(formData.role) {
             case 'student':
-                headers = "firstName,lastName,email,indexNumber,programOfStudy,facultyId,departmentId";
+                headers = "firstName,lastName,email,indexNumber,programOfStudy,facultyCode,departmentCode";
                 break;
             case 'lecturer':
             case 'hod':
-                headers = "firstName,lastName,email,facultyId,departmentId";
+                headers = "firstName,lastName,email,facultyCode,departmentCode";
                 break;
             case 'supervisor':
             case 'admin':
@@ -235,7 +235,7 @@ export default function InviteUserPage() {
                                 <ol className="list-decimal list-inside space-y-1 mt-2">
                                     <li>First, select the desired role (e.g., 'Student') from the 'Single Invite' tab.</li>
                                     <li>Click 'Download Template' to get the CSV file with the correct columns for that role.</li>
-                                    <li>Fill the template with user data. For faculty and department, use their unique IDs, not their names.</li>
+                                    <li>Fill the template with user data. For faculty and department, use their unique **codes** (e.g. 'FAST', 'COMPSSA'), not their names or system IDs.</li>
                                     <li>Upload the completed CSV file below and click 'Upload & Send Invites'.</li>
                                 </ol>
                             </div>
