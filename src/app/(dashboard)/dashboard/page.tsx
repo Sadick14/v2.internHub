@@ -1,4 +1,5 @@
 
+
 'use client'
 import { useRole } from '@/hooks/use-role'
 import { useRouter } from 'next/navigation'
@@ -10,19 +11,25 @@ export default function DashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
-    console.log('[DashboardPage] useEffect triggered. Loading:', loading, 'Role:', role, 'User:', user);
-    // Only redirect when loading is complete and we have a role.
+    // This page is now a fallback. The main login logic redirects directly.
+    // This will handle cases where the user lands here directly or if the direct redirect fails.
     if (!loading && role) {
-      console.log(`[DashboardPage] Redirecting to /${role}/dashboard`);
       router.replace(`/${role}/dashboard`)
     }
      if (!loading && !user) {
-      console.log('[DashboardPage] No user found after loading, redirecting to /login');
       router.replace('/login');
     }
   }, [role, loading, router, user])
 
-  // While loading, the layout will show a spinner. 
-  // This component doesn't need to show anything until the redirect happens.
-  return null;
+  // The layout already shows a spinner, so we can show a simple message here.
+  return (
+     <div className="flex items-center justify-center h-full p-4 md:p-6">
+        <div className="flex flex-col items-center gap-4">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10 text-primary animate-spin">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+        <p className="text-muted-foreground">Preparing your dashboard...</p>
+        </div>
+    </div>
+  );
 }

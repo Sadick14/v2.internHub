@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -10,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { getUserByEmail } from '@/services/userService';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,11 +26,20 @@ export default function LoginPage() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      toast({
-        title: "Success",
-        description: "Logged in successfully!",
-      });
-      router.push('/dashboard');
+      
+      const userProfile = await getUserByEmail(email);
+
+      if (userProfile && userProfile.role) {
+        toast({
+          title: "Success",
+          description: "Logged in successfully! Redirecting...",
+        });
+        router.push(`/${userProfile.role}/dashboard`);
+      } else {
+         // Fallback to the generic dashboard if role not found, which will handle it.
+         router.push('/dashboard');
+      }
+
     } catch (error: any) {
       toast({
         title: "Login Failed",

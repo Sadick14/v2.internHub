@@ -29,7 +29,7 @@ export interface UserProfile {
 export async function getAllUsers(): Promise<UserProfile[]> {
     const usersCol = collection(db, 'users');
     const userSnapshot = await getDocs(usersCol);
-    const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile & { id: string }));
+    const userList = userSnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as UserProfile & { uid: string }));
     const lecturers = userList.filter(u => u.role === 'lecturer');
 
     // Enrich users with faculty and department names
@@ -51,7 +51,7 @@ export async function getAllUsers(): Promise<UserProfile[]> {
             assignedLecturerName = assignedLecturer?.fullName || '';
         }
 
-        return { ...user, uid: user.id, facultyName, departmentName, assignedLecturerName };
+        return { ...user, facultyName, departmentName, assignedLecturerName };
     }));
 
     return enrichedUsers;
@@ -101,6 +101,29 @@ export async function getUserById(uid: string): Promise<UserProfile | null> {
         uid: userSnapshot.id,
         facultyName,
         departmentName
+    }
+}
+
+export async function getUserByEmail(email: string): Promise<UserProfile | null> {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where("email", "==", email));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+        return null;
+    }
+
+    const userDoc = querySnapshot.docs[0];
+    const userData = userDoc.data() as UserProfile;
+
+    if (userData.status !== 'active') {
+        // Optionally, you might want to prevent login for non-active users
+        return null;
+    }
+    
+    return {
+        ...userData,
+        uid: userDoc.id,
     }
 }
 
