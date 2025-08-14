@@ -1,51 +1,9 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Invites can be written and read by admins during the invite process, 
-    // and updated by server actions. A loose rule is acceptable here as the
-    // sensitive logic (verification, registration) is handled server-side.
-    match /invites/{inviteId} {
-      allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' || request.auth == null;
-    }
-
-    // Users collection rules
-    match /users/{userId} {
-      // Allow reading if the user is authenticated.
-      allow read: if request.auth != null;
-
-      // Allow creation if the request is from an admin.
-      // This is for the admin invite flow.
-      allow create: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-
-      // Allow users to update their own document, or an admin to update any document.
-      // This covers the student completing registration (updating their own 'pending' profile)
-      // and admins managing users.
-      allow update: if request.auth.uid == userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-
-      // Only admins can delete users.
-      allow delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
-    // Admins have blanket access to other collections (settings, terms, etc.)
-    match /settings/{docId} {
-       allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-    match /internship_terms/{docId} {
-       allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-    match /faculties/{docId} {
-       allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-     match /departments/{docId} {
-       allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-     match /audit_logs/{docId} {
-       allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
-    // Default deny for any other collections
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if true;
     }
   }
 }
