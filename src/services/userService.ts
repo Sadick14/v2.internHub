@@ -1,6 +1,6 @@
 
 import { db } from '@/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
 import { getFacultyById, getDepartmentById } from './universityService';
 
@@ -9,7 +9,7 @@ export interface UserProfile {
     fullName: string;
     email: string;
     role: Role;
-    status?: string;
+    status: 'active' | 'inactive' | 'pending';
     facultyId?: string;
     departmentId?: string;
     facultyName?: string;
@@ -37,4 +37,15 @@ export async function getAllUsers(): Promise<UserProfile[]> {
     }));
 
     return enrichedUsers;
+}
+
+
+export async function updateUser(uid: string, data: Partial<UserProfile>): Promise<void> {
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, data);
+}
+
+export async function updateUserStatus(uid: string, status: 'active' | 'inactive'): Promise<void> {
+    const userRef = doc(db, 'users', uid);
+    await updateDoc(userRef, { status });
 }

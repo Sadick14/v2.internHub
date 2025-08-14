@@ -1,6 +1,6 @@
 
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, deleteDoc } from 'firebase/firestore';
 
 export interface Faculty {
     id: string;
@@ -21,12 +21,34 @@ export async function createFaculty(facultyData: { name: string }): Promise<void
     });
 }
 
+export async function updateFaculty(id: string, facultyData: Partial<Faculty>): Promise<void> {
+    const facultyDoc = doc(db, 'faculties', id);
+    await updateDoc(facultyDoc, facultyData);
+}
+
+export async function deleteFaculty(id: string): Promise<void> {
+    // Note: In a real app, you'd handle cascading deletes for departments, users, etc.
+    const facultyDoc = doc(db, 'faculties', id);
+    await deleteDoc(facultyDoc);
+}
+
+
 export async function createDepartment(departmentData: { name: string; facultyId: string }): Promise<void> {
     const departmentsCol = collection(db, 'departments');
     await addDoc(departmentsCol, {
         ...departmentData,
         createdAt: serverTimestamp(),
     });
+}
+
+export async function updateDepartment(id: string, departmentData: Partial<Department>): Promise<void> {
+    const departmentDoc = doc(db, 'departments', id);
+    await updateDoc(departmentDoc, departmentData);
+}
+
+export async function deleteDepartment(id: string): Promise<void> {
+    const departmentDoc = doc(db, 'departments', id);
+    await deleteDoc(departmentDoc);
 }
 
 
