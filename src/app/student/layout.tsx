@@ -12,7 +12,8 @@ import {
   MapPin,
   ClipboardList,
   FileText,
-  TrendingUp
+  TrendingUp,
+  ListTodo,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,7 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
     { href: '/student/internship-setup', label: 'Internship Profile', icon: Briefcase },
     { href: '/student/attendance', label: 'Attendance', icon: CalendarCheck },
     { href: '/student/daily-check-in', label: 'Daily Check-in', icon: MapPin },
+    { href: '/student/daily-tasks', label: 'Daily Tasks', icon: ListTodo },
     { href: '/student/submit-report', label: 'Submit Report', icon: FileText },
     { href: '/student/reports', label: 'Report History', icon: ClipboardList },
     { href: '/student/progress-evaluation', label: 'Progress Evaluation', icon: TrendingUp },

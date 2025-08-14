@@ -4,6 +4,7 @@
 import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, Timestamp, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import { createAuditLog } from './auditLogService';
+import { getUserById } from './userService';
 
 export interface Report {
     id: string;
@@ -13,9 +14,9 @@ export interface Report {
     declaredTasks: string;
     summary: string;
     status: 'Pending' | 'Approved' | 'Rejected';
-    supervisorId: string;
-    supervisorComment?: string;
+    lecturerId: string;
     lecturerComment?: string;
+    supervisorComment?: string; // Kept for potential future use or if supervisor also comments
     createdAt: Date;
     updatedAt?: Date;
 }
@@ -23,7 +24,7 @@ export interface Report {
 export interface NewReportData {
     studentId: string;
     internshipId: string;
-    supervisorId: string;
+    lecturerId: string;
     reportDate: Date;
     declaredTasks: string;
     summary: string;
@@ -51,38 +52,41 @@ export async function createReport(reportData: NewReportData): Promise<Report> {
     } as Report;
 }
 
-export async function getReportsBySupervisor(supervisorId: string): Promise<Report[]> {
+export async function getReportsByLecturer(lecturerId: string): Promise<Report[]> {
     const reportsCol = collection(db, 'reports');
-    const q = query(reportsCol, where('supervisorId', '==', supervisorId), where('status', '==', 'Pending'));
+    const q = query(reportsCol, where('lecturerId', '==', lecturerId), where('status', '==', 'Pending'));
     const reportSnapshot = await getDocs(q);
 
-    const reportList = reportSnapshot.docs.map(doc => {
+    const reportsWithStudentNames = await Promise.all(reportSnapshot.docs.map(async (doc) => {
         const data = doc.data();
+        const student = await getUserById(data.studentId);
         return {
             id: doc.id,
             ...data,
+            studentName: student?.fullName || 'Unknown Student',
             reportDate: (data.reportDate as Timestamp).toDate(),
             createdAt: (data.createdAt as Timestamp).toDate(),
-        } as Report;
-    });
+        } as Report & { studentName: string };
+    }));
     
-    return reportList.sort((a,b) => b.reportDate.getTime() - a.reportDate.getTime());
+    return reportsWithStudentNames.sort((a,b) => b.reportDate.getTime() - a.reportDate.getTime());
 }
 
-export async function approveReport(reportId: string, supervisorComment: string): Promise<void> {
+
+export async function approveReport(reportId: string, lecturerComment: string): Promise<void> {
     const reportRef = doc(db, 'reports', reportId);
     await updateDoc(reportRef, {
         status: 'Approved',
-        supervisorComment,
+        lecturerComment,
         updatedAt: serverTimestamp(),
     });
 }
 
-export async function rejectReport(reportId: string, supervisorComment: string): Promise<void> {
+export async function rejectReport(reportId: string, lecturerComment: string): Promise<void> {
     const reportRef = doc(db, 'reports', reportId);
     await updateDoc(reportRef, {
         status: 'Rejected',
-        supervisorComment,
+        lecturerComment,
         updatedAt: serverTimestamp(),
     });
 }

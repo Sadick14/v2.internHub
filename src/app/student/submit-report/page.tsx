@@ -85,8 +85,8 @@ export default function SubmitReportPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if(!user || !profile || !reportDate) {
-       toast({ title: "Error", description: "Cannot submit report. User or profile data is missing.", variant: "destructive"});
+    if(!user || !profile || !reportDate || !user.lecturerId) {
+       toast({ title: "Error", description: "Cannot submit report. User profile, internship details, or assigned lecturer is missing.", variant: "destructive"});
        return;
     }
     if(!summary) {
@@ -99,13 +99,13 @@ export default function SubmitReportPage() {
         const reportData: NewReportData = {
             studentId: user.uid,
             internshipId: profile.id,
-            supervisorId: profile.supervisorId,
+            lecturerId: user.lecturerId,
             reportDate: reportDate,
             declaredTasks: formData.declaredTasks,
             summary: summary,
         };
         await createReport(reportData);
-        toast({ title: "Report Submitted!", description: "Your daily report has been sent to your supervisor for review."});
+        toast({ title: "Report Submitted!", description: "Your daily report has been sent to your lecturer for review."});
         // Reset form
         setFormData({ declaredTasks: '', fullReport: '' });
         setSummary('');
@@ -123,9 +123,9 @@ export default function SubmitReportPage() {
     <div className="grid gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline">Submit Daily Report</CardTitle>
+          <CardTitle className="font-headline">Submit Daily Report to Lecturer</CardTitle>
           <CardDescription>
-            Fill in your tasks and report for the day. Use the AI tool to generate a summary.
+            Fill in your tasks and report for the day. This will be sent to your assigned university lecturer.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -144,7 +144,7 @@ export default function SubmitReportPage() {
             </Popover>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="declaredTasks">Declared Tasks for Today</Label>
+            <Label htmlFor="declaredTasks">Work Accomplished Today</Label>
             <Textarea
               id="declaredTasks"
               name="declaredTasks"
@@ -156,11 +156,11 @@ export default function SubmitReportPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="fullReport">Full Daily Report</Label>
+            <Label htmlFor="fullReport">Detailed Report</Label>
             <Textarea
               id="fullReport"
               name="fullReport"
-              placeholder="Provide a detailed account of the work you've done today, including challenges and learnings."
+              placeholder="Provide a detailed account of the work you've done today, including challenges and learnings for your lecturer."
               value={formData.fullReport}
               onChange={handleInputChange}
               rows={8}
