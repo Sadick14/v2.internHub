@@ -7,8 +7,12 @@ import { useRouter, usePathname } from 'next/navigation';
 import {
   Bell,
   Home,
-  Package,
   Briefcase,
+  CalendarCheck,
+  MapPin,
+  ClipboardList,
+  FileText,
+  TrendingUp
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -41,7 +45,11 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
   const navItems = [
     { href: '/student/dashboard', label: 'Dashboard', icon: Home },
     { href: '/student/internship-setup', label: 'Internship Profile', icon: Briefcase },
-    { href: '/student/submit-report', label: 'Submit Report', icon: Package },
+    { href: '/student/attendance', label: 'Attendance', icon: CalendarCheck },
+    { href: '/student/daily-check-in', label: 'Daily Check-in', icon: MapPin },
+    { href: '/student/daily-tasks', label: 'Daily Tasks', icon: ClipboardList },
+    { href: '/student/daily-report', label: 'Daily Report', icon: FileText },
+    { href: '/student/progress-evaluation', label: 'Progress Evaluation', icon: TrendingUp },
   ];
 
   if (loading || !isMounted || !user) {
