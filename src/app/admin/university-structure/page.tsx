@@ -196,39 +196,39 @@ export default function UniversityStructurePage() {
                         <Accordion type="single" collapsible className="w-full">
                             {faculties.map(faculty => (
                                 <AccordionItem key={faculty.id} value={faculty.id}>
-                                    <AccordionTrigger className="text-lg font-medium hover:no-underline">
-                                        <div className="flex justify-between items-center w-full">
+                                    <div className="flex items-center w-full">
+                                        <AccordionTrigger className="text-lg font-medium hover:no-underline flex-1">
                                             <span>{faculty.name}</span>
-                                            <div className="flex items-center gap-2 mr-2" onClick={(e) => e.stopPropagation()}>
-                                                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEditFacultyDialog(faculty)}><Edit className="h-4 w-4"/></Button>
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4"/></Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            This action cannot be undone. This will permanently delete the faculty and all associated departments.
-                                                        </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => handleFacultyDelete(faculty.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            </div>
+                                        </AccordionTrigger>
+                                        <div className="flex items-center gap-2 mr-2">
+                                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEditFacultyDialog(faculty)}><Edit className="h-4 w-4"/></Button>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4"/></Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        This action cannot be undone. This will permanently delete the faculty and all associated departments.
+                                                    </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleFacultyDelete(faculty.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
                                         </div>
-                                    </AccordionTrigger>
+                                    </div>
                                     <AccordionContent>
                                         <div className="pl-5 space-y-2 pt-2">
                                             {getDepartmentsForFaculty(faculty.id).length > 0 ? (
                                                 <ul className="space-y-2">
                                                     {getDepartmentsForFaculty(faculty.id).map(dept => (
-                                                        <li key={dept.id} className="flex justify-between items-center text-muted-foreground hover:bg-muted/50 p-2 rounded-md">
+                                                        <li key={dept.id} className="flex justify-between items-center text-muted-foreground hover:bg-muted/50 p-2 rounded-md -mr-2">
                                                             <span>{dept.name}</span>
-                                                             <div className="flex items-center gap-2 mr-2">
+                                                             <div className="flex items-center gap-2">
                                                                 <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEditDepartmentDialog(dept)}><Edit className="h-4 w-4"/></Button>
                                                                 <AlertDialog>
                                                                     <AlertDialogTrigger asChild>
