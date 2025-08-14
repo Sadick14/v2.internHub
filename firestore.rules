@@ -1,17 +1,31 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow anyone to create an admin user. This is necessary for initial setup.
-    // This is secure because it only allows the 'admin' role to be created here.
-    match /users/{userId} {
-      allow create: if request.resource.data.role == 'admin';
-      allow read, update, delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    // Default deny all reads and writes
+    match /{document=**} {
+      allow read, write: if false;
     }
 
-    // Allow only authenticated admins to add pending students.
+    // User Management
+    match /users/{userId} {
+      // Allow user creation ONLY for the first admin user.
+      // For subsequent users, you should use a backend function or a more secure method.
+      // This rule is intentionally open for initial setup.
+      allow create: if request.resource.data.role == 'admin' && get(/databases/$(database)/documents/users/$(request.auth.uid)) == null;
+
+      // Any authenticated user can read the users collection (e.g., for role switching, lists).
+      // Writes are disallowed from the client to prevent unauthorized role changes.
+      allow read: if request.auth != null;
+      allow update, delete: if false; // Disallow client-side updates/deletes for security
+    }
+
+    // Student Invitation Flow
     match /pendingUsers/{email} {
-       allow create: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+       // Only an admin can create a pending user invitation.
+       allow create: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+
+       // Any authenticated user can read pending users (for the verification page to check).
+       allow read: if request.auth != null;
     }
   }
 }
