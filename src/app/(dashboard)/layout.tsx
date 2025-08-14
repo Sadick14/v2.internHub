@@ -33,17 +33,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, role } = useRole();
-  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
-    if (!loading && !user && isClient) {
-      router.push('/login');
+    // Wait until loading is finished before checking for a user
+    if (!loading && !user) {
+      // Don't redirect if we are already on a public page like login
+      if (pathname !== '/login') {
+        router.push('/login');
+      }
     }
-  }, [user, loading, router, isClient]);
+  }, [user, loading, router, pathname]);
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: Home, roles: ['student', 'lecturer', 'hod', 'supervisor', 'admin'] },
@@ -60,8 +59,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   const filteredNavItems = navItems.filter(item => {
+    if (!role) return false;
     if (item.href === '/dashboard') return true; // Always show dashboard link
-    return item.roles.includes(role)
+    return item.roles.includes(role);
   });
 
   const renderLoading = () => (
@@ -75,12 +75,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
      </div>
   );
 
-  if (!isClient || loading) {
+  if (loading) {
     return renderLoading();
   }
 
    if (!user) {
-    return renderLoading(); // or a login prompt, though the effect will redirect
+    // This allows public pages like login/register to render without the full dashboard layout.
+    // The useEffect above will handle redirection for protected pages.
+    return <div />;
   }
 
 
@@ -217,4 +219,3 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
-

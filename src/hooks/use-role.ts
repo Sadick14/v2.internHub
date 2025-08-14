@@ -21,7 +21,7 @@ const allRoles: Role[] = ["student", "lecturer", "hod", "supervisor", "admin"];
 // Create a store for our atoms
 const appStore = createStore();
 
-const roleAtom = atom<Role>("student");
+const roleAtom = atom<Role | null>(null);
 const userAtom = atom<AppUser | null>(null);
 const firebaseUserAtom = atom<FirebaseUser | null>(null);
 const authLoadingAtom = atom<boolean>(true);
@@ -35,18 +35,24 @@ onAuthStateChanged(auth, async (user) => {
     if (userDoc.exists()) {
         const userData = userDoc.data();
         const name = userData.fullName || "Anonymous";
+        const userRole = userData.role || "student";
         appStore.set(userAtom, {
             uid: user.uid,
             name,
             email: userData.email || "",
             initials: name.split(' ').map((n: string) => n[0]).join(''),
-            role: userData.role || "student"
+            role: userRole
         });
-        appStore.set(roleAtom, userData.role || "student");
+        appStore.set(roleAtom, userRole);
+    } else {
+        // Handle case where user exists in Auth but not in Firestore
+        appStore.set(userAtom, null);
+        appStore.set(roleAtom, null);
     }
   } else {
     appStore.set(userAtom, null);
     appStore.set(firebaseUserAtom, null);
+    appStore.set(roleAtom, null);
   }
   appStore.set(authLoadingAtom, false);
 });

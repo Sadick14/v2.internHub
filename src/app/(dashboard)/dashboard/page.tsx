@@ -13,7 +13,7 @@ export default function DashboardPage() {
   useEffect(() => {
     // Only redirect when loading is complete and we have a role.
     if (!loading && role) {
-      router.push(`/${role}/dashboard`)
+      router.replace(`/${role}/dashboard`)
     }
   }, [role, loading, router])
 
