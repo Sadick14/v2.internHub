@@ -11,6 +11,7 @@ import {
   Users,
   ListChecks,
   Award,
+  GraduationCap
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -67,10 +68,10 @@ export default function SupervisorLayout({ children }: { children: ReactNode }) 
     <SidebarProvider>
       <Sidebar collapsible="icon">
         <SidebarHeader>
-          <Link href='/supervisor/dashboard' className="flex items-center gap-2 font-semibold text-primary-foreground">
-             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="h-8 w-8"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
-            <span className="font-headline text-lg group-data-[collapsible=icon]:hidden">InternshipTrack</span>
-          </Link>
+           <Link href='/supervisor/dashboard' className="flex items-center gap-2 font-bold text-2xl text-primary bg-white p-2 rounded-lg justify-center group-data-[collapsible=icon]:p-1 group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:h-10">
+                <GraduationCap className="h-8 w-8 text-primary group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6" />
+                <span className="font-headline group-data-[collapsible=icon]:hidden">InternshipTrack</span>
+            </Link>
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
