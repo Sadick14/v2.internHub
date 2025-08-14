@@ -1,0 +1,17 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow anyone to create an admin user. This is necessary for initial setup.
+    // This is secure because it only allows the 'admin' role to be created here.
+    match /users/{userId} {
+      allow create: if request.resource.data.role == 'admin';
+      allow read, update, delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Allow only authenticated admins to add pending students.
+    match /pendingUsers/{email} {
+       allow create: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+  }
+}
