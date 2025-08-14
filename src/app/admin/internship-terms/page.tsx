@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getAllTerms, createTerm, updateTerm, type InternshipTerm } from '@/services/internshipTermsService';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, PlusCircle, Archive, CheckCircle, MoreHorizontal } from 'lucide-react';
+import { CalendarIcon, PlusCircle, Archive, CheckCircle, MoreHorizontal, Download } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -18,7 +18,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 
 const termSchema = z.object({
@@ -112,6 +112,14 @@ export default function InternshipTermsPage() {
             case 'Upcoming': return 'outline';
         }
     }
+
+    const handleDownloadArchive = (termId: string) => {
+        toast({
+            title: 'Feature In Progress',
+            description: 'The ability to download term archives will be implemented soon.',
+        });
+        console.log(`Request to download archive for term ${termId}`);
+    };
 
     return (
         <div className="space-y-6">
@@ -239,6 +247,10 @@ export default function InternshipTermsPage() {
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => handleSetStatus(term.id, 'Archived')} disabled={term.status === 'Archived'}>
                                                     <Archive className="mr-2 h-4 w-4" /> Archive Term
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem onClick={() => handleDownloadArchive(term.id)}>
+                                                    <Download className="mr-2 h-4 w-4" /> Download Archive
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
