@@ -29,7 +29,7 @@ export interface UserProfile {
 export async function getAllUsers(): Promise<UserProfile[]> {
     const usersCol = collection(db, 'users');
     const userSnapshot = await getDocs(usersCol);
-    const userList = userSnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as UserProfile));
+    const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile & { id: string }));
     const lecturers = userList.filter(u => u.role === 'lecturer');
 
     // Enrich users with faculty and department names
@@ -50,10 +50,8 @@ export async function getAllUsers(): Promise<UserProfile[]> {
             const assignedLecturer = lecturers.find(l => l.uid === user.lecturerId);
             assignedLecturerName = assignedLecturer?.fullName || '';
         }
-        
-        const docId = (user as any).uid;
 
-        return { ...user, id: docId, facultyName, departmentName, assignedLecturerName };
+        return { ...user, uid: user.id, facultyName, departmentName, assignedLecturerName };
     }));
 
     return enrichedUsers;
@@ -61,24 +59,21 @@ export async function getAllUsers(): Promise<UserProfile[]> {
 
 export async function getUserById(uid: string): Promise<UserProfile | null> {
     const usersRef = collection(db, 'users');
-    // First, try finding by actual UID if they are fully registered
-    const userDocRef = doc(usersRef, uid);
-    let userSnapshot = await getDoc(userDocRef);
-
-    // If not found by UID, it might be a pending user whose doc ID is the UID
-    if (!userSnapshot.exists()) {
-        const q = query(usersRef, where("uid", "==", uid));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-            userSnapshot = querySnapshot.docs[0];
+    // Find user by auth UID
+    const q = query(usersRef, where("uid", "==", uid));
+    const querySnapshot = await getDocs(q);
+    
+    let userSnapshot;
+    if (!querySnapshot.empty) {
+        userSnapshot = querySnapshot.docs[0];
+    } else {
+        // Fallback for pending users or if UID is the doc ID
+        const docRef = doc(db, 'users', uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            userSnapshot = docSnap;
         } else {
-             const docRef = doc(db, 'users', uid);
-             const docSnap = await getDoc(docRef);
-             if (docSnap.exists()) {
-                 userSnapshot = docSnap;
-             } else {
-                return null;
-             }
+            return null;
         }
     }
 

@@ -33,8 +33,14 @@ function generateSecureCode(): string {
 }
 
 export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdAt' | 'id' | 'verificationCode' | 'pendingUserId'>): Promise<void> {
-    const invitesCol = collection(db, 'invites');
     const usersCol = collection(db, 'users');
+    const existingUserQuery = query(usersCol, where('email', '==', inviteData.email));
+    const existingUserSnap = await getDocs(existingUserQuery);
+    if (!existingUserSnap.empty) {
+        throw new Error(`A user with the email ${inviteData.email} already exists.`);
+    }
+
+    const invitesCol = collection(db, 'invites');
     
     // 1. Create the user document with a 'pending' status
     const pendingUserRef = await addDoc(usersCol, {
