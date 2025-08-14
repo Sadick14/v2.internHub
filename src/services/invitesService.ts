@@ -60,19 +60,21 @@ export async function sendVerificationEmail(email: string): Promise<{ success: b
     }
     
     const inviteDoc = snapshot.docs[0];
-    const invite = inviteDoc.data();
-    
-    if (!invite.verificationCode) {
-        console.error("Verification code is missing for invite:", inviteDoc.id);
-        return { success: false, error: "Could not find a verification code for this invite." };
-    }
+    let invite = inviteDoc.data() as Invite;
+    let verificationCode = invite.verificationCode;
 
+    // If verification code is missing, generate, save, and use it.
+    if (!verificationCode) {
+        verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        await updateDoc(inviteDoc.ref, { verificationCode });
+    }
+    
     try {
         await sendMail({
             to: email,
             subject: 'Verify Your InternshipTrack Account',
-            text: `Your verification code is ${invite.verificationCode}`,
-            html: `<p>Your verification code is <strong>${invite.verificationCode}</strong></p>`,
+            text: `Your verification code is ${verificationCode}`,
+            html: `<p>Your verification code is <strong>${verificationCode}</strong></p>`,
         });
         return { success: true };
     } catch (error: any) {
