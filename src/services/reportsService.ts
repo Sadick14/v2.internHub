@@ -115,12 +115,16 @@ export async function getReportsByStudentId(studentId: string): Promise<Report[]
 
     const reportList = reportSnapshot.docs.map(doc => {
         const data = doc.data();
-        return {
-            id: doc.id,
-            ...data,
-            reportDate: (data.reportDate instanceof Timestamp) ? data.reportDate.toDate() : new Date(),
-            createdAt: (data.createdAt instanceof Timestamp) ? data.createdAt.toDate() : new Date(),
-        } as Report
+        const plainObject: any = { id: doc.id };
+
+        for (const key in data) {
+            if (data[key] instanceof Timestamp) {
+                plainObject[key] = data[key].toDate();
+            } else {
+                plainObject[key] = data[key];
+            }
+        }
+        return plainObject as Report;
     });
 
     return reportList.sort((a, b) => b.reportDate.getTime() - a.reportDate.getTime());
