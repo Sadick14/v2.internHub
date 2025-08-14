@@ -47,9 +47,6 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
             userEmail: currentUser.email || 'N/A'
         });
     }
-
-    // For debugging: log the generated code to the server console.
-    console.log(`An invite has been created for ${inviteData.email} with verification code: ${verificationCode}`);
 }
 
 
@@ -62,10 +59,11 @@ export async function sendVerificationEmail(email: string): Promise<{ success: b
         return { success: false, error: "No pending invite found for this email address." };
     }
     
-    const invite = snapshot.docs[0].data() as Invite;
+    const inviteDoc = snapshot.docs[0];
+    const invite = inviteDoc.data();
     
     if (!invite.verificationCode) {
-        console.error("Verification code is missing for invite:", snapshot.docs[0].id);
+        console.error("Verification code is missing for invite:", inviteDoc.id);
         return { success: false, error: "Could not find a verification code for this invite." };
     }
 
