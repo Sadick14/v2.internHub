@@ -1,7 +1,7 @@
 
 'use client';
 import type { ReactNode } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import {
@@ -26,10 +26,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, role } = useRole();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
-      // Allow access to login, register, verify, and landing page
       const publicPaths = ['/login', '/register', '/verify', '/forgot-password', '/'];
       if (!publicPaths.includes(pathname)) {
         router.push('/login');
@@ -68,6 +72,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
      </div>
   );
 
+  if (!isMounted || loading) {
+    return (
+        <main className="flex-1 overflow-y-auto">
+            {renderLoading()}
+        </main>
+    );
+  }
+
   // For public pages, we don't want to render the dashboard layout.
   if (!user && !loading) {
     return <>{children}</>;
@@ -89,7 +101,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <SidebarMenu>
             {filteredNavItems.map(item => {
               // Adjust href for role-specific dashboards
-              const href = item.href === '/dashboard' ? getDashboardHomeLink() : `/dashboard${item.href}`;
               const finalHref = item.href === '/dashboard' ? getDashboardHomeLink() : item.href;
 
               return (
@@ -120,8 +131,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 </Button>
             </div>
         </header>
-        <main className="flex-1 overflow-y-auto">
-          {loading ? renderLoading() : children}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          {children}
         </main>
       </SidebarInset>
     </SidebarProvider>

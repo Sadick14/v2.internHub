@@ -17,6 +17,7 @@ import {
 
 export default function AdminDashboardPage() {
   return (
+    <div className="flex flex-col gap-4 lg:gap-6">
     <Card>
        <CardHeader>
         <CardTitle className="font-headline">Administrator Dashboard</CardTitle>
@@ -82,5 +83,6 @@ export default function AdminDashboardPage() {
         </div>
       </CardContent>
     </Card>
+    </div>
   )
 }
