@@ -11,14 +11,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { useRole } from '@/hooks/use-role';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Briefcase, Building2, Mail, User, Clock } from 'lucide-react';
+import { CalendarIcon, Briefcase, Building2, Mail, User, Clock, Edit } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
-import { createInternshipProfile, getInternshipProfileByStudentId, type InternshipProfile } from '@/services/internshipProfileService';
+import { createInternshipProfile, getInternshipProfileByStudentId, updateInternshipProfile, type InternshipProfile } from '@/services/internshipProfileService';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 const internshipSetupSchema = z.object({
   companyName: z.string().min(2, "Company name is required."),
@@ -214,13 +215,44 @@ function InternshipSetupForm() {
     );
 }
 
-function InternshipProfileDisplay({ profile }: { profile: InternshipProfile }) {
-    
+function InternshipProfileDisplay({ profile, onProfileUpdate }: { profile: InternshipProfile, onProfileUpdate: () => void }) {
+    const { toast } = useToast();
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const form = useForm<InternshipSetupFormValues>({
+        resolver: zodResolver(internshipSetupSchema),
+        defaultValues: {
+            ...profile,
+            // Dates need to be converted from Firestore Timestamps if they are not already Date objects
+            startDate: profile.startDate ? new Date(profile.startDate) : new Date(),
+            endDate: profile.endDate ? new Date(profile.endDate) : new Date(),
+        }
+    });
+
     const getStatusVariant = (status: string) => {
         switch (status) {
             case 'active': return 'default';
             case 'pending': return 'secondary';
             default: return 'outline';
+        }
+    }
+
+    async function onUpdate(data: InternshipSetupFormValues) {
+        setIsSubmitting(true);
+        try {
+            const result = await updateInternshipProfile(profile.id, data);
+            if (result.success) {
+                toast({ title: 'Success!', description: result.message });
+                setIsEditDialogOpen(false);
+                onProfileUpdate(); // Callback to refresh data on parent page
+            } else {
+                toast({ title: 'Error', description: result.message, variant: 'destructive' });
+            }
+        } catch (error: any) {
+            toast({ title: 'Update Error', description: `An unexpected error occurred: ${error.message}`, variant: 'destructive' });
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
@@ -234,7 +266,40 @@ function InternshipProfileDisplay({ profile }: { profile: InternshipProfile }) {
                             These are the details of your current internship placement.
                         </CardDescription>
                     </div>
-                    <Badge variant={getStatusVariant(profile.status)} className="capitalize">{profile.status}</Badge>
+                    <div className="flex items-center gap-2">
+                        <Badge variant={getStatusVariant(profile.status)} className="capitalize">{profile.status}</Badge>
+                         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" size="icon"><Edit className="h-4 w-4" /></Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[800px]">
+                                <DialogHeader>
+                                    <DialogTitle>Edit Internship Profile</DialogTitle>
+                                    <DialogDescription>
+                                        Update your internship details below. Note: Changing supervisor email will invite the new one.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <Form {...form}>
+                                    <form onSubmit={form.handleSubmit(onUpdate)} className="space-y-4 py-4">
+                                        <FormField control={form.control} name="companyName" render={({ field }) => (<FormItem><FormLabel>Company Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name="companyAddress" render={({ field }) => (<FormItem><FormLabel>Company Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name="supervisorName" render={({ field }) => (<FormItem><FormLabel>Supervisor Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name="supervisorEmail" render={({ field }) => (<FormItem><FormLabel>Supervisor Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <FormField control={form.control} name="startDate" render={({ field }) => (<FormItem><FormLabel>Start Date</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>)} />
+                                            <FormField control={form.control} name="endDate" render={({ field }) => (<FormItem><FormLabel>End Date</FormLabel><Popover><PopoverTrigger asChild><FormControl><Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}<CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start"><Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus /></PopoverContent></Popover><FormMessage /></FormItem>)} />
+                                        </div>
+                                         <DialogFooter>
+                                            <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+                                            <Button type="submit" disabled={isSubmitting}>
+                                                {isSubmitting ? 'Saving...' : 'Save Changes'}
+                                            </Button>
+                                        </DialogFooter>
+                                    </form>
+                                </Form>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
                 </div>
             </CardHeader>
             <CardContent className="space-y-8">
@@ -309,28 +374,29 @@ export default function InternshipSetupPage() {
     const [profile, setProfile] = useState<InternshipProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    const fetchProfile = async () => {
+        if (!user) return;
+        setIsLoading(true);
+        try {
+            const existingProfile = await getInternshipProfileByStudentId(user!.uid);
+            setProfile(existingProfile);
+        } catch (error: any) {
+            toast({
+                title: 'Error fetching profile',
+                description: error.message,
+                variant: 'destructive',
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
      useEffect(() => {
         if (userLoading) return;
         if (!user) {
             setIsLoading(false);
             return;
         };
-
-        async function fetchProfile() {
-            try {
-                const existingProfile = await getInternshipProfileByStudentId(user!.uid);
-                setProfile(existingProfile);
-            } catch (error: any) {
-                toast({
-                    title: 'Error fetching profile',
-                    description: error.message,
-                    variant: 'destructive',
-                });
-            } finally {
-                setIsLoading(false);
-            }
-        }
-
         fetchProfile();
     }, [user, userLoading, toast]);
 
@@ -353,5 +419,5 @@ export default function InternshipSetupPage() {
     }
 
     // If profile exists, show the display component. Otherwise, show the form.
-    return profile ? <InternshipProfileDisplay profile={profile} /> : <InternshipSetupForm />;
+    return profile ? <InternshipProfileDisplay profile={profile} onProfileUpdate={fetchProfile} /> : <InternshipSetupForm />;
 }

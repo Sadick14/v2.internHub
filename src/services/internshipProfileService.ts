@@ -2,9 +2,10 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, where, writeBatch, serverTimestamp, doc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, writeBatch, serverTimestamp, doc, Timestamp, updateDoc } from 'firebase/firestore';
 import { createInvite } from './invitesService';
 import { createAuditLog } from './auditLogService';
+import { auth } from '@/lib/firebase';
 
 export interface InternshipProfile {
     id: string;
@@ -32,8 +33,16 @@ export async function createInternshipProfile(details: InternshipProfileDetails)
     }
 
     const batch = writeBatch(db);
+    const usersCol = collection(db, 'users');
+    const studentQuery = query(usersCol, where("uid", "==", details.studentId));
 
     try {
+        const studentQuerySnapshot = await getDocs(studentQuery);
+        if (studentQuerySnapshot.empty) {
+            throw new Error("Student user document not found.");
+        }
+        const studentDocRef = studentQuerySnapshot.docs[0].ref;
+
         // 1. Check if company exists, otherwise create it
         const companiesCol = collection(db, 'companies');
         const companyQuery = query(companiesCol, where('name', '==', details.companyName));
@@ -82,8 +91,7 @@ export async function createInternshipProfile(details: InternshipProfileDetails)
         });
         
         // 4. Update the student's user profile with the new internship profile ID
-        const studentRef = doc(db, 'users', details.studentId);
-        batch.update(studentRef, { internshipId: profileRef.id });
+        batch.update(studentDocRef, { internshipId: profileRef.id });
 
         // 5. Commit all database writes
         await batch.commit();
@@ -125,4 +133,33 @@ export async function getInternshipProfileByStudentId(studentId: string): Promis
         endDate: (data.endDate as Timestamp).toDate(),
         createdAt: (data.createdAt as Timestamp).toDate(),
     } as InternshipProfile;
+}
+
+export async function updateInternshipProfile(profileId: string, details: Partial<InternshipProfile>): Promise<{ success: boolean; message: string }> {
+    const profileRef = doc(db, 'internship_profiles', profileId);
+    
+    // In a real app, you would get the current user from the session
+    const currentUser = auth.currentUser; 
+    
+    try {
+        await updateDoc(profileRef, {
+            ...details,
+            updatedAt: serverTimestamp(),
+        });
+
+        if (currentUser?.uid) {
+             await createAuditLog({
+                userId: currentUser.uid,
+                userName: currentUser.displayName || 'Student',
+                userEmail: currentUser.email || 'N/A',
+                action: 'Update Internship Profile',
+                details: `Updated internship profile for ${details.companyName}.`,
+            });
+        }
+
+        return { success: true, message: 'Profile updated successfully!' };
+    } catch (error: any) {
+        console.error("Error updating internship profile:", error);
+        return { success: false, message: `Failed to update profile: ${error.message}` };
+    }
 }
