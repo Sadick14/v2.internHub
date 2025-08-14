@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -125,14 +126,18 @@ export async function getInternshipProfileByStudentId(studentId: string): Promis
 
     const profileDoc = snapshot.docs[0];
     const data = profileDoc.data();
+    
+    const plainObject: any = { id: profileDoc.id };
 
-    return {
-        id: profileDoc.id,
-        ...data,
-        startDate: (data.startDate as Timestamp).toDate(),
-        endDate: (data.endDate as Timestamp).toDate(),
-        createdAt: (data.createdAt as Timestamp).toDate(),
-    } as InternshipProfile;
+    for (const key in data) {
+        if (data[key] instanceof Timestamp) {
+            plainObject[key] = data[key].toDate();
+        } else {
+            plainObject[key] = data[key];
+        }
+    }
+
+    return plainObject as InternshipProfile;
 }
 
 export async function updateInternshipProfile(profileId: string, details: Partial<InternshipProfile>): Promise<{ success: boolean; message: string }> {
