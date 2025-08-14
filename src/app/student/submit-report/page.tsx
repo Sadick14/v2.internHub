@@ -123,100 +123,100 @@ export default function SubmitReportPage() {
 
   return (
     <form onSubmit={handleSubmit}>
-    <div className="grid gap-6 lg:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-headline">Submit Daily Report to Lecturer</CardTitle>
-          <CardDescription>
-            Fill in your tasks and report for the day. This will be sent to your assigned university lecturer.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-             <Label htmlFor="reportDate">Report Date</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                    <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !reportDate && "text-muted-foreground")}>
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {reportDate ? format(reportDate, "PPP") : <span>Pick a date</span>}
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar mode="single" selected={reportDate} onSelect={setReportDate} initialFocus />
-                </PopoverContent>
-            </Popover>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="declaredTasks">Work Accomplished Today</Label>
-            <Textarea
-              id="declaredTasks"
-              name="declaredTasks"
-              placeholder="e.g., - Implemented the new login UI&#x0a;- Attended the team sync meeting"
-              value={formData.declaredTasks}
-              onChange={handleInputChange}
-              rows={4}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="fullReport">Detailed Report</Label>
-            <Textarea
-              id="fullReport"
-              name="fullReport"
-              placeholder="Provide a detailed account of the work you've done today, including challenges and learnings for your lecturer."
-              value={formData.fullReport}
-              onChange={handleInputChange}
-              rows={8}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-             <Label htmlFor="attachments">Attachments (Optional)</Label>
-             <Input id="attachments" type="file" />
-          </div>
-          <Button type="submit" disabled={isSubmitting || isGenerating || !summary}>
-            {isSubmitting ? "Submitting..." : "Submit Report"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      <div className="space-y-6">
+      <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="font-headline">AI Report Summary</CardTitle>
-                <CardDescription>
-                  Generate a summary of your report. This is required for submission.
-                </Description>
-              </div>
-              <Button type="button" onClick={handleGenerateSummary} disabled={isGenerating || !formData.fullReport || !formData.declaredTasks} variant="outline" size="icon">
-                <Wand2 className="h-5 w-5" />
-                <span className="sr-only">Generate Summary</span>
-              </Button>
-            </div>
+            <CardTitle className="font-headline">Submit Daily Report to Lecturer</CardTitle>
+            <CardDescription>
+              Fill in your tasks and report for the day. This will be sent to your assigned university lecturer.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="min-h-[200px]">
-            {isGenerating ? (
-              <div className="space-y-2 pt-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-              </div>
-            ) : summary ? (
-              <div className="prose prose-sm max-w-none text-foreground leading-relaxed">
-                <p>{summary}</p>
-              </div>
-            ) : (
-              <div className="text-center text-muted-foreground pt-12">
-                <Wand2 className="mx-auto h-8 w-8 mb-2" />
-                <p className="text-sm">Click the magic wand to generate a summary.</p>
-              </div>
-            )}
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="reportDate">Report Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                      <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !reportDate && "text-muted-foreground")}>
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {reportDate ? format(reportDate, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={reportDate} onSelect={setReportDate} initialFocus />
+                  </PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="declaredTasks">Work Accomplished Today</Label>
+              <Textarea
+                id="declaredTasks"
+                name="declaredTasks"
+                placeholder="e.g., - Implemented the new login UI&#x0a;- Attended the team sync meeting"
+                value={formData.declaredTasks}
+                onChange={handleInputChange}
+                rows={4}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="fullReport">Detailed Report</Label>
+              <Textarea
+                id="fullReport"
+                name="fullReport"
+                placeholder="Provide a detailed account of the work you've done today, including challenges and learnings for your lecturer."
+                value={formData.fullReport}
+                onChange={handleInputChange}
+                rows={8}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="attachments">Attachments (Optional)</Label>
+              <Input id="attachments" type="file" />
+            </div>
+            <Button type="submit" disabled={isSubmitting || isGenerating || !summary}>
+              {isSubmitting ? "Submitting..." : "Submit Report"}
+            </Button>
           </CardContent>
         </Card>
+
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="font-headline">AI Report Summary</CardTitle>
+                  <CardDescription>
+                    Generate a summary of your report. This is required for submission.
+                  </CardDescription>
+                </div>
+                <Button type="button" onClick={handleGenerateSummary} disabled={isGenerating || !formData.fullReport || !formData.declaredTasks} variant="outline" size="icon">
+                  <Wand2 className="h-5 w-5" />
+                  <span className="sr-only">Generate Summary</span>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="min-h-[200px]">
+              {isGenerating ? (
+                <div className="space-y-2 pt-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+              ) : summary ? (
+                <div className="prose prose-sm max-w-none text-foreground leading-relaxed">
+                  <p>{summary}</p>
+                </div>
+              ) : (
+                <div className="text-center text-muted-foreground pt-12">
+                  <Wand2 className="mx-auto h-8 w-8 mb-2" />
+                  <p className="text-sm">Click the magic wand to generate a summary.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
     </form>
   );
 }
