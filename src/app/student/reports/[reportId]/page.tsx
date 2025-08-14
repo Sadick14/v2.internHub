@@ -43,7 +43,7 @@ export default function ReportDetailPage({ params }: { params: { reportId: strin
             setIsLoading(false);
         }
         fetchReport();
-    }, [params.reportId]);
+    }, [params]);
 
     const getStatusVariant = (status: Report['status']) => {
         switch (status) {
