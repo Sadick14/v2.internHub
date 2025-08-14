@@ -184,6 +184,12 @@ function RegisterForm() {
                 </Button>
               </div>
             </form>
+             <div className="mt-4 text-center text-sm">
+                Go back to{' '}
+              <Link href="/login" className="underline text-primary">
+                Login
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>
