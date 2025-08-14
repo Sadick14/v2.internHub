@@ -1,0 +1,46 @@
+
+import { db } from '@/lib/firebase';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+
+export interface Faculty {
+    id: string;
+    name: string;
+}
+
+export interface Department {
+    id: string;
+    name: string;
+    facultyId: string;
+}
+
+export async function getFaculties(): Promise<Faculty[]> {
+    const facultiesCol = collection(db, 'faculties');
+    const facultySnapshot = await getDocs(facultiesCol);
+    const facultyList = facultySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Faculty));
+    return facultyList;
+}
+
+export async function getFacultyById(id: string): Promise<Faculty | null> {
+    const facultyDoc = doc(db, 'faculties', id);
+    const facultySnapshot = await getDoc(facultyDoc);
+    if(facultySnapshot.exists()) {
+        return {id: facultySnapshot.id, ...facultySnapshot.data()} as Faculty;
+    }
+    return null;
+}
+
+export async function getDepartments(): Promise<Department[]> {
+    const departmentsCol = collection(db, 'departments');
+    const departmentSnapshot = await getDocs(departmentsCol);
+    const departmentList = departmentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Department));
+    return departmentList;
+}
+
+export async function getDepartmentById(id: string): Promise<Department | null> {
+     const departmentDoc = doc(db, 'departments', id);
+    const departmentSnapshot = await getDoc(departmentDoc);
+    if(departmentSnapshot.exists()) {
+        return {id: departmentSnapshot.id, ...departmentSnapshot.data()} as Department;
+    }
+    return null;
+}
