@@ -33,7 +33,7 @@ function generateSecureCode(): string {
     return (randomValue % 900000 + 100000).toString();
 }
 
-export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdAt' | 'id' | 'verificationCode' | 'pendingUserId'>): Promise<void> {
+export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdAt' | 'id' | 'verificationCode' | 'pendingUserId'>): Promise<{pendingUserId: string}> {
     const { email, firstName, lastName, role, indexNumber, programOfStudy, facultyId, departmentId, invitedBy } = inviteData;
     
     // 1. Check if an active user or a pending user already exists with this email
@@ -59,17 +59,24 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
 
 
     // 2. Create the user document with a 'pending' status
-    const pendingUserRef = await addDoc(usersCol, {
+    const pendingUserRef = doc(collection(db, 'users'));
+    const userData: Partial<UserProfile> = {
         fullName: `${firstName} ${lastName}`,
         email: email,
         role: role,
         status: 'pending',
-        indexNumber: indexNumber || '',
-        programOfStudy: programOfStudy || '',
         facultyId: facultyId || '',
         departmentId: departmentId || '',
-        createdAt: serverTimestamp(),
-    });
+        createdAt: new Date(),
+    };
+
+    if (role === 'student') {
+        userData.indexNumber = indexNumber || '';
+        userData.programOfStudy = programOfStudy || '';
+    }
+    
+    await setDoc(pendingUserRef, userData);
+
 
     // 3. Create the invite document, linking it to the pending user
     const verificationCode = generateSecureCode();
@@ -111,6 +118,8 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
             console.error("Failed to create audit log for invite:", error);
         }
     }
+
+    return { pendingUserId: pendingUserRef.id };
 }
 
 

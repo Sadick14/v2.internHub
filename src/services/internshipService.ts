@@ -44,13 +44,12 @@ export async function setupInternship(details: InternshipDetails): Promise<{ suc
         }
 
         // 2. Invite the supervisor (this will also create a 'pending' user for them)
-        // We pass the current user's name for the audit log inside createInvite
-        await createInvite({
+        const supervisorInviteResult = await createInvite({
             email: details.supervisorEmail,
             firstName: details.supervisorName.split(' ')[0],
             lastName: details.supervisorName.split(' ').slice(1).join(' ') || details.supervisorName.split(' ')[0],
             role: 'supervisor',
-            // Pass inviting user details for the audit log
+            // Pass inviting user details for the audit log inside createInvite
             invitedBy: {
                 id: details.studentId,
                 name: details.studentName,
@@ -63,6 +62,7 @@ export async function setupInternship(details: InternshipDetails): Promise<{ suc
         batch.set(internshipRef, {
             studentId: details.studentId,
             companyId: companyId,
+            supervisorId: supervisorInviteResult.pendingUserId, // Link to the supervisor's user document
             supervisorEmail: details.supervisorEmail,
             startDate: details.startDate,
             endDate: details.endDate,
