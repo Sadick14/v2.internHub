@@ -3,7 +3,7 @@
 'use server';
 
 import { db, auth } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, getDocs, query, where, Timestamp, writeBatch, documentId, doc, updateDoc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs, query, where, Timestamp, writeBatch, documentId, doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
 import { createAuditLog } from './auditLogService';
 import { sendMail } from '@/lib/email';
@@ -59,7 +59,21 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
         createdAt: serverTimestamp(),
     });
 
-    // 3. Create an audit log
+    // 3. Send the verification email
+    try {
+        await sendMail({
+            to: inviteData.email,
+            subject: 'Verify Your InternshipTrack Account',
+            text: `Welcome! Your verification code is ${verificationCode}`,
+            html: `<p>Welcome! Your verification code is <strong>${verificationCode}</strong></p><p>Please use this code to complete your registration.</p>`,
+        });
+    } catch (error: any) {
+        console.error("Failed to send verification email upon invite:", error);
+        // In a real app, you might want to handle this failure, e.g., by deleting the created user/invite or marking it as failed.
+    }
+
+
+    // 4. Create an audit log
     const currentUser = auth.currentUser;
     if (currentUser) {
          await createAuditLog({
