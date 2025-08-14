@@ -3,7 +3,7 @@
 
 import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, serverTimestamp, Timestamp } from 'firebase/firestore';
-import { startOfDay, endOfDay } from 'date-fns';
+import { startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { createAuditLog } from './auditLogService';
 import { auth } from '@/lib/firebase';
 import { getUserById } from './userService';
@@ -55,14 +55,15 @@ export async function createCheckIn(checkInData: NewCheckIn): Promise<void> {
 
 export async function getTodayCheckIn(studentId: string): Promise<CheckIn | null> {
     const now = new Date();
-    const start = startOfDay(now);
-    const end = endOfDay(now);
+    const todayInterval = {
+        start: startOfDay(now),
+        end: endOfDay(now),
+    };
 
+    // Query for all check-ins for the student
     const q = query(
         checkInCollectionRef, 
-        where('studentId', '==', studentId),
-        where('timestamp', '>=', start),
-        where('timestamp', '<=', end)
+        where('studentId', '==', studentId)
     );
 
     const snapshot = await getDocs(q);
@@ -70,11 +71,20 @@ export async function getTodayCheckIn(studentId: string): Promise<CheckIn | null
     if (snapshot.empty) {
         return null;
     }
+    
+    // Filter the results on the server
+    const todayCheckInDoc = snapshot.docs.find(doc => {
+        const timestamp = (doc.data().timestamp as Timestamp).toDate();
+        return isWithinInterval(timestamp, todayInterval);
+    });
 
-    const doc = snapshot.docs[0];
-    const data = doc.data();
+    if (!todayCheckInDoc) {
+        return null;
+    }
+    
+    const data = todayCheckInDoc.data();
     return {
-        id: doc.id,
+        id: todayCheckInDoc.id,
         ...data,
         timestamp: (data.timestamp as Timestamp).toDate(),
     } as CheckIn;
