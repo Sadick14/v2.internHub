@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, where, writeBatch, serverTimestamp, doc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, writeBatch, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import { createInvite } from './invitesService';
 import { createAuditLog } from './auditLogService';
 
@@ -71,6 +71,7 @@ export async function setupInternship(details: InternshipDetails): Promise<{ suc
         });
         
         // 4. Update the student's user profile with the new internship ID
+        // The studentId passed in is the DOCUMENT ID of the user.
         const studentRef = doc(db, 'users', details.studentId);
         batch.update(studentRef, { internshipId: internshipRef.id });
 
