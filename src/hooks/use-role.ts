@@ -29,11 +29,13 @@ const authLoadingAtom = atom<boolean>(true);
 
 // This is a global listener, ensures we only have one
 onAuthStateChanged(auth, async (user) => {
+  console.log('[useRole] onAuthStateChanged triggered. Firebase user:', user);
   if (user) {
     appStore.set(firebaseUserAtom, user);
     const userDoc = await getDoc(doc(db, "users", user.uid));
     if (userDoc.exists()) {
         const userData = userDoc.data();
+        console.log('[useRole] Firestore user data found:', userData);
         const name = userData.fullName || "Anonymous";
         const userRole = userData.role || "student";
         appStore.set(userAtom, {
@@ -46,15 +48,18 @@ onAuthStateChanged(auth, async (user) => {
         appStore.set(roleAtom, userRole);
     } else {
         // Handle case where user exists in Auth but not in Firestore
+        console.warn(`[useRole] No Firestore document found for user UID: ${user.uid}`);
         appStore.set(userAtom, null);
         appStore.set(roleAtom, null);
     }
   } else {
+    console.log('[useRole] No Firebase user. Clearing data.');
     appStore.set(userAtom, null);
     appStore.set(firebaseUserAtom, null);
     appStore.set(roleAtom, null);
   }
   appStore.set(authLoadingAtom, false);
+  console.log('[useRole] Auth loading finished.');
 });
 
 
