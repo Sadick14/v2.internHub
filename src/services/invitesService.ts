@@ -67,22 +67,28 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
             text: `Welcome! Your verification code is ${verificationCode}`,
             html: `<p>Welcome! Your verification code is <strong>${verificationCode}</strong></p><p>Please use this code to complete your registration.</p>`,
         });
-    } catch (error: any) {
-        console.error("Failed to send verification email upon invite:", error);
-        // In a real app, you might want to handle this failure, e.g., by deleting the created user/invite or marking it as failed.
+    } catch (error) {
+        console.error("Failed to send initial invite email:", error);
+        // Optionally re-throw or handle the error more gracefully
+        throw new Error("Failed to send invitation email.");
     }
 
-
     // 4. Create an audit log
-    const currentUser = auth.currentUser;
-    if (currentUser) {
-         await createAuditLog({
-            action: 'Create Invite',
-            details: `Invited ${inviteData.firstName} ${inviteData.lastName} (${inviteData.email}) as a ${inviteData.role}.`,
-            userId: currentUser.uid,
-            userName: currentUser.displayName || 'Admin',
-            userEmail: currentUser.email || 'N/A'
-        });
+    try {
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+            await createAuditLog({
+                action: 'Create Invite',
+                details: `Invited ${inviteData.firstName} ${inviteData.lastName} (${inviteData.email}) as a ${inviteData.role}.`,
+                userId: currentUser.uid,
+                userName: currentUser.displayName || 'Admin',
+                userEmail: currentUser.email || 'N/A'
+            });
+        }
+    } catch (error) {
+        console.error("Failed to create audit log for invite:", error);
+        // Decide if this failure should affect the overall outcome.
+        // For now, we'll just log it and not throw an error.
     }
 }
 
