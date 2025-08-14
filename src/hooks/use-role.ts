@@ -4,7 +4,7 @@ import { atom, useAtom, createStore } from "jotai"
 import { useEffect } from "react"
 import { auth, db } from "@/lib/firebase"
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth"
-import { doc, getDoc } from "firebase/firestore"
+import { doc, getDoc, query, where, collection, getDocs } from "firebase/firestore"
 
 export type Role = "student" | "lecturer" | "hod" | "supervisor" | "admin"
 
@@ -29,13 +29,16 @@ const authLoadingAtom = atom<boolean>(true);
 
 // This is a global listener, ensures we only have one
 onAuthStateChanged(auth, async (user) => {
-  console.log('[useRole] onAuthStateChanged triggered. Firebase user:', user);
   if (user) {
     appStore.set(firebaseUserAtom, user);
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (userDoc.exists()) {
+    // Use the auth uid to find the user document
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("uid", "==", user.uid));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+        const userDoc = querySnapshot.docs[0];
         const userData = userDoc.data();
-        console.log('[useRole] Firestore user data found:', userData);
         const name = userData.fullName || "Anonymous";
         const userRole = userData.role || "student";
         appStore.set(userAtom, {
@@ -48,18 +51,19 @@ onAuthStateChanged(auth, async (user) => {
         appStore.set(roleAtom, userRole);
     } else {
         // Handle case where user exists in Auth but not in Firestore
+        // This might happen if registration didn't complete
         console.warn(`[useRole] No Firestore document found for user UID: ${user.uid}`);
         appStore.set(userAtom, null);
         appStore.set(roleAtom, null);
     }
   } else {
-    console.log('[useRole] No Firebase user. Clearing data.');
+    // No user logged in
     appStore.set(userAtom, null);
     appStore.set(firebaseUserAtom, null);
     appStore.set(roleAtom, null);
   }
+  // Finished loading
   appStore.set(authLoadingAtom, false);
-  console.log('[useRole] Auth loading finished.');
 });
 
 

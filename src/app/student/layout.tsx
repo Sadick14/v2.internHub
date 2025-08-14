@@ -27,13 +27,14 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
+    if (!loading && isMounted) {
+      if (!user) {
+        router.push('/login');
+      } else if (role !== 'student') {
+        router.push('/dashboard');
+      }
     }
-     if (!loading && user && role !== 'student') {
-      router.push('/dashboard');
-    }
-  }, [user, loading, role, router]);
+  }, [user, loading, role, router, isMounted]);
 
 
   const navItems = [
@@ -41,7 +42,7 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
     { href: '/student/submit-report', label: 'Submit Report', icon: Package },
   ];
 
-  if (!isMounted || loading) {
+  if (loading || !isMounted || !user) {
     return (
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
            <div className="flex items-center justify-center h-full">
