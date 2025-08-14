@@ -309,5 +309,4 @@ export default function InviteUserPage() {
             </CardContent>
         </Card>
     );
-
-    
+}
