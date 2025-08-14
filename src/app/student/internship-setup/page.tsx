@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { setupInternship } from '@/services/internshipService';
 import { useRouter } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const internshipSetupSchema = z.object({
   companyName: z.string().min(2, "Company name is required."),
@@ -49,8 +50,8 @@ export default function InternshipSetupPage() {
     });
     
     async function onSubmit(data: InternshipSetupFormValues) {
-        if (!user?.uid || !user.name) {
-             toast({ title: 'Error', description: 'User information is not available.', variant: 'destructive' });
+        if (!user?.uid || !user.name || !user.email) {
+             toast({ title: 'Error', description: 'User information is not available. Please log in again.', variant: 'destructive' });
              return;
         }
 
@@ -58,8 +59,9 @@ export default function InternshipSetupPage() {
         try {
             const result = await setupInternship({
                 ...data,
-                studentId: user.uid,
+                studentId: user.uid, // This is now the document ID
                 studentName: user.name,
+                studentEmail: user.email
             });
 
             if (result.success) {
@@ -67,7 +69,8 @@ export default function InternshipSetupPage() {
                     title: 'Success!',
                     description: result.message,
                 });
-                router.push('/student/dashboard');
+                // A hard refresh might be needed to fully reload the user context
+                window.location.href = '/student/dashboard';
             } else {
                  toast({
                     title: 'Error',
@@ -88,7 +91,20 @@ export default function InternshipSetupPage() {
 
 
     if (userLoading) {
-        return <div>Loading...</div>
+        return (
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-1/2" />
+                    <Skeleton className="h-4 w-3/4" />
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-1/4" />
+                </CardContent>
+            </Card>
+        )
     }
 
     return (

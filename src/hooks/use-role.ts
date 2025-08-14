@@ -1,3 +1,4 @@
+
 'use client'
 
 import { atom, useAtom, createStore } from "jotai"
@@ -9,11 +10,13 @@ import { doc, getDoc, query, where, collection, getDocs } from "firebase/firesto
 export type Role = "student" | "lecturer" | "hod" | "supervisor" | "admin"
 
 type AppUser = {
-  uid: string
+  uid: string // This will be the Firestore Document ID
+  authUid: string // This is the Firebase Auth UID
   name: string
   email: string
   initials: string
-  role: Role
+  role: Role,
+  internshipId?: string
 }
 
 const allRoles: Role[] = ["student", "lecturer", "hod", "supervisor", "admin"];
@@ -42,11 +45,13 @@ onAuthStateChanged(auth, async (user) => {
         const name = userData.fullName || "Anonymous";
         const userRole = userData.role || "student";
         appStore.set(userAtom, {
-            uid: user.uid,
+            uid: userDoc.id, // Firestore Document ID
+            authUid: user.uid, // Firebase Auth UID
             name,
             email: userData.email || "",
             initials: name.split(' ').map((n: string) => n[0]).join(''),
-            role: userRole
+            role: userRole,
+            internshipId: userData.internshipId,
         });
         appStore.set(roleAtom, userRole);
     } else {

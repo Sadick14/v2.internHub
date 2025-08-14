@@ -7,8 +7,9 @@ import { createInvite } from './invitesService';
 import { createAuditLog } from './auditLogService';
 
 export interface InternshipDetails {
-    studentId: string;
+    studentId: string; // This will now be the Firestore Document ID
     studentName: string;
+    studentEmail: string;
     companyName: string;
     companyAddress: string;
     supervisorName: string;
@@ -49,7 +50,6 @@ export async function setupInternship(details: InternshipDetails): Promise<{ suc
             firstName: details.supervisorName.split(' ')[0],
             lastName: details.supervisorName.split(' ').slice(1).join(' ') || details.supervisorName.split(' ')[0],
             role: 'supervisor',
-            // Pass inviting user details for the audit log inside createInvite
             invitedBy: {
                 id: details.studentId,
                 name: details.studentName,
@@ -60,7 +60,7 @@ export async function setupInternship(details: InternshipDetails): Promise<{ suc
         const internshipCol = collection(db, 'internships');
         const internshipRef = doc(internshipCol);
         batch.set(internshipRef, {
-            studentId: details.studentId,
+            studentId: details.studentId, // Storing student's document ID
             companyId: companyId,
             supervisorId: supervisorInviteResult.pendingUserId, // Link to the supervisor's user document
             supervisorEmail: details.supervisorEmail,
@@ -71,7 +71,7 @@ export async function setupInternship(details: InternshipDetails): Promise<{ suc
         });
         
         // 4. Update the student's user profile with the new internship ID
-        // The studentId passed in is the DOCUMENT ID of the user.
+        // The studentId passed in IS the document ID.
         const studentRef = doc(db, 'users', details.studentId);
         batch.update(studentRef, { internshipId: internshipRef.id });
 
@@ -82,7 +82,7 @@ export async function setupInternship(details: InternshipDetails): Promise<{ suc
         await createAuditLog({
             userId: details.studentId,
             userName: details.studentName,
-            userEmail: 'N/A', // Student email not available here, can be enriched later if needed
+            userEmail: details.studentEmail,
             action: 'Setup Internship',
             details: `Student ${details.studentName} set up internship at ${details.companyName}. Supervisor: ${details.supervisorEmail}.`,
         });
