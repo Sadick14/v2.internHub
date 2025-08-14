@@ -8,6 +8,7 @@ import {
   Bell,
   Home,
   Package,
+  Briefcase,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
 
   const navItems = [
     { href: '/student/dashboard', label: 'Dashboard', icon: Home },
+    { href: '/student/internship-setup', label: 'Internship Profile', icon: Briefcase },
     { href: '/student/submit-report', label: 'Submit Report', icon: Package },
   ];
 

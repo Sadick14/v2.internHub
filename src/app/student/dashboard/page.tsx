@@ -1,9 +1,11 @@
 
+'use client';
 import {
   Activity,
   Briefcase,
   CheckCircle2,
   Clock,
+  ArrowRight
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -22,8 +24,43 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useRole } from '@/hooks/use-role';
+import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function StudentDashboardPage() {
+  const { user, loading } = useRole();
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  // If user has no internshipId, show the setup prompt.
+  if (user && !user.internshipId) {
+    return (
+      <Card className="text-center">
+        <CardHeader>
+          <CardTitle className="font-headline">Welcome to InternshipTrack!</CardTitle>
+          <CardDescription>Let's get your internship profile set up so you can start logging your progress.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center gap-4">
+            <Briefcase className="w-16 h-16 text-primary" />
+            <p>You have not configured your internship details yet.</p>
+            <Button asChild>
+                <Link href="/student/internship-setup">
+                    Setup Internship Profile <ArrowRight className="ml-2" />
+                </Link>
+            </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
      <div className="flex flex-col gap-4 lg:gap-6">
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">

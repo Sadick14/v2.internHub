@@ -18,6 +18,7 @@ export interface UserProfile {
     facultyId?: string;
     departmentId?: string;
     lecturerId?: string; // ID of the assigned lecturer
+    internshipId?: string; // ID of the active internship
     createdAt?: Date;
 
     // Enriched fields
@@ -68,12 +69,16 @@ export async function getUserById(uid: string): Promise<UserProfile | null> {
         userSnapshot = querySnapshot.docs[0];
     } else {
         // Fallback for pending users or if UID is the doc ID
-        const docRef = doc(db, 'users', uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            userSnapshot = docSnap;
-        } else {
-            return null;
+        try {
+            const docRef = doc(db, 'users', uid);
+            const docSnap = await getDoc(docRef);
+             if (docSnap.exists()) {
+                userSnapshot = docSnap;
+            } else {
+                return null;
+            }
+        } catch (error) {
+            return null; // Invalid UID format for doc()
         }
     }
 
@@ -115,15 +120,10 @@ export async function getUserByEmail(email: string): Promise<UserProfile | null>
 
     const userDoc = querySnapshot.docs[0];
     const userData = userDoc.data() as UserProfile;
-
-    if (userData.status !== 'active') {
-        // Optionally, you might want to prevent login for non-active users
-        return null;
-    }
     
     return {
         ...userData,
-        uid: userDoc.id,
+        uid: userDoc.id, // Use the document ID as UID
     }
 }
 
@@ -140,6 +140,7 @@ export async function updateUserStatus(uid: string, status: 'active' | 'inactive
 
 
 export async function assignLecturerToStudent(studentId: string, lecturerId: string): Promise<void> {
+    // Note: The studentId here is the DOCUMENT ID from the users collection
     const studentRef = doc(db, 'users', studentId);
     await updateDoc(studentRef, { lecturerId });
 
