@@ -15,9 +15,9 @@ import { CalendarIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { setupInternship } from '@/services/internshipService';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
+import { createInternshipProfile } from '@/services/internshipProfileService';
 
 const internshipSetupSchema = z.object({
   companyName: z.string().min(2, "Company name is required."),
@@ -57,9 +57,9 @@ export default function InternshipSetupPage() {
 
         setIsSubmitting(true);
         try {
-            const result = await setupInternship({
+            const result = await createInternshipProfile({
                 ...data,
-                studentId: user.uid, // This is now the document ID
+                studentId: user.uid,
                 studentName: user.name,
                 studentEmail: user.email
             });
