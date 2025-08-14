@@ -13,24 +13,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Upload, FileDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { Role } from '@/hooks/use-role';
 
 type InviteFormState = {
     firstName: string;
     lastName: string;
     indexNumber: string;
     email: string;
+    role: Role;
     facultyId: string;
     departmentId: string;
     programOfStudy: string;
 }
 
-export default function InviteStudentPage() {
+export default function InviteUserPage() {
     const { toast } = useToast();
     const [formData, setFormData] = useState<InviteFormState>({
         firstName: '',
         lastName: '',
         indexNumber: '',
         email: '',
+        role: 'student',
         facultyId: '',
         departmentId: '',
         programOfStudy: '',
@@ -42,6 +45,7 @@ export default function InviteStudentPage() {
     const [isFetchingInvites, setIsFetchingInvites] = useState(true);
 
     async function fetchPageData() {
+        setIsFetchingInvites(true);
         const [facultiesData, departmentsData, invitesData] = await Promise.all([
             getFaculties(),
             getDepartments(),
@@ -62,10 +66,13 @@ export default function InviteStudentPage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSelectChange = (name: string, value: string) => {
+    const handleSelectChange = (name: keyof InviteFormState, value: string) => {
         setFormData(prev => ({ ...prev, [name]: value }));
         if (name === 'facultyId') {
             setFormData(prev => ({ ...prev, departmentId: '' }));
+        }
+        if (name === 'role' && value !== 'student') {
+            setFormData(prev => ({ ...prev, indexNumber: '', programOfStudy: '' }));
         }
     };
     
@@ -73,7 +80,7 @@ export default function InviteStudentPage() {
         e.preventDefault();
         setIsLoading(true);
         try {
-            await createInvite({ ...formData, role: 'student' });
+            await createInvite(formData);
             toast({
                 title: "Invite Sent",
                 description: `An invitation has been sent to ${formData.email}.`,
@@ -81,12 +88,9 @@ export default function InviteStudentPage() {
             // Reset form and refresh pending invites
             setFormData({
                 firstName: '', lastName: '', indexNumber: '', email: '',
-                facultyId: '', departmentId: '', programOfStudy: '',
+                role: 'student', facultyId: '', departmentId: '', programOfStudy: '',
             });
-            setIsFetchingInvites(true);
-            const invites = await getPendingInvites();
-            setPendingInvites(invites);
-            setIsFetchingInvites(false);
+            await fetchPageData();
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -99,12 +103,12 @@ export default function InviteStudentPage() {
     };
 
     const handleDownloadTemplate = () => {
-        const headers = "firstName,lastName,indexNumber,email,facultyId,departmentId,programOfStudy";
+        const headers = "firstName,lastName,indexNumber,email,role,facultyId,departmentId,programOfStudy";
         const blob = new Blob([headers], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
-        link.setAttribute("download", "student_invite_template.csv");
+        link.setAttribute("download", "user_invite_template.csv");
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
@@ -118,8 +122,8 @@ export default function InviteStudentPage() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline">Invite Students</CardTitle>
-                <CardDescription>Send invitations to new students to join the platform, either individually or in bulk.</CardDescription>
+                <CardTitle className="font-headline">Invite Users</CardTitle>
+                <CardDescription>Send invitations to new users to join the platform, either individually or in bulk.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="single">
@@ -130,6 +134,20 @@ export default function InviteStudentPage() {
                     <TabsContent value="single">
                         <form onSubmit={handleSendInvite} className="space-y-4 pt-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                 <div className="space-y-2">
+                                    <Label htmlFor="role">Role</Label>
+                                    <Select name="role" value={formData.role} onValueChange={(v) => handleSelectChange('role', v as Role)} required>
+                                        <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="student">Student</SelectItem>
+                                            <SelectItem value="lecturer">Lecturer</SelectItem>
+                                            <SelectItem value="hod">Head of Department</SelectItem>
+                                            <SelectItem value="supervisor">Supervisor</SelectItem>
+                                            <SelectItem value="admin">Admin</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div />
                                 <div className="space-y-2">
                                     <Label htmlFor="firstName">First Name</Label>
                                     <Input id="firstName" name="firstName" required value={formData.firstName} onChange={handleInputChange} />
@@ -139,13 +157,23 @@ export default function InviteStudentPage() {
                                     <Input id="lastName" name="lastName" required value={formData.lastName} onChange={handleInputChange} />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="indexNumber">Index Number</Label>
-                                    <Input id="indexNumber" name="indexNumber" required value={formData.indexNumber} onChange={handleInputChange} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">School Email</Label>
+                                    <Label htmlFor="email">Email</Label>
                                     <Input id="email" name="email" type="email" required value={formData.email} onChange={handleInputChange} />
                                 </div>
+                                { formData.role === 'student' &&
+                                <>
+                                <div className="space-y-2">
+                                    <Label htmlFor="indexNumber">Index Number</Label>
+                                    <Input id="indexNumber" name="indexNumber" required={formData.role === 'student'} value={formData.indexNumber} onChange={handleInputChange} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="programOfStudy">Program of Study</Label>
+                                    <Input id="programOfStudy" name="programOfStudy" required={formData.role === 'student'} value={formData.programOfStudy} onChange={handleInputChange} />
+                                </div>
+                                </>
+                                }
+                                 {(formData.role === 'student' || formData.role === 'lecturer' || formData.role === 'hod') && 
+                                 <>
                                 <div className="space-y-2">
                                     <Label htmlFor="facultyId">Faculty</Label>
                                     <Select name="facultyId" value={formData.facultyId} onValueChange={(v) => handleSelectChange('facultyId', v)} required>
@@ -160,10 +188,9 @@ export default function InviteStudentPage() {
                                         <SelectContent>{departments.filter(d => d.facultyId === formData.facultyId).map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
                                     </Select>
                                 </div>
-                                 <div className="space-y-2 md:col-span-2">
-                                    <Label htmlFor="programOfStudy">Program of Study</Label>
-                                    <Input id="programOfStudy" name="programOfStudy" required value={formData.programOfStudy} onChange={handleInputChange} />
-                                </div>
+                                </>
+                                }
+
                             </div>
                             <Button type="submit" disabled={isLoading}>{isLoading ? 'Sending...' : 'Send Invite'}</Button>
                         </form>
@@ -199,6 +226,7 @@ export default function InviteStudentPage() {
                                     <TableRow>
                                         <TableHead>Email</TableHead>
                                         <TableHead>Name</TableHead>
+                                        <TableHead>Role</TableHead>
                                         <TableHead>Department</TableHead>
                                         <TableHead>Invited On</TableHead>
                                     </TableRow>
@@ -209,6 +237,7 @@ export default function InviteStudentPage() {
                                             <TableRow key={i}>
                                                 <TableCell><Skeleton className="h-5 w-48" /></TableCell>
                                                 <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                                <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                                                 <TableCell><Skeleton className="h-5 w-40" /></TableCell>
                                                 <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                                             </TableRow>
@@ -218,13 +247,14 @@ export default function InviteStudentPage() {
                                             <TableRow key={invite.id}>
                                                 <TableCell className="font-medium">{invite.email}</TableCell>
                                                 <TableCell>{invite.firstName} {invite.lastName}</TableCell>
+                                                <TableCell className="capitalize">{invite.role}</TableCell>
                                                 <TableCell>{departments.find(d => d.id === invite.departmentId)?.name || 'N/A'}</TableCell>
                                                 <TableCell>{invite.createdAt?.toLocaleDateString() || 'N/A'}</TableCell>
                                             </TableRow>
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={4} className="text-center text-muted-foreground h-24">
+                                            <TableCell colSpan={5} className="text-center text-muted-foreground h-24">
                                                 No pending invitations.
                                             </TableCell>
                                         </TableRow>

@@ -135,7 +135,7 @@ export default function UserManagementPage() {
                             <CardDescription>View, create, edit, and manage all system users.</CardDescription>
                         </div>
                         <Button asChild>
-                           <Link href="/admin/invite-student">
+                           <Link href="/admin/invite-user">
                             <PlusCircle className="mr-2 h-4 w-4" />
                                 Add New User
                            </Link>

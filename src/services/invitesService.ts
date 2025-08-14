@@ -9,12 +9,12 @@ export interface Invite {
     role: Role;
     firstName: string;
     lastName: string;
-    indexNumber: string;
-    programOfStudy: string;
-    facultyId: string;
-    departmentId: string;
+    indexNumber?: string;
+    programOfStudy?: string;
+    facultyId?: string;
+    departmentId?: string;
     status: 'pending' | 'accepted';
-    createdAt: Date;
+    createdAt?: Date;
 }
 
 export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdAt' | 'id'>): Promise<void> {
