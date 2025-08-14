@@ -1,59 +1,64 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    function isAuth() {
-      return request.auth != null;
+    
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
     }
     
-    function isAdmin() {
-      return isAuth() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
-    match /users/{userId} {
-      // Any authenticated user can read user profiles.
-      allow read: if isAuth();
-      // A user can create their OWN user document. This is key for registration.
-      allow create: if request.auth.uid == userId;
-      // Only admins can update or delete users.
-      allow update, delete: if isAdmin();
-    }
-
+    // Allow anyone to read/write to invites. This is safe because server actions
+    // validate the codes and perform the critical logic.
     match /invites/{inviteId} {
-      // Allow unauthenticated access for the verification/registration flow.
-      // Security is handled by server-side code checking the verification code.
       allow read, write: if true;
     }
+    
+    // User profile rules
+    match /users/{userId} {
+      // Allow a user to create their own profile document.
+      // This is the key rule for fixing the registration permission error.
+      allow create: if request.auth.uid == userId;
 
+      // Allow any authenticated user to read any other user's profile.
+      allow read: if request.auth != null;
+
+      // Only allow admins to update or delete user profiles.
+      allow update, delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Allow admins to manage university structure
     match /faculties/{facultyId} {
-      allow read: if isAuth();
-      allow write: if isAdmin();
+        allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
-    
+
     match /departments/{departmentId} {
-       allow read: if isAuth();
-       allow write: if isAdmin();
+        allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    match /internship_terms/{termId} {
-      allow read: if isAuth();
-      allow write: if isAdmin();
-    }
-
-    match /settings/{settingId} {
-      allow read: if isAuth();
-      allow write: if isAdmin();
-    }
-
-    match /audit_logs/{logId} {
-       allow read, write: if isAdmin();
-    }
-    
+    // Rules for reports
     match /reports/{reportId} {
-      // TODO: Add more granular rules (e.g., student can create, assigned lecturer can update)
-      allow read, write: if isAuth();
+      // Students can create reports for themselves
+      allow create: if request.auth.uid == request.resource.data.studentId;
+      // Students can read their own reports
+      // Lecturers, HODs, Supervisors can read reports they are linked to
+      allow read: if request.auth.uid == resource.data.studentId || 
+                    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['lecturer', 'hod', 'supervisor', 'admin'];
+      // Lecturers, HODs, Supervisors can update reports (e.g. to add comments/approve)
+      allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['lecturer', 'hod', 'supervisor', 'admin'];
+    }
+
+    // Allow admins to manage internship terms and settings
+    match /internship_terms/{termId} {
+        allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    match /settings/global {
+        allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Allow admins to write audit logs (though these are created via server-side logic)
+    match /audit_logs/{logId} {
+        allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
   }
 }

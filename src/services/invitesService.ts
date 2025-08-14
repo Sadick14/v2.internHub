@@ -3,7 +3,7 @@
 'use server';
 
 import { db, auth } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, getDocs, query, where, Timestamp, writeBatch, documentId, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs, query, where, Timestamp, writeBatch, documentId, doc, updateDoc, setDoc } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
 import { createAuditLog } from './auditLogService';
 import { sendMail } from '@/lib/email';
@@ -19,7 +19,7 @@ export interface Invite {
     facultyId?: string;
     departmentId?: string;
     status: 'pending' | 'accepted';
-    createdAt?: string; // Serialized date
+    createdAt: string; // Serialized date
     verificationCode: string; // OTP
 }
 
@@ -33,7 +33,6 @@ function generateSecureCode(): string {
 export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdAt' | 'id' | 'verificationCode'>): Promise<void> {
     const invitesCol = collection(db, 'invites');
     
-    // Generate a simple 6-digit verification code
     const verificationCode = generateSecureCode();
     
     await addDoc(invitesCol, {
@@ -69,7 +68,6 @@ export async function sendVerificationEmail(email: string): Promise<{ success: b
     let invite = inviteDoc.data() as Invite;
     let verificationCode = invite.verificationCode;
 
-    // If verification code is missing, generate, save, and use it.
     if (!verificationCode) {
         verificationCode = generateSecureCode();
         await updateDoc(inviteDoc.ref, { verificationCode });
@@ -96,7 +94,6 @@ export async function getPendingInvites(): Promise<Invite[]> {
     const inviteSnapshot = await getDocs(q);
     const inviteList = inviteSnapshot.docs.map(doc => {
         const data = doc.data();
-        // Convert Firestore Timestamp to JS Date if it exists
         const createdAt = data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : new Date().toISOString();
         return { 
             id: doc.id,
@@ -119,12 +116,11 @@ export async function verifyInvite(email: string, code: string): Promise<Invite 
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
-        return null; // No matching, pending invite found
+        return null;
     }
 
     const inviteDoc = snapshot.docs[0];
     const data = inviteDoc.data();
-    // Ensure timestamp is serialized for client component props
     const createdAt = data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : new Date().toISOString();
 
     return { id: inviteDoc.id, ...data, createdAt } as Invite;
@@ -132,21 +128,16 @@ export async function verifyInvite(email: string, code: string): Promise<Invite 
 
 
 export async function acceptInvite(inviteId: string, userId: string, userProfile: any) {
-    const batch = writeBatch(db);
-
-    // 1. Create the user document with a server-side timestamp
     const userRef = doc(db, 'users', userId);
-    // Remove client-side date before sending to Firestore
-    const { createdAt, ...profileData } = userProfile;
-    batch.set(userRef, {
-        ...profileData,
-        uid: userId, // Ensure UID is part of the document data for security rules
+    const inviteRef = doc(db, 'invites', inviteId);
+
+    // Create the user document first.
+    await setDoc(userRef, {
+        ...userProfile,
+        uid: userId, // Ensure the UID is part of the document data
         createdAt: serverTimestamp()
     });
 
-    // 2. Update the invite status to 'accepted'
-    const inviteRef = doc(db, 'invites', inviteId);
-    batch.update(inviteRef, { status: 'accepted' });
-
-    await batch.commit();
+    // Then update the invite status.
+    await updateDoc(inviteRef, { status: 'accepted' });
 }
