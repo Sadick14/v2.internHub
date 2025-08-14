@@ -38,11 +38,11 @@ export async function createTask(taskData: NewDailyTask): Promise<void> {
 }
 
 export async function getTasksByDate(studentId: string, date: Date): Promise<DailyTask[]> {
-    // Query by studentId first
+    // Simplified query to avoid composite index requirement.
+    // We fetch all tasks for a student and then filter by date in the application code.
     const q = query(
         tasksCollectionRef,
-        where('studentId', '==', studentId),
-        orderBy('date', 'desc')
+        where('studentId', '==', studentId)
     );
     const snapshot = await getDocs(q);
 
@@ -51,8 +51,7 @@ export async function getTasksByDate(studentId: string, date: Date): Promise<Dai
         end: endOfDay(date),
     };
 
-    // Filter by date in the application code
-    const tasksForDate = snapshot.docs.map(doc => {
+    const tasks = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
             id: doc.id,
@@ -60,7 +59,12 @@ export async function getTasksByDate(studentId: string, date: Date): Promise<Dai
             date: (data.date as Timestamp).toDate(),
             createdAt: (data.createdAt as Timestamp).toDate(),
         } as DailyTask;
-    }).filter(task => isWithinInterval(task.date, todayInterval));
+    });
+
+    // Filter by date and sort in the application code
+    const tasksForDate = tasks
+        .filter(task => isWithinInterval(task.date, todayInterval))
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     return tasksForDate;
 }
