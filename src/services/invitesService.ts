@@ -1,6 +1,5 @@
 
 
-
 'use server';
 
 import { db, auth } from '@/lib/firebase';
@@ -24,13 +23,19 @@ export interface Invite {
     verificationCode: string; // OTP
 }
 
+function generateSecureCode(): string {
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    const randomValue = array[0];
+    return (randomValue % 900000 + 100000).toString();
+}
+
 export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdAt' | 'id' | 'verificationCode'>): Promise<void> {
     const invitesCol = collection(db, 'invites');
     
     // Generate a simple 6-digit verification code
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log(`Generated verification code ${verificationCode} for ${inviteData.email}`);
-
+    const verificationCode = generateSecureCode();
+    
     await addDoc(invitesCol, {
         ...inviteData,
         status: 'pending',
@@ -66,7 +71,7 @@ export async function sendVerificationEmail(email: string): Promise<{ success: b
 
     // If verification code is missing, generate, save, and use it.
     if (!verificationCode) {
-        verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        verificationCode = generateSecureCode();
         await updateDoc(inviteDoc.ref, { verificationCode });
     }
     
