@@ -1,6 +1,6 @@
 
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export interface Faculty {
     id: string;
@@ -12,6 +12,23 @@ export interface Department {
     name: string;
     facultyId: string;
 }
+
+export async function createFaculty(facultyData: { name: string }): Promise<void> {
+    const facultiesCol = collection(db, 'faculties');
+    await addDoc(facultiesCol, {
+        ...facultyData,
+        createdAt: serverTimestamp(),
+    });
+}
+
+export async function createDepartment(departmentData: { name: string; facultyId: string }): Promise<void> {
+    const departmentsCol = collection(db, 'departments');
+    await addDoc(departmentsCol, {
+        ...departmentData,
+        createdAt: serverTimestamp(),
+    });
+}
+
 
 export async function getFaculties(): Promise<Faculty[]> {
     const facultiesCol = collection(db, 'faculties');
