@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllUsers, assignLecturerToStudent, type UserProfile } from '@/services/userService';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 export default function AssignLecturersPage() {
     const [students, setStudents] = useState<UserProfile[]>([]);
@@ -24,8 +25,8 @@ export default function AssignLecturersPage() {
         setIsLoading(true);
         try {
             const allUsers = await getAllUsers();
-            // Students who are active and don't have a lecturerId
-            setStudents(allUsers.filter(u => u.role === 'student' && u.status === 'active' && !u.lecturerId));
+            // Show all active students
+            setStudents(allUsers.filter(u => u.role === 'student' && u.status === 'active'));
             // Lecturers who are active
             setLecturers(allUsers.filter(u => u.role === 'lecturer' && u.status === 'active'));
         } catch (error) {
@@ -41,7 +42,8 @@ export default function AssignLecturersPage() {
 
     const openAssignDialog = (student: UserProfile) => {
         setSelectedStudent(student);
-        setSelectedLecturerId('');
+        // Pre-select the current lecturer if one is assigned
+        setSelectedLecturerId(student.lecturerId || '');
         setIsDialogOpen(true);
     };
 
@@ -51,12 +53,13 @@ export default function AssignLecturersPage() {
             return;
         }
 
+        const isReassigning = !!selectedStudent.lecturerId;
         setIsAssigning(true);
         try {
             await assignLecturerToStudent(selectedStudent.uid, selectedLecturerId);
             toast({
                 title: 'Success',
-                description: `Assigned lecturer to ${selectedStudent.fullName}.`
+                description: `${isReassigning ? 'Re-assigned' : 'Assigned'} lecturer to ${selectedStudent.fullName}.`
             });
             setIsDialogOpen(false);
             // Refresh the list of students
@@ -78,7 +81,7 @@ export default function AssignLecturersPage() {
             <Card>
                 <CardHeader>
                     <CardTitle className="font-headline">Assign Lecturers</CardTitle>
-                    <CardDescription>Assign supervising lecturers to students who are currently unassigned.</CardDescription>
+                    <CardDescription>Assign or re-assign supervising lecturers to students for the active internship term.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -86,7 +89,7 @@ export default function AssignLecturersPage() {
                             <TableRow>
                                 <TableHead>Student Name</TableHead>
                                 <TableHead>Department</TableHead>
-                                <TableHead>Program of Study</TableHead>
+                                <TableHead>Assigned Lecturer</TableHead>
                                 <TableHead className="text-right">Action</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -96,8 +99,8 @@ export default function AssignLecturersPage() {
                                     <TableRow key={i}>
                                         <TableCell><Skeleton className="h-5 w-48" /></TableCell>
                                         <TableCell><Skeleton className="h-5 w-40" /></TableCell>
-                                        <TableCell><Skeleton className="h-5 w-56" /></TableCell>
-                                        <TableCell className="text-right"><Skeleton className="h-9 w-24 ml-auto" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                        <TableCell className="text-right"><Skeleton className="h-9 w-28 ml-auto" /></TableCell>
                                     </TableRow>
                                 ))
                             ) : students.length > 0 ? (
@@ -108,16 +111,26 @@ export default function AssignLecturersPage() {
                                             <div className="text-sm text-muted-foreground">{student.email}</div>
                                         </TableCell>
                                         <TableCell>{student.departmentName || 'N/A'}</TableCell>
-                                        <TableCell>{student.programOfStudy || 'N/A'}</TableCell>
+                                        <TableCell>
+                                            {student.assignedLecturerName ? (
+                                                <div className="flex items-center">
+                                                    <Badge variant="secondary">{student.assignedLecturerName}</Badge>
+                                                </div>
+                                            ) : (
+                                                <Badge variant="outline">Unassigned</Badge>
+                                            )}
+                                        </TableCell>
                                         <TableCell className="text-right">
-                                            <Button onClick={() => openAssignDialog(student)}>Assign Lecturer</Button>
+                                            <Button onClick={() => openAssignDialog(student)} variant={student.lecturerId ? 'outline' : 'default'}>
+                                                {student.lecturerId ? 'Re-assign' : 'Assign Lecturer'}
+                                            </Button>
                                         </TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
                                     <TableCell colSpan={4} className="h-24 text-center">
-                                        All active students have been assigned a lecturer.
+                                        No active students found.
                                     </TableCell>
                                 </TableRow>
                             )}
