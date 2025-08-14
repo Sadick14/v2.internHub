@@ -6,7 +6,9 @@ import {
   CheckCircle2,
   Clock,
   ArrowRight,
-  CalendarCheck
+  CalendarCheck,
+  MapPin,
+  FileText
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -31,6 +33,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getReportsByStudentId, type Report } from '@/services/reportsService';
 import { useEffect, useState } from 'react';
 import { getInternshipProfileByStudentId, type InternshipProfile } from '@/services/internshipProfileService';
+import { getTodayCheckIn, type CheckIn } from '@/services/checkInService';
 import { format, differenceInDays } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
 
@@ -38,20 +41,23 @@ export default function StudentDashboardPage() {
   const { user, loading } = useRole();
   const [reports, setReports] = useState<Report[]>([]);
   const [profile, setProfile] = useState<InternshipProfile | null>(null);
+  const [checkIn, setCheckIn] = useState<CheckIn | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       if (!user || !user.uid) return;
       setDataLoading(true);
-      if (user.internshipId) {
-        const [reportsData, profileData] = await Promise.all([
-          getReportsByStudentId(user.uid),
-          getInternshipProfileByStudentId(user.uid)
-        ]);
-        setReports(reportsData);
-        setProfile(profileData);
-      }
+      
+      const [reportsData, profileData, checkInData] = await Promise.all([
+        getReportsByStudentId(user.uid),
+        getInternshipProfileByStudentId(user.uid),
+        getTodayCheckIn(user.uid)
+      ]);
+      setReports(reportsData);
+      setProfile(profileData);
+      setCheckIn(checkInData);
+
       setDataLoading(false);
     }
     fetchData();
@@ -116,15 +122,26 @@ export default function StudentDashboardPage() {
               <div>
                   <h2 className="text-2xl font-bold mb-1">Welcome back, {user?.name || 'Student'}!</h2>
                   <p className="opacity-90 text-sm">
-                      {pendingReportsCount > 0 ? `You have ${pendingReportsCount} reports pending review.` : 'You are all caught up on your reports.'}
+                      {checkIn ? 
+                        (pendingReportsCount > 0 ? `You have ${pendingReportsCount} reports pending review.` : 'You are all caught up on your reports.') 
+                        : "Please check in to record your attendance for today."
+                      }
                   </p>
               </div>
               <div className="flex-shrink-0 mt-3 md:mt-0">
-                  <Link href="/student/daily-report" passHref>
-                      <Button className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-medium transition rounded-lg px-4 py-2 text-sm">
-                          <CheckCircle2 className="mr-2 h-4 w-4" /> Submit Today's Report
-                      </Button>
-                  </Link>
+                  {checkIn ? (
+                    <Link href="/student/daily-report" passHref>
+                        <Button className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-medium transition rounded-lg px-4 py-2 text-sm">
+                            <FileText className="mr-2 h-4 w-4" /> Submit Today's Report
+                        </Button>
+                    </Link>
+                  ) : (
+                    <Link href="/student/daily-check-in" passHref>
+                        <Button className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-medium transition rounded-lg px-4 py-2 text-sm animate-pulse">
+                            <MapPin className="mr-2 h-4 w-4" /> Check-in Now
+                        </Button>
+                    </Link>
+                  )}
               </div>
           </div>
       </Card>
@@ -155,12 +172,14 @@ export default function StudentDashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Tasks</CardTitle>
+            <CardTitle className="text-sm font-medium">Today's Check-in</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">For today</p>
+            <div className={`text-2xl font-bold ${checkIn ? 'text-primary' : 'text-muted-foreground'}`}>{checkIn ? 'Complete' : 'Pending'}</div>
+             <p className="text-xs text-muted-foreground">
+                {checkIn ? `at ${format(checkIn.timestamp, 'p')}` : 'Action required'}
+             </p>
           </CardContent>
         </Card>
          <Card>
