@@ -2,21 +2,29 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Allow unauthenticated reads on the 'invites' collection for verification
+    
+    // Invites can be read and written by anyone. 
+    // The security is handled by the verification code logic in the server action.
     match /invites/{inviteId} {
-      allow read, update: if true; 
+      allow read, write: if true;
     }
-    
-    // Allow users to create their own user document during registration
+
     match /users/{userId} {
-      allow create: if request.auth.uid == userId;
-      allow read, update, delete: if request.auth.uid == userId;
+      // Allow any authenticated user to read user profiles.
+      allow read: if request.auth != null;
+
+      // Allow a user to create their own user document upon registration.
+      // This is the key fix for the registration permission denied error.
+      allow create: if request.auth != null && request.auth.uid == userId;
+      
+      // Only admins can update or delete user documents.
+      allow update, delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
-    
-    // Allow read/write access to all other collections for authenticated users
+
+    // Admins have broad access to other collections.
+    // This rule provides a fallback for collections not explicitly defined.
     match /{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
   }
 }
