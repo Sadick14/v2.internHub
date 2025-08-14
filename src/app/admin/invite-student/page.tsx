@@ -41,24 +41,20 @@ export default function InviteStudentPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isFetchingInvites, setIsFetchingInvites] = useState(true);
 
+    async function fetchPageData() {
+        const [facultiesData, departmentsData, invitesData] = await Promise.all([
+            getFaculties(),
+            getDepartments(),
+            getPendingInvites()
+        ]);
+        setFaculties(facultiesData);
+        setDepartments(departmentsData);
+        setPendingInvites(invitesData);
+        setIsFetchingInvites(false);
+    }
+    
     useEffect(() => {
-        async function fetchData() {
-            const facultiesData = await getFaculties();
-            setFaculties(facultiesData);
-            const departmentsData = await getDepartments();
-            setDepartments(departmentsData);
-        }
-        fetchData();
-    }, []);
-
-    useEffect(() => {
-        async function fetchInvites() {
-            setIsFetchingInvites(true);
-            const invites = await getPendingInvites();
-            setPendingInvites(invites);
-            setIsFetchingInvites(false);
-        }
-        fetchInvites();
+        fetchPageData();
     }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,11 +78,15 @@ export default function InviteStudentPage() {
                 title: "Invite Sent",
                 description: `An invitation has been sent to ${formData.email}.`,
             });
-            // Reset form
+            // Reset form and refresh pending invites
             setFormData({
                 firstName: '', lastName: '', indexNumber: '', email: '',
                 facultyId: '', departmentId: '', programOfStudy: '',
             });
+            setIsFetchingInvites(true);
+            const invites = await getPendingInvites();
+            setPendingInvites(invites);
+            setIsFetchingInvites(false);
         } catch (error: any) {
             toast({
                 title: "Error",
@@ -219,7 +219,7 @@ export default function InviteStudentPage() {
                                                 <TableCell className="font-medium">{invite.email}</TableCell>
                                                 <TableCell>{invite.firstName} {invite.lastName}</TableCell>
                                                 <TableCell>{departments.find(d => d.id === invite.departmentId)?.name || 'N/A'}</TableCell>
-                                                <TableCell>{invite.createdAt?.toDate().toLocaleDateString() || 'N/A'}</TableCell>
+                                                <TableCell>{invite.createdAt?.toLocaleDateString() || 'N/A'}</TableCell>
                                             </TableRow>
                                         ))
                                     ) : (

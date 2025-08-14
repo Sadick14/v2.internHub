@@ -14,7 +14,7 @@ export interface Invite {
     facultyId: string;
     departmentId: string;
     status: 'pending' | 'accepted';
-    createdAt: any;
+    createdAt: Date;
 }
 
 export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdAt' | 'id'>): Promise<void> {
@@ -34,11 +34,12 @@ export async function getPendingInvites(): Promise<Invite[]> {
     const inviteSnapshot = await getDocs(q);
     const inviteList = inviteSnapshot.docs.map(doc => {
         const data = doc.data();
+        // Convert Firestore Timestamp to JS Date if it exists
+        const createdAt = data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date();
         return { 
             id: doc.id,
             ...data,
-            // Convert Firestore Timestamp to JS Date if it exists
-            createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date()
+            createdAt,
         } as Invite
     });
     return inviteList;
