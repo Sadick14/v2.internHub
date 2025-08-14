@@ -1,8 +1,11 @@
 
+
 import { db } from '@/lib/firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
 import { getFacultyById, getDepartmentById } from './universityService';
+import { createAuditLog } from './auditLogService';
+import { auth } from '@/lib/firebase';
 
 export interface UserProfile {
     uid: string;
@@ -14,6 +17,7 @@ export interface UserProfile {
     programOfStudy?: string;
     facultyId?: string;
     departmentId?: string;
+    lecturerId?: string; // ID of the assigned lecturer
     createdAt?: Date;
 
     // Enriched fields
@@ -87,4 +91,25 @@ export async function updateUser(uid: string, data: Partial<UserProfile>): Promi
 export async function updateUserStatus(uid: string, status: 'active' | 'inactive'): Promise<void> {
     const userRef = doc(db, 'users', uid);
     await updateDoc(userRef, { status });
+}
+
+
+export async function assignLecturerToStudent(studentId: string, lecturerId: string): Promise<void> {
+    const studentRef = doc(db, 'users', studentId);
+    await updateDoc(studentRef, { lecturerId });
+
+    // Create an audit log
+    const currentUser = auth.currentUser;
+    const student = await getUserById(studentId);
+    const lecturer = await getUserById(lecturerId);
+
+    if (currentUser && student && lecturer) {
+        await createAuditLog({
+            userId: currentUser.uid,
+            userName: currentUser.displayName || 'Admin',
+            userEmail: currentUser.email || 'N/A',
+            action: 'Assign Lecturer',
+            details: `Assigned lecturer ${lecturer.fullName} to student ${student.fullName}.`
+        });
+    }
 }
