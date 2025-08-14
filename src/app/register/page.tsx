@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db } from '@/lib/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -17,18 +16,14 @@ import type { Role } from '@/hooks/use-role';
 export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [role, setRole] = useState<Role | ''>('');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const role: Role = 'admin'; // Hardcode role to admin
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!role) {
-      toast({ title: "Please select a role.", variant: "destructive" });
-      return;
-    }
     setIsLoading(true);
 
     try {
@@ -44,7 +39,7 @@ export default function RegisterPage() {
 
       toast({
         title: "Registration Successful",
-        description: "Your account has been created.",
+        description: "Admin account has been created.",
       });
       router.push('/dashboard');
 
@@ -73,29 +68,14 @@ export default function RegisterPage() {
               </Link>
               <h1 className="text-3xl font-bold font-headline mt-2">InternshipTrack</h1>
             </div>
-            <CardTitle className="text-2xl font-headline">Create an Account</CardTitle>
+            <CardTitle className="text-2xl font-headline">Admin Registration</CardTitle>
             <CardDescription>
-              Select your role and fill in your details to get started.
+              Create a new administrator account.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleRegister}>
               <div className="grid gap-4">
-                 <div className="grid gap-2">
-                  <Label htmlFor="role">Your Role</Label>
-                   <Select value={role} onValueChange={(value) => setRole(value as Role)}>
-                    <SelectTrigger id="role">
-                      <SelectValue placeholder="Select your role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="student">Student</SelectItem>
-                      <SelectItem value="lecturer">Lecturer</SelectItem>
-                      <SelectItem value="supervisor">Company Supervisor</SelectItem>
-                      <SelectItem value="hod">Head of Department</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 <div className="grid gap-2">
                   <Label htmlFor="full-name">Full Name</Label>
                   <Input id="full-name" placeholder="John Doe" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
@@ -116,7 +96,7 @@ export default function RegisterPage() {
                   <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Registering...' : 'Register'}
+                  {isLoading ? 'Registering...' : 'Create Admin Account'}
                 </Button>
               </div>
             </form>

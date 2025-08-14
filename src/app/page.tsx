@@ -44,7 +44,7 @@ export default function WelcomePage() {
               <Link href="/login">Login</Link>
             </Button>
             <Button asChild>
-              <Link href="/register">Register</Link>
+              <Link href="/dashboard">Go to Dashboard</Link>
             </Button>
           </div>
         </div>
