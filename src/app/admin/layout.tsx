@@ -10,7 +10,7 @@ import {
   Users,
   Building,
   Send,
-  Settings,
+  CalendarClock,
   Shield,
   UserCheck,
   User,
@@ -48,7 +48,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     { href: '/admin/invite-user', label: 'Invite User', icon: Send },
     { href: '/admin/assign-lecturers', label: 'Assign Lecturers', icon: UserCheck },
     { href: '/admin/university-structure', label: 'University Structure', icon: Building },
-    { href: '/admin/system-settings', label: 'System Settings', icon: Settings },
+    { href: '/admin/internship-terms', label: 'Internship Terms', icon: CalendarClock },
     { href: '/admin/audit-logs', label: 'Audit Logs', icon: Shield },
   ];
 
