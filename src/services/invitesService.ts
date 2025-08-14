@@ -20,7 +20,7 @@ export interface Invite {
     departmentId?: string;
     status: 'pending' | 'accepted';
     createdAt?: Date;
-    verificationCode?: string; // OTP
+    verificationCode: string; // OTP
 }
 
 export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdAt' | 'id' | 'verificationCode'>): Promise<void> {
