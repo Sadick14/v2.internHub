@@ -73,7 +73,7 @@ export default function LecturerDashboardPage() {
         <CardHeader className="flex items-center">
           <CardTitle className="font-headline">My Students</CardTitle>
           <Button asChild size="sm" className="ml-auto gap-1">
-            <Link href="/students">
+            <Link href="/lecturer/students">
               View All
               <ArrowUpRight className="h-4 w-4" />
             </Link>

@@ -74,7 +74,7 @@ export default function AdminDashboardPage() {
           <CardTitle className="font-headline text-lg">Quick Actions</CardTitle>
           <div className="mt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Button asChild>
-              <Link href="/invite-student">Invite Student</Link>
+              <Link href="/admin/invite-student">Invite Student</Link>
             </Button>
             <Button variant="secondary">Manage Users</Button>
             <Button variant="secondary">System Settings</Button>
