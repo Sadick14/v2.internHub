@@ -16,13 +16,16 @@ export default function VerifyPage() {
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [emailConfirmed, setEmailConfirmed] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
-  const handleCheckEmail = async (e: React.FormEvent) => {
-      e.preventDefault();
-      setIsLoading(true);
+  const handleSendCode = async (e?: React.FormEvent) => {
+      e?.preventDefault();
+      const loadingSetter = emailConfirmed ? setIsResending : setIsLoading;
+      loadingSetter(true);
+
       try {
           const { success, error } = await sendVerificationEmail(email);
           if (success) {
@@ -30,7 +33,9 @@ export default function VerifyPage() {
                   title: "Verification Code Sent",
                   description: "A verification code has been sent to your email. Please check your inbox.",
               });
-              setEmailConfirmed(true);
+              if (!emailConfirmed) {
+                setEmailConfirmed(true);
+              }
           } else {
               toast({
                   title: "Error Sending Code",
@@ -45,7 +50,7 @@ export default function VerifyPage() {
               variant: "destructive",
             });
       } finally {
-          setIsLoading(false);
+          loadingSetter(false);
       }
   }
 
@@ -102,7 +107,7 @@ export default function VerifyPage() {
           </CardHeader>
           <CardContent>
             {!emailConfirmed ? (
-                 <form onSubmit={handleCheckEmail}>
+                 <form onSubmit={handleSendCode}>
                     <div className="grid gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="email">Email Address</Label>
@@ -142,10 +147,15 @@ export default function VerifyPage() {
                             />
                         </div>
                         </div>
-                        <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? 'Verifying...' : 'Verify and Proceed'}
-                        </Button>
-                         <Button variant="link" size="sm" onClick={() => setEmailConfirmed(false)}>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <Button type="submit" className="w-full" disabled={isLoading || isResending}>
+                                {isLoading ? 'Verifying...' : 'Verify and Proceed'}
+                            </Button>
+                             <Button type="button" variant="outline" className="w-full" disabled={isLoading || isResending} onClick={() => handleSendCode()}>
+                                {isResending ? 'Resending...' : 'Resend Code'}
+                            </Button>
+                        </div>
+                         <Button variant="link" size="sm" onClick={() => setEmailConfirmed(false)} disabled={isLoading || isResending}>
                             Use a different email
                         </Button>
                     </div>
