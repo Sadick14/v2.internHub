@@ -13,7 +13,7 @@ export interface Invite {
     email: string;
     role: Role;
     firstName: string;
-    lastName: string;
+    lastName:string;
     indexNumber?: string;
     programOfStudy?: string;
     facultyId?: string;
@@ -136,8 +136,10 @@ export async function acceptInvite(inviteId: string, userId: string, userProfile
 
     // 1. Create the user document with a server-side timestamp
     const userRef = doc(db, 'users', userId);
+    // Remove client-side date before sending to Firestore
+    const { createdAt, ...profileData } = userProfile;
     batch.set(userRef, {
-        ...userProfile,
+        ...profileData,
         createdAt: serverTimestamp()
     });
 

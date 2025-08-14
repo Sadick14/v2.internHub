@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Link from 'next/link';
@@ -83,7 +84,7 @@ function RegisterForm() {
         email: inviteDetails.email,
         role: inviteDetails.role,
         status: 'active',
-        // createdAt will be set on the server by the acceptInvite function
+        // Let the server handle the timestamp
         indexNumber: inviteDetails.indexNumber || '',
         programOfStudy: inviteDetails.programOfStudy || '',
         facultyId: inviteDetails.facultyId || '',
