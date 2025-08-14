@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, where, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, serverTimestamp, Timestamp, doc } from 'firebase/firestore';
 import { startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { createAuditLog } from './auditLogService';
 import { auth } from '@/lib/firebase';
@@ -30,7 +30,7 @@ export interface NewCheckIn {
 
 const checkInCollectionRef = collection(db, 'check_ins');
 
-export async function createCheckIn(checkInData: NewCheckIn): Promise<void> {
+export async function createCheckIn(checkInData: NewCheckIn): Promise<CheckIn> {
     
     // Check if user already checked in today
     const todayCheckIn = await getTodayCheckIn(checkInData.studentId);
@@ -49,6 +49,7 @@ export async function createCheckIn(checkInData: NewCheckIn): Promise<void> {
         dataToSave.address_resolved = `Location at ${checkInData.latitude.toFixed(4)}, ${checkInData.longitude.toFixed(4)}`;
     }
     
+    const newDocRef = doc(checkInCollectionRef);
     await addDoc(checkInCollectionRef, dataToSave);
 
     const student = await getUserById(checkInData.studentId);
@@ -61,6 +62,13 @@ export async function createCheckIn(checkInData: NewCheckIn): Promise<void> {
             details: `Student ${student.fullName} checked in ${checkInData.isGpsVerified ? 'with GPS' : 'manually'}.`,
         });
     }
+
+    return {
+        id: newDocRef.id,
+        ...checkInData,
+        timestamp: new Date(), // return current time as placeholder until fetched
+        address_resolved: dataToSave.address_resolved
+    } as CheckIn;
 }
 
 export async function getTodayCheckIn(studentId: string): Promise<CheckIn | null> {
@@ -98,4 +106,19 @@ export async function getTodayCheckIn(studentId: string): Promise<CheckIn | null
         ...data,
         timestamp: (data.timestamp as Timestamp).toDate(),
     } as CheckIn;
+}
+
+
+export async function getCheckInsByStudentId(studentId: string): Promise<CheckIn[]> {
+    const q = query(checkInCollectionRef, where('studentId', '==', studentId));
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            timestamp: (data.timestamp as Timestamp).toDate(),
+        } as CheckIn;
+    });
 }
