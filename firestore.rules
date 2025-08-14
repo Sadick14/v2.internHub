@@ -4,47 +4,36 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check if a user has a specific role
-    function hasRole(role) {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    // Helper function to check for admin role
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Admins can do anything
-    match /{document=**} {
-      allow read, write: if hasRole('admin');
-    }
-
-    // Rules for User documents
+    // Users collection
     match /users/{userId} {
-      // Any authenticated user can create their own user document during signup
-      allow create: if request.auth != null && request.auth.uid == userId;
-      // Any authenticated user can read any other user's profile
-      allow read: if request.auth != null;
-      // A user can only update their own profile
-      allow update: if request.auth != null && request.auth.uid == userId;
+      // Admins can read and write any user document
+      allow read, write: if isAdmin();
+      // Any authenticated user can create their own user document (on signup)
+      allow create: if request.auth.uid == userId;
+      // Authenticated users can read their own document
+      allow get: if request.auth.uid == userId;
     }
-    
-    // Rules for University Structure
+
+    // Faculties and Departments can be read by any authenticated user
     match /faculties/{facultyId} {
-        // Any authenticated user can read faculties
-        allow read: if request.auth != null;
-        // Only admins can create, update, or delete faculties
-        allow write: if hasRole('admin');
+        allow read: if request.auth.uid != null;
+        allow write: if isAdmin();
     }
 
     match /departments/{departmentId} {
-         // Any authenticated user can read departments
-        allow read: if request.auth != null;
-        // Only admins can create, update, or delete departments
-        allow write: if hasRole('admin');
+        allow read: if request.auth.uid != null;
+        allow write: if isAdmin();
     }
     
-    // Rules for Invites
+    // Invites collection can be read and written to by admins
     match /invites/{inviteId} {
-      // Only admins can create invites
-      allow create: if hasRole('admin');
-      // Authenticated users can read their own invite (needed for verification)
-      allow read: if request.auth != null;
+      allow read, write: if isAdmin();
     }
   }
 }
