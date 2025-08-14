@@ -352,14 +352,14 @@ function InternshipProfileDisplay({ profile, onProfileUpdate }: { profile: Inter
                             <CalendarIcon className="w-4 h-4 mt-1 text-muted-foreground" />
                              <div>
                                 <p className="text-muted-foreground">Start Date</p>
-                                <p className="font-medium">{format(profile.startDate, "PPP")}</p>
+                                <p className="font-medium">{format(new Date(profile.startDate), "PPP")}</p>
                             </div>
                         </div>
                         <div className="flex items-start gap-3">
                              <CalendarIcon className="w-4 h-4 mt-1 text-muted-foreground" />
                             <div>
                                 <p className="text-muted-foreground">End Date</p>
-                                <p className="font-medium">{format(profile.endDate, "PPP")}</p>
+                                <p className="font-medium">{format(new Date(profile.endDate), "PPP")}</p>
                             </div>
                         </div>
                     </div>

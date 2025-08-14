@@ -18,16 +18,18 @@ export interface InternshipProfile {
     supervisorId: string;
     supervisorName: string;
     supervisorEmail: string;
-    startDate: Date;
-    endDate: Date;
+    startDate: string;
+    endDate: string;
     status: 'active' | 'pending';
-    createdAt: Date;
-    updatedAt?: Date;
+    createdAt: string;
+    updatedAt?: string;
 }
 
-export interface InternshipProfileDetails extends Omit<InternshipProfile, 'id' | 'companyId' | 'supervisorId' | 'status' | 'createdAt'> {
+export interface InternshipProfileDetails extends Omit<InternshipProfile, 'id' | 'companyId' | 'supervisorId' | 'status' | 'createdAt' | 'startDate' | 'endDate'> {
     studentName: string;
     studentEmail: string;
+    startDate: Date;
+    endDate: Date;
 }
 
 export async function createInternshipProfile(details: InternshipProfileDetails): Promise<{ success: boolean; message: string }> {
@@ -65,14 +67,15 @@ export async function createInternshipProfile(details: InternshipProfileDetails)
         }
 
         // 2. Check if supervisor exists, if not, invite them.
-        let supervisorId: string;
+        let supervisorId: string; // This will be the Firestore Document ID
         const existingSupervisor = await getUserByEmail(details.supervisorEmail);
 
-        if (existingSupervisor && existingSupervisor.uid) {
-             // Supervisor already exists (active or pending), use their ID.
-            supervisorId = existingSupervisor.uid;
+        if (existingSupervisor && existingSupervisor.firestoreId) {
+             // Supervisor already exists (active or pending), use their Firestore document ID.
+            supervisorId = existingSupervisor.firestoreId;
         } else {
             // Supervisor does not exist, invite them.
+            // createInvite creates a 'pending' user and returns its document ID.
             const supervisorInviteResult = await createInvite({
                 email: details.supervisorEmail,
                 firstName: details.supervisorName.split(' ')[0],
@@ -83,6 +86,7 @@ export async function createInternshipProfile(details: InternshipProfileDetails)
                     name: details.studentName,
                 }
             });
+            // The pendingUserId from createInvite IS the firestoreId of the new user doc
             supervisorId = supervisorInviteResult.pendingUserId;
         }
 
@@ -95,7 +99,7 @@ export async function createInternshipProfile(details: InternshipProfileDetails)
             companyId: companyId,
             companyName: details.companyName,
             companyAddress: details.companyAddress,
-            supervisorId: supervisorId, // Use the determined supervisorId
+            supervisorId: supervisorId, // Use the determined supervisor Firestore ID
             supervisorName: details.supervisorName,
             supervisorEmail: details.supervisorEmail,
             startDate: details.startDate,
@@ -146,7 +150,8 @@ export async function getInternshipProfileByStudentId(studentId: string): Promis
 
     for (const key in data) {
         if (data[key] instanceof Timestamp) {
-            plainObject[key] = data[key].toDate();
+            // Convert to ISO string for serialization
+            plainObject[key] = data[key].toDate().toISOString();
         } else {
             plainObject[key] = data[key];
         }

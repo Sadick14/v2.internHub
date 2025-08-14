@@ -80,7 +80,7 @@ export default function StudentDashboardPage() {
   }
 
   // If user has no internshipId, show the setup prompt.
-  if (user && !user.internshipId) {
+  if (!profile) {
     return (
       <Card className="text-center">
         <CardHeader>
@@ -100,8 +100,8 @@ export default function StudentDashboardPage() {
     )
   }
 
-  const internshipDurationDays = profile ? differenceInBusinessDays(profile.endDate, profile.startDate) : 0;
-  const daysCompleted = profile ? differenceInBusinessDays(new Date(), profile.startDate) : 0;
+  const internshipDurationDays = profile ? differenceInBusinessDays(new Date(profile.endDate), new Date(profile.startDate)) : 0;
+  const daysCompleted = profile ? differenceInBusinessDays(new Date(), new Date(profile.startDate)) : 0;
   const progressPercentage = internshipDurationDays > 0 ? Math.min(100, Math.round((daysCompleted / internshipDurationDays) * 100)) : 0;
   const submittedReportsCount = reports.length;
   const pendingReportsCount = reports.filter(r => r.status === 'Pending').length;
@@ -214,7 +214,7 @@ export default function StudentDashboardPage() {
                 reports.slice(0, 5).map((report) => (
                   <TableRow key={report.id}>
                     <TableCell>
-                      <div className="font-medium">{format(report.reportDate, 'PPP')}</div>
+                      <div className="font-medium">{format(new Date(report.reportDate), 'PPP')}</div>
                     </TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(report.status)}>{report.status}</Badge>

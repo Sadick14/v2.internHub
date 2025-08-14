@@ -73,7 +73,7 @@ export default function DailyTasksPage() {
 
     async function onSubmit(data: DailyTasksFormValues) {
         if (!user?.uid || !profile?.id || !profile.supervisorId) {
-            toast({ title: "Error", description: "User or internship profile is not available.", variant: "destructive" });
+            toast({ title: "Error", description: "User or internship profile is not available. Could not find supervisor ID.", variant: "destructive" });
             return;
         }
         setIsSubmitting(true);
@@ -82,7 +82,7 @@ export default function DailyTasksPage() {
                 await createTask({
                     studentId: user.uid,
                     internshipId: profile.id,
-                    supervisorId: profile.supervisorId,
+                    supervisorId: profile.supervisorId, // This is now the Firestore ID
                     date: startOfDay(new Date()),
                     description: task.description,
                     learningObjectives: task.learningObjectives,
