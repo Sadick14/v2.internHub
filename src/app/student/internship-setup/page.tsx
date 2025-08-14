@@ -223,8 +223,10 @@ function InternshipProfileDisplay({ profile, onProfileUpdate }: { profile: Inter
     const form = useForm<InternshipSetupFormValues>({
         resolver: zodResolver(internshipSetupSchema),
         defaultValues: {
-            ...profile,
-            // Dates need to be converted from Firestore Timestamps if they are not already Date objects
+            companyName: profile.companyName || '',
+            companyAddress: profile.companyAddress || '',
+            supervisorName: profile.supervisorName || '',
+            supervisorEmail: profile.supervisorEmail || '',
             startDate: profile.startDate ? new Date(profile.startDate) : new Date(),
             endDate: profile.endDate ? new Date(profile.endDate) : new Date(),
         }
