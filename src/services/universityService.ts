@@ -5,15 +5,17 @@ import { collection, getDocs, doc, getDoc, addDoc, serverTimestamp, updateDoc, d
 export interface Faculty {
     id: string;
     name: string;
+    code: string;
 }
 
 export interface Department {
     id: string;
     name: string;
+    code: string;
     facultyId: string;
 }
 
-export async function createFaculty(facultyData: { name: string }): Promise<void> {
+export async function createFaculty(facultyData: { name: string, code: string }): Promise<void> {
     const facultiesCol = collection(db, 'faculties');
     await addDoc(facultiesCol, {
         ...facultyData,
@@ -33,7 +35,7 @@ export async function deleteFaculty(id: string): Promise<void> {
 }
 
 
-export async function createDepartment(departmentData: { name: string; facultyId: string }): Promise<void> {
+export async function createDepartment(departmentData: { name: string; code: string; facultyId: string }): Promise<void> {
     const departmentsCol = collection(db, 'departments');
     await addDoc(departmentsCol, {
         ...departmentData,

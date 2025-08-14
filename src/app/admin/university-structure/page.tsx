@@ -35,11 +35,8 @@ export default function UniversityStructurePage() {
     const [isFacultyDialogOpen, setIsFacultyDialogOpen] = useState(false);
     const [isDeptDialogOpen, setIsDeptDialogOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
-    const [currentFaculty, setCurrentFaculty] = useState<Faculty | null>(null);
-    const [currentDepartment, setCurrentDepartment] = useState<Department | null>(null);
-    const [newFacultyName, setNewFacultyName] = useState('');
-    const [newDepartmentName, setNewDepartmentName] = useState('');
-    const [selectedFacultyId, setSelectedFacultyId] = useState('');
+    const [currentFaculty, setCurrentFaculty] = useState<Partial<Faculty> | null>(null);
+    const [currentDepartment, setCurrentDepartment] = useState<Partial<Department> | null>(null);
 
     const { toast } = useToast();
 
@@ -70,43 +67,40 @@ export default function UniversityStructurePage() {
     // Dialog Open/Close handlers
     const openAddFacultyDialog = () => {
         setIsEditMode(false);
-        setCurrentFaculty(null);
-        setNewFacultyName('');
+        setCurrentFaculty({ name: '', code: '' });
         setIsFacultyDialogOpen(true);
     };
 
     const openEditFacultyDialog = (faculty: Faculty) => {
         setIsEditMode(true);
         setCurrentFaculty(faculty);
-        setNewFacultyName(faculty.name);
         setIsFacultyDialogOpen(true);
     };
 
     const openAddDepartmentDialog = (facultyId: string) => {
         setIsEditMode(false);
-        setCurrentDepartment(null);
-        setNewDepartmentName('');
-        setSelectedFacultyId(facultyId);
+        setCurrentDepartment({ name: '', code: '', facultyId });
         setIsDeptDialogOpen(true);
     };
     
     const openEditDepartmentDialog = (department: Department) => {
         setIsEditMode(true);
         setCurrentDepartment(department);
-        setNewDepartmentName(department.name);
-        setSelectedFacultyId(department.facultyId);
         setIsDeptDialogOpen(true);
     };
 
 
     const handleFacultySubmit = async () => {
-        if (!newFacultyName) return;
+        if (!currentFaculty || !currentFaculty.name || !currentFaculty.code) {
+             toast({ title: "Error", description: "Faculty Name and Code are required.", variant: 'destructive' });
+             return;
+        }
         try {
-            if (isEditMode && currentFaculty) {
-                await updateFaculty(currentFaculty.id, { name: newFacultyName });
+            if (isEditMode && currentFaculty.id) {
+                await updateFaculty(currentFaculty.id, { name: currentFaculty.name, code: currentFaculty.code });
                 toast({ title: "Success", description: "Faculty updated successfully." });
             } else {
-                await createFaculty({ name: newFacultyName });
+                await createFaculty({ name: currentFaculty.name, code: currentFaculty.code });
                 toast({ title: "Success", description: "Faculty created successfully." });
             }
             setIsFacultyDialogOpen(false);
@@ -117,13 +111,23 @@ export default function UniversityStructurePage() {
     };
     
     const handleDepartmentSubmit = async () => {
-        if (!newDepartmentName || !selectedFacultyId) return;
+        if (!currentDepartment || !currentDepartment.name || !currentDepartment.code || !currentDepartment.facultyId) {
+            toast({ title: "Error", description: "Department Name, Code and Faculty are required.", variant: 'destructive' });
+            return;
+        }
+
         try {
-            if (isEditMode && currentDepartment) {
-                await updateDepartment(currentDepartment.id, { name: newDepartmentName, facultyId: selectedFacultyId });
+            const departmentData = { 
+                name: currentDepartment.name, 
+                code: currentDepartment.code, 
+                facultyId: currentDepartment.facultyId 
+            };
+
+            if (isEditMode && currentDepartment.id) {
+                await updateDepartment(currentDepartment.id, departmentData);
                 toast({ title: "Success", description: "Department updated successfully." });
             } else {
-                await createDepartment({ name: newDepartmentName, facultyId: selectedFacultyId });
+                await createDepartment(departmentData);
                 toast({ title: "Success", description: "Department created successfully." });
             }
             setIsDeptDialogOpen(false);
@@ -154,7 +158,7 @@ export default function UniversityStructurePage() {
     }
     
     const handleDownloadTemplate = () => {
-        const headers = "type,name,facultyId(for_department)";
+        const headers = "type,name,code,facultyId(for_department)";
         const blob = new Blob([headers], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
@@ -168,6 +172,14 @@ export default function UniversityStructurePage() {
             title: "Template Downloaded",
             description: "A CSV template has been downloaded.",
         });
+    };
+
+    const handleDialogInputChange = <T extends Partial<Faculty> | Partial<Department>>(
+        field: keyof T, 
+        value: string, 
+        setter: React.Dispatch<React.SetStateAction<T | null>>
+    ) => {
+         setter(prev => prev ? { ...prev, [field]: value } : prev);
     };
 
     return (
@@ -196,11 +208,11 @@ export default function UniversityStructurePage() {
                         <Accordion type="single" collapsible className="w-full">
                             {faculties.map(faculty => (
                                 <AccordionItem key={faculty.id} value={faculty.id}>
-                                    <div className="flex items-center w-full">
+                                    <div className="flex items-center w-full group">
                                         <AccordionTrigger className="text-lg font-medium hover:no-underline flex-1">
-                                            <span>{faculty.name}</span>
+                                            <span>{faculty.name} <span className="text-sm font-normal text-muted-foreground">({faculty.code})</span></span>
                                         </AccordionTrigger>
-                                        <div className="flex items-center gap-2 mr-2">
+                                        <div className="flex items-center gap-2 mr-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEditFacultyDialog(faculty)}><Edit className="h-4 w-4"/></Button>
                                             <AlertDialog>
                                                 <AlertDialogTrigger asChild>
@@ -226,9 +238,9 @@ export default function UniversityStructurePage() {
                                             {getDepartmentsForFaculty(faculty.id).length > 0 ? (
                                                 <ul className="space-y-2">
                                                     {getDepartmentsForFaculty(faculty.id).map(dept => (
-                                                        <li key={dept.id} className="flex justify-between items-center text-muted-foreground hover:bg-muted/50 p-2 rounded-md -mr-2">
-                                                            <span>{dept.name}</span>
-                                                             <div className="flex items-center gap-2">
+                                                        <li key={dept.id} className="flex justify-between items-center group/dept text-muted-foreground hover:bg-muted/50 p-2 rounded-md -mr-2">
+                                                            <span>{dept.name} <span className="text-sm font-normal">({dept.code})</span></span>
+                                                             <div className="flex items-center gap-2 opacity-0 group-hover/dept:opacity-100 transition-opacity">
                                                                 <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEditDepartmentDialog(dept)}><Edit className="h-4 w-4"/></Button>
                                                                 <AlertDialog>
                                                                     <AlertDialogTrigger asChild>
@@ -276,7 +288,11 @@ export default function UniversityStructurePage() {
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
                             <Label htmlFor="facultyName">Faculty Name</Label>
-                            <Input id="facultyName" value={newFacultyName} onChange={(e) => setNewFacultyName(e.target.value)} />
+                            <Input id="facultyName" value={currentFaculty?.name || ''} onChange={(e) => handleDialogInputChange('name', e.target.value, setCurrentFaculty)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="facultyCode">Faculty Code</Label>
+                            <Input id="facultyCode" value={currentFaculty?.code || ''} onChange={(e) => handleDialogInputChange('code', e.target.value, setCurrentFaculty)} placeholder="e.g. FAST"/>
                         </div>
                     </div>
                     <DialogFooter>
@@ -295,11 +311,15 @@ export default function UniversityStructurePage() {
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
                             <Label htmlFor="departmentName">Department Name</Label>
-                            <Input id="departmentName" value={newDepartmentName} onChange={(e) => setNewDepartmentName(e.target.value)} />
+                            <Input id="departmentName" value={currentDepartment?.name || ''} onChange={(e) => handleDialogInputChange('name', e.target.value, setCurrentDepartment)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="departmentCode">Department Code</Label>
+                            <Input id="departmentCode" value={currentDepartment?.code || ''} onChange={(e) => handleDialogInputChange('code', e.target.value, setCurrentDepartment)} placeholder="e.g. COMPSSA"/>
                         </div>
                          <div className="space-y-2">
                             <Label htmlFor="faculty">Faculty</Label>
-                            <Select value={selectedFacultyId} onValueChange={setSelectedFacultyId} disabled={isEditMode}>
+                            <Select value={currentDepartment?.facultyId} onValueChange={(v) => handleDialogInputChange('facultyId', v, setCurrentDepartment)} disabled={isEditMode}>
                                 <SelectTrigger><SelectValue placeholder="Select a faculty" /></SelectTrigger>
                                 <SelectContent>{faculties.map(f => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}</SelectContent>
                             </Select>
