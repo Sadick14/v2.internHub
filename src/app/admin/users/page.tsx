@@ -149,8 +149,8 @@ export default function UserManagementPage() {
                                 <TableHead>Name</TableHead>
                                 <TableHead>Role</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead>Faculty</TableHead>
                                 <TableHead>Department</TableHead>
+                                <TableHead>Assigned Lecturer</TableHead>
                                 <TableHead><span className="sr-only">Actions</span></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -162,7 +162,7 @@ export default function UserManagementPage() {
                                         <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                                         <TableCell><Skeleton className="h-5 w-16" /></TableCell>
                                         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                                         <TableCell><Skeleton className="h-5 w-8" /></TableCell>
                                     </TableRow>
                                 ))
@@ -184,8 +184,8 @@ export default function UserManagementPage() {
                                         <TableCell>
                                             <Badge variant={getStatusVariant(user.status)}>{user.status || 'inactive'}</Badge>
                                         </TableCell>
-                                        <TableCell>{user.facultyName || 'N/A'}</TableCell>
                                         <TableCell>{user.departmentName || 'N/A'}</TableCell>
+                                        <TableCell>{user.assignedLecturerName || 'N/A'}</TableCell>
                                         <TableCell>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
@@ -300,3 +300,5 @@ export default function UserManagementPage() {
         </>
     )
 }
+
+    

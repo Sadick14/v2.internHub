@@ -23,12 +23,14 @@ export interface UserProfile {
     // Enriched fields
     facultyName?: string;
     departmentName?: string;
+    assignedLecturerName?: string;
 }
 
 export async function getAllUsers(): Promise<UserProfile[]> {
     const usersCol = collection(db, 'users');
     const userSnapshot = await getDocs(usersCol);
     const userList = userSnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as UserProfile));
+    const lecturers = userList.filter(u => u.role === 'lecturer');
 
     // Enrich users with faculty and department names
     const enrichedUsers = await Promise.all(userList.map(async (user) => {
@@ -42,7 +44,14 @@ export async function getAllUsers(): Promise<UserProfile[]> {
             const department = await getDepartmentById(user.departmentId);
             departmentName = department?.name || '';
         }
-        return { ...user, facultyName, departmentName };
+        
+        let assignedLecturerName = '';
+        if (user.role === 'student' && user.lecturerId) {
+            const assignedLecturer = lecturers.find(l => l.uid === user.lecturerId);
+            assignedLecturerName = assignedLecturer?.fullName || '';
+        }
+
+        return { ...user, facultyName, departmentName, assignedLecturerName };
     }));
 
     return enrichedUsers;
@@ -113,3 +122,5 @@ export async function assignLecturerToStudent(studentId: string, lecturerId: str
         });
     }
 }
+
+    
