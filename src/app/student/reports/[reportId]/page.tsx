@@ -109,16 +109,25 @@ export default function ReportDetailPage({ params }: { params: { reportId: strin
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="space-y-3">
-                         <h3 className="font-semibold text-lg flex items-center"><FileText className="mr-2 h-5 w-5 text-primary" />Work Accomplished</h3>
-                         <p className="text-muted-foreground whitespace-pre-wrap bg-muted/50 p-4 rounded-md">{report.declaredTasks}</p>
+                         <h3 className="font-semibold text-lg flex items-center"><FileText className="mr-2 h-5 w-5 text-primary" />Detailed Report</h3>
+                         <p className="text-muted-foreground whitespace-pre-wrap bg-muted/50 p-4 rounded-md">{report.fullReport}</p>
                     </div>
                     
                     <Separator />
-
-                    <div className="space-y-3">
-                         <h3 className="font-semibold text-lg flex items-center"><Bot className="mr-2 h-5 w-5 text-primary" />AI-Generated Summary</h3>
-                         <p className="text-muted-foreground whitespace-pre-wrap bg-muted/50 p-4 rounded-md">{report.summary}</p>
+                     <div className="space-y-3">
+                         <h3 className="font-semibold text-lg flex items-center"><FileText className="mr-2 h-5 w-5 text-primary" />Work Accomplished</h3>
+                         <p className="text-muted-foreground whitespace-pre-wrap bg-muted/50 p-4 rounded-md">{report.declaredTasks}</p>
                     </div>
+
+                    {report.summary && (
+                        <>
+                        <Separator />
+                        <div className="space-y-3">
+                            <h3 className="font-semibold text-lg flex items-center"><Bot className="mr-2 h-5 w-5 text-primary" />AI-Generated Summary</h3>
+                            <p className="text-muted-foreground whitespace-pre-wrap bg-muted/50 p-4 rounded-md">{report.summary}</p>
+                        </div>
+                        </>
+                    )}
                     
                     {(report.lecturerComment || report.supervisorComment) && <Separator />}
 

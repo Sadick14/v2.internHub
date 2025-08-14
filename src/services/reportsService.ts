@@ -13,11 +13,12 @@ export interface Report {
     internshipId: string;
     reportDate: Date;
     declaredTasks: string;
-    summary: string;
+    fullReport: string; // Added field for the full detailed report
+    summary: string; // AI summary
     status: 'Pending' | 'Approved' | 'Rejected';
     lecturerId: string;
     lecturerComment?: string;
-    supervisorComment?: string; // Kept for potential future use or if supervisor also comments
+    supervisorComment?: string;
     createdAt: Date;
     updatedAt?: Date;
 }
@@ -28,6 +29,7 @@ export interface NewReportData {
     lecturerId: string;
     reportDate: Date;
     declaredTasks: string;
+    fullReport: string; // Added field
     summary: string;
 }
 
@@ -108,9 +110,6 @@ export async function rejectReport(reportId: string, lecturerComment: string): P
 
 export async function getReportsByStudentId(studentId: string): Promise<Report[]> {
     const reportsCol = collection(db, 'reports');
-    // The studentId passed here is the auth UID from useRole.
-    // Querying by studentId and ordering by another field requires a composite index.
-    // To avoid this, we query only by studentId and sort the results in the application code.
     const q = query(reportsCol, where('studentId', '==', studentId));
     const reportSnapshot = await getDocs(q);
 
@@ -124,11 +123,9 @@ export async function getReportsByStudentId(studentId: string): Promise<Report[]
         } as Report
     });
 
-    // Sort the reports by date in descending order (newest first)
     return reportList.sort((a, b) => b.reportDate.getTime() - a.reportDate.getTime());
 }
 
-// A new function for admins to see all reports or unassigned ones.
 export async function getAllReports(filter: 'all' | 'unassigned' = 'all'): Promise<Report[]> {
     const reportsCol = collection(db, 'reports');
     let q;

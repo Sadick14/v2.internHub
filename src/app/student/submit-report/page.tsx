@@ -92,8 +92,8 @@ export default function SubmitReportPage() {
        toast({ title: "Error", description: "Cannot submit report. User profile or internship details are missing.", variant: "destructive"});
        return;
     }
-    if(!summary) {
-        toast({ title: "AI Summary Required", description: "Please generate the AI summary before submitting.", variant: "destructive"});
+     if(!formData.fullReport || !formData.declaredTasks) {
+        toast({ title: "Missing Information", description: "Please fill out the 'Work Accomplished' and 'Detailed Report' fields.", variant: "destructive"});
        return;
     }
 
@@ -102,10 +102,11 @@ export default function SubmitReportPage() {
         const reportData: NewReportData = {
             studentId: user.uid,
             internshipId: profile.id,
-            lecturerId: user.lecturerId || '', // Pass lecturerId if it exists, otherwise pass an empty string
+            lecturerId: user.lecturerId || '', 
             reportDate: reportDate,
             declaredTasks: formData.declaredTasks,
-            summary: summary,
+            fullReport: formData.fullReport,
+            summary: summary, // Pass summary, even if it's empty
         };
         await createReport(reportData);
         toast({ title: "Report Submitted!", description: "Your daily report has been sent for review."});
@@ -174,7 +175,7 @@ export default function SubmitReportPage() {
               <Label htmlFor="attachments">Attachments (Optional)</Label>
               <Input id="attachments" type="file" />
             </div>
-            <Button type="submit" disabled={isSubmitting || isGenerating || !summary}>
+            <Button type="submit" disabled={isSubmitting || isGenerating}>
               {isSubmitting ? "Submitting..." : "Submit Report"}
             </Button>
           </CardContent>
@@ -187,7 +188,7 @@ export default function SubmitReportPage() {
                 <div>
                   <CardTitle className="font-headline">AI Report Summary</CardTitle>
                   <CardDescription>
-                    Generate a summary of your report. This is required for submission.
+                    (Optional) Generate a summary of your report to assist you.
                   </CardDescription>
                 </div>
                 <Button type="button" onClick={handleGenerateSummary} disabled={isGenerating || !formData.fullReport || !formData.declaredTasks} variant="outline" size="icon">
