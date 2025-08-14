@@ -29,7 +29,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!loading && !user) {
-      if (pathname !== '/login' && pathname !== '/register' && pathname !== '/verify' && pathname !== '/forgot-password' && pathname !== '/') {
+      // Allow access to login, register, verify, and landing page
+      const publicPaths = ['/login', '/register', '/verify', '/forgot-password', '/'];
+      if (!publicPaths.includes(pathname)) {
         router.push('/login');
       }
     }
@@ -46,7 +48,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const getDashboardHomeLink = () => {
     if (!role) return '/dashboard';
-    return `/${role}/dashboard`;
+    return `/dashboard/${role}/dashboard`;
   };
 
   const filteredNavItems = navItems.filter(item => {
@@ -67,10 +69,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   );
 
   if (loading) {
-    return renderLoading();
-  }
-
-  if (!user && (pathname.startsWith('/dashboard') || (role && pathname.startsWith(`/${role}`)))) {
     return renderLoading();
   }
   
@@ -94,11 +92,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <SidebarContent>
           <SidebarMenu>
             {filteredNavItems.map(item => {
-              const href = item.href === '/dashboard' ? getDashboardHomeLink() : item.href;
+              // Adjust href for role-specific dashboards
+              const href = item.href === '/dashboard' ? getDashboardHomeLink() : `/dashboard${item.href}`;
+              const finalHref = item.href === '/dashboard' ? getDashboardHomeLink() : item.href;
+
               return (
               <SidebarMenuItem key={item.label}>
-                <SidebarMenuButton asChild isActive={pathname.startsWith(href)} tooltip={item.label}>
-                  <Link href={href}>
+                <SidebarMenuButton asChild isActive={pathname.startsWith(finalHref)} tooltip={item.label}>
+                  <Link href={finalHref}>
                     <item.icon />
                     <span>{item.label}</span>
                     {item.badge && <Badge className="ml-auto">{item.badge}</Badge>}
