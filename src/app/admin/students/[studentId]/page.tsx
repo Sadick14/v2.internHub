@@ -118,7 +118,7 @@ export default function StudentDetailPage({ params }: { params: { studentId: str
                       <Card>
                         <CardHeader>
                             <CardTitle>Recent Activity</CardTitle>
-                        </CardHeader>
+                        </Header>
                         <CardContent>
                             <p className="text-muted-foreground">A timeline of recent student activities will appear here.</p>
                         </CardContent>
