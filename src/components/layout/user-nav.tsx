@@ -39,7 +39,7 @@ export function UserNav() {
      return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+            <Button variant="ghost" className="relative h-9 w-9 rounded-full hover:bg-primary/80">
               <Avatar className="h-9 w-9">
                 <AvatarImage src={`https://placehold.co/40x40.png`} alt={user.name} data-ai-hint="person portrait" />
                 <AvatarFallback>{user.initials}</AvatarFallback>
@@ -76,7 +76,7 @@ export function UserNav() {
   }
 
   return (
-    <div className="w-full flex items-center gap-2 p-1 rounded-lg hover:bg-muted">
+    <div className="w-full flex items-center gap-2 p-1 rounded-lg hover:bg-primary/80">
        <Avatar className="h-9 w-9">
           <AvatarImage src={`https://placehold.co/40x40.png`} alt={user.name} data-ai-hint="person portrait" />
           <AvatarFallback>{user.initials}</AvatarFallback>
@@ -89,7 +89,7 @@ export function UserNav() {
         </div>
          <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7">
+            <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-primary/90">
                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
             </Button>
           </DropdownMenuTrigger>
