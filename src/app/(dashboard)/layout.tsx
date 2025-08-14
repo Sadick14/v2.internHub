@@ -9,6 +9,7 @@ import {
   Home,
   LineChart,
   Package,
+  UserPlus,
   Users,
 } from 'lucide-react';
 
@@ -43,6 +44,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     { href: '/dashboard', label: 'Dashboard', icon: Home, roles: ['student', 'lecturer', 'hod', 'supervisor', 'admin'] },
     { href: '/reports', label: 'Reports', icon: FileText, badge: '6', roles: ['lecturer', 'hod', 'supervisor', 'admin'] },
     { href: '/students', label: 'Students', icon: Users, roles: ['lecturer', 'hod', 'admin'] },
+    { href: '/invite-student', label: 'Invite Student', icon: UserPlus, roles: ['admin'] },
     { href: '/submit-report', label: 'Submit Report', icon: Package, roles: ['student'] },
     { href: '/analytics', label: 'Analytics', icon: LineChart, roles: ['hod', 'admin'] },
   ];
