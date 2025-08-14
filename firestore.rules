@@ -1,64 +1,51 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Default deny all
-    match /{document=**} {
-      allow read, write: if false;
-    }
-    
-    // Allow anyone to read/write to invites. This is safe because server actions
-    // validate the codes and perform the critical logic.
+    // Invites can be written and read by admins during the invite process, 
+    // and updated by server actions. A loose rule is acceptable here as the
+    // sensitive logic (verification, registration) is handled server-side.
     match /invites/{inviteId} {
-      allow read, write: if true;
+      allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' || request.auth == null;
     }
-    
-    // User profile rules
-    match /users/{userId} {
-      // Allow a user to create their own profile document.
-      // This is the key rule for fixing the registration permission error.
-      allow create: if request.auth.uid == userId;
 
-      // Allow any authenticated user to read any other user's profile.
+    // Users collection rules
+    match /users/{userId} {
+      // Allow reading if the user is authenticated.
       allow read: if request.auth != null;
 
-      // Only allow admins to update or delete user profiles.
-      allow update, delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      // Allow creation if the request is from an admin.
+      // This is for the admin invite flow.
+      allow create: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+
+      // Allow users to update their own document, or an admin to update any document.
+      // This covers the student completing registration (updating their own 'pending' profile)
+      // and admins managing users.
+      allow update: if request.auth.uid == userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+
+      // Only admins can delete users.
+      allow delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    // Allow admins to manage university structure
-    match /faculties/{facultyId} {
-        allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    // Admins have blanket access to other collections (settings, terms, etc.)
+    match /settings/{docId} {
+       allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    match /internship_terms/{docId} {
+       allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    match /faculties/{docId} {
+       allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+     match /departments/{docId} {
+       allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+     match /audit_logs/{docId} {
+       allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
-    match /departments/{departmentId} {
-        allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
-    // Rules for reports
-    match /reports/{reportId} {
-      // Students can create reports for themselves
-      allow create: if request.auth.uid == request.resource.data.studentId;
-      // Students can read their own reports
-      // Lecturers, HODs, Supervisors can read reports they are linked to
-      allow read: if request.auth.uid == resource.data.studentId || 
-                    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['lecturer', 'hod', 'supervisor', 'admin'];
-      // Lecturers, HODs, Supervisors can update reports (e.g. to add comments/approve)
-      allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['lecturer', 'hod', 'supervisor', 'admin'];
-    }
-
-    // Allow admins to manage internship terms and settings
-    match /internship_terms/{termId} {
-        allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-    match /settings/global {
-        allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
-    // Allow admins to write audit logs (though these are created via server-side logic)
-    match /audit_logs/{logId} {
-        allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    // Default deny for any other collections
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
