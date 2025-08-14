@@ -8,7 +8,8 @@ import {
   Bell,
   Home,
   FileText,
-  Users
+  Users,
+  ListChecks
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,7 @@ export default function SupervisorLayout({ children }: { children: ReactNode }) 
 
   const navItems = [
     { href: '/supervisor/dashboard', label: 'Dashboard', icon: Home },
+    { href: '/supervisor/tasks', label: 'Daily Tasks', icon: ListChecks, badge: '2' },
     { href: '/supervisor/reports', label: 'Pending Reports', icon: FileText, badge: '2' },
     { href: '/supervisor/interns', label: 'My Interns', icon: Users },
   ];
