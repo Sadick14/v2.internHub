@@ -15,6 +15,7 @@ export interface CheckIn {
     isGpsVerified: boolean;
     latitude?: number;
     longitude?: number;
+    address_resolved?: string;
     manualReason?: string;
 }
 
@@ -23,6 +24,7 @@ export interface NewCheckIn {
     isGpsVerified: boolean;
     latitude?: number;
     longitude?: number;
+    address_resolved?: string;
     manualReason?: string;
 }
 
@@ -35,11 +37,19 @@ export async function createCheckIn(checkInData: NewCheckIn): Promise<void> {
     if (todayCheckIn) {
         throw new Error("You have already checked in for today.");
     }
-    
-    await addDoc(checkInCollectionRef, {
+
+    const dataToSave: any = {
         ...checkInData,
         timestamp: serverTimestamp(),
-    });
+    };
+
+    if (checkInData.isGpsVerified && checkInData.latitude && checkInData.longitude) {
+        // In a real app, you would call a reverse geocoding API here.
+        // For now, we'll use a placeholder.
+        dataToSave.address_resolved = `Location at ${checkInData.latitude.toFixed(4)}, ${checkInData.longitude.toFixed(4)}`;
+    }
+    
+    await addDoc(checkInCollectionRef, dataToSave);
 
     const student = await getUserById(checkInData.studentId);
      if (student) {
