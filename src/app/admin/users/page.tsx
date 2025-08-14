@@ -170,7 +170,14 @@ export default function UserManagementPage() {
                                 users.map((user) => (
                                     <TableRow key={user.uid}>
                                         <TableCell className="font-medium">
-                                            <div className="font-medium">{user.fullName}</div>
+                                            {user.role === 'student' ? (
+                                                <Link href={`/admin/students/${user.uid}`} className="hover:underline text-primary">
+                                                    <div className="font-medium">{user.fullName}</div>
+                                                </Link>
+                                            ) : (
+                                                 <div className="font-medium">{user.fullName}</div>
+                                            )}
+                                           
                                             <div className="text-sm text-muted-foreground">{user.email}</div>
                                         </TableCell>
                                         <TableCell className="capitalize">{user.role}</TableCell>
@@ -189,6 +196,7 @@ export default function UserManagementPage() {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                     {user.role === 'student' && <DropdownMenuItem asChild><Link href={`/admin/students/${user.uid}`}>View Profile</Link></DropdownMenuItem>}
                                                     <DropdownMenuItem onClick={() => openEditDialog(user)}>Edit User</DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => handleResetPassword(user.email)}>Reset Password</DropdownMenuItem>
                                                     <DropdownMenuSeparator />

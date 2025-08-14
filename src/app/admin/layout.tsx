@@ -13,6 +13,7 @@ import {
   Settings,
   Shield,
   UserCheck,
+  User,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const navItems = [
     { href: '/admin/dashboard', label: 'Dashboard', icon: Home },
     { href: '/admin/users', label: 'User Management', icon: Users },
+    { href: '/admin/students', label: 'Students', icon: User },
     { href: '/admin/invite-user', label: 'Invite User', icon: Send },
     { href: '/admin/assign-lecturers', label: 'Assign Lecturers', icon: UserCheck },
     { href: '/admin/university-structure', label: 'University Structure', icon: Building },

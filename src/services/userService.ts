@@ -1,6 +1,6 @@
 
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
 import { getFacultyById, getDepartmentById } from './universityService';
 
@@ -10,8 +10,13 @@ export interface UserProfile {
     email: string;
     role: Role;
     status: 'active' | 'inactive' | 'pending';
+    indexNumber?: string;
+    programOfStudy?: string;
     facultyId?: string;
     departmentId?: string;
+    createdAt?: Date;
+
+    // Enriched fields
     facultyName?: string;
     departmentName?: string;
 }
@@ -37,6 +42,40 @@ export async function getAllUsers(): Promise<UserProfile[]> {
     }));
 
     return enrichedUsers;
+}
+
+export async function getUserById(uid: string): Promise<UserProfile | null> {
+    const userRef = doc(db, 'users', uid);
+    const userSnapshot = await getDoc(userRef);
+
+    if (!userSnapshot.exists()) {
+        return null;
+    }
+
+    const userData = userSnapshot.data() as UserProfile;
+    
+    // Convert timestamp
+    if (userData.createdAt && userData.createdAt instanceof Timestamp) {
+        userData.createdAt = userData.createdAt.toDate();
+    }
+
+    let facultyName = '';
+    let departmentName = '';
+    if (userData.facultyId) {
+        const faculty = await getFacultyById(userData.facultyId);
+        facultyName = faculty?.name || '';
+    }
+    if (userData.departmentId) {
+        const department = await getDepartmentById(userData.departmentId);
+        departmentName = department?.name || '';
+    }
+
+    return {
+        ...userData,
+        uid: userSnapshot.id,
+        facultyName,
+        departmentName
+    }
 }
 
 
