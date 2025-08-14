@@ -2,7 +2,7 @@
 
 'use server';
 
-import { db, auth } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, getDocs, query, where, Timestamp, writeBatch, documentId, doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
 import { createAuditLog } from './auditLogService';
@@ -23,6 +23,7 @@ export interface Invite {
     createdAt: string; // Serialized date
     verificationCode: string; // OTP
     pendingUserId: string; // ID of the document in the 'users' collection
+    invitedBy?: { id: string; name: string };
 }
 
 function generateSecureCode(): string {
@@ -33,68 +34,74 @@ function generateSecureCode(): string {
 }
 
 export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdAt' | 'id' | 'verificationCode' | 'pendingUserId'>): Promise<void> {
+    const { email, firstName, lastName, role, indexNumber, programOfStudy, facultyId, departmentId, invitedBy } = inviteData;
+    
+    // 1. Check if an active user or a pending user already exists with this email
     const usersCol = collection(db, 'users');
-    const existingUserQuery = query(usersCol, where('email', '==', inviteData.email));
+    const existingUserQuery = query(usersCol, where('email', '==', email));
     const existingUserSnap = await getDocs(existingUserQuery);
     if (!existingUserSnap.empty) {
-        throw new Error(`A user with the email ${inviteData.email} already exists.`);
+        throw new Error(`A user with the email ${email} already exists or has a pending invite.`);
     }
 
-    const invitesCol = collection(db, 'invites');
-    
-    // 1. Create the user document with a 'pending' status
+    try {
+        await sendMail({
+            to: email,
+            subject: 'You have been invited to InternshipTrack',
+            text: `Hello ${firstName},\n\nYou have been invited to join InternshipTrack. Please go to the registration page and use the verification code to complete your account setup.\n\nThank you,\nThe InternshipTrack Team`,
+            html: `<p>Hello ${firstName},</p><p>You have been invited to join InternshipTrack. Please go to the registration page and use the verification code to complete your account setup.</p><p>Thank you,<br>The InternshipTrack Team</p>`,
+        });
+    } catch (error: any) {
+        console.error("Email sending failed:", error);
+        // Throw a detailed error message to be displayed on the client
+        throw new Error(`Failed to send invite email: ${error.message}. Please check your email server credentials and configuration.`);
+    }
+
+
+    // 2. Create the user document with a 'pending' status
     const pendingUserRef = await addDoc(usersCol, {
-        fullName: `${inviteData.firstName} ${inviteData.lastName}`,
-        email: inviteData.email,
-        role: inviteData.role,
+        fullName: `${firstName} ${lastName}`,
+        email: email,
+        role: role,
         status: 'pending',
-        indexNumber: inviteData.indexNumber || '',
-        programOfStudy: inviteData.programOfStudy || '',
-        facultyId: inviteData.facultyId || '',
-        departmentId: inviteData.departmentId || '',
+        indexNumber: indexNumber || '',
+        programOfStudy: programOfStudy || '',
+        facultyId: facultyId || '',
+        departmentId: departmentId || '',
         createdAt: serverTimestamp(),
     });
 
-    // 2. Create the invite document, linking it to the pending user
+    // 3. Create the invite document, linking it to the pending user
     const verificationCode = generateSecureCode();
+    const invitesCol = collection(db, 'invites');
     await addDoc(invitesCol, {
-        ...inviteData,
+        email,
+        role,
+        firstName,
+        lastName,
+        indexNumber,
+        programOfStudy,
+        facultyId,
+        departmentId,
         pendingUserId: pendingUserRef.id,
         status: 'pending',
         verificationCode,
         createdAt: serverTimestamp(),
     });
 
-    // 3. Send the verification email
-    try {
-        await sendMail({
-            to: inviteData.email,
-            subject: 'Verify Your InternshipTrack Account',
-            text: `Welcome! Your verification code is ${verificationCode}`,
-            html: `<p>Welcome! Your verification code is <strong>${verificationCode}</strong></p><p>Please use this code to complete your registration.</p>`,
-        });
-    } catch (error) {
-        console.error("Failed to send initial invite email:", error);
-        // Optionally re-throw or handle the error more gracefully
-        throw new Error("Failed to send invitation email.");
-    }
-
     // 4. Create an audit log
-    try {
-        const currentUser = auth.currentUser;
-        if (currentUser) {
+    if (invitedBy) {
+        try {
             await createAuditLog({
                 action: 'Create Invite',
-                details: `Invited ${inviteData.firstName} ${inviteData.lastName} (${inviteData.email}) as a ${inviteData.role}.`,
-                userId: currentUser.uid,
-                userName: currentUser.displayName || 'Admin',
-                userEmail: currentUser.email || 'N/A'
+                details: `Invited ${firstName} ${lastName} (${email}) as a ${role}.`,
+                userId: invitedBy.id,
+                userName: invitedBy.name,
+                userEmail: 'N/A' // Email of the inviter is not readily available here.
             });
+        } catch (error) {
+            console.error("Failed to create audit log for invite:", error);
         }
-    } catch (error) {
-        console.error("Failed to create audit log for invite:", error);
-        // Decide if this failure should affect the overall outcome.
-        // For now, we'll just log it and not throw an error.
     }
 }
 

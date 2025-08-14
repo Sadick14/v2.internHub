@@ -1,7 +1,7 @@
 
 'use server';
 
-import { db, auth } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, writeBatch, serverTimestamp, doc } from 'firebase/firestore';
 import { createInvite } from './invitesService';
 import { createAuditLog } from './auditLogService';
@@ -18,9 +18,8 @@ export interface InternshipDetails {
 }
 
 export async function setupInternship(details: InternshipDetails): Promise<{ success: boolean; message: string }> {
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
-        return { success: false, message: 'Authentication required.' };
+    if (!details.studentId || !details.studentName) {
+        return { success: false, message: 'Authentication required. User details are missing.' };
     }
 
     const batch = writeBatch(db);
@@ -45,11 +44,17 @@ export async function setupInternship(details: InternshipDetails): Promise<{ suc
         }
 
         // 2. Invite the supervisor (this will also create a 'pending' user for them)
+        // We pass the current user's name for the audit log inside createInvite
         await createInvite({
             email: details.supervisorEmail,
             firstName: details.supervisorName.split(' ')[0],
             lastName: details.supervisorName.split(' ').slice(1).join(' ') || details.supervisorName.split(' ')[0],
             role: 'supervisor',
+            // Pass inviting user details for the audit log
+            invitedBy: {
+                id: details.studentId,
+                name: details.studentName,
+            }
         });
         
         // 3. Create the internship record
@@ -72,11 +77,11 @@ export async function setupInternship(details: InternshipDetails): Promise<{ suc
         // 5. Commit all database writes
         await batch.commit();
 
-        // 6. Create an audit log
+        // 6. Create an audit log for this specific action
         await createAuditLog({
-            userId: currentUser.uid,
-            userName: currentUser.displayName || details.studentName,
-            userEmail: currentUser.email || 'N/A',
+            userId: details.studentId,
+            userName: details.studentName,
+            userEmail: 'N/A', // Student email not available here, can be enriched later if needed
             action: 'Setup Internship',
             details: `Student ${details.studentName} set up internship at ${details.companyName}. Supervisor: ${details.supervisorEmail}.`,
         });
