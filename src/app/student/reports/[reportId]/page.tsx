@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -37,7 +36,7 @@ export default function ReportDetailPage({ params }: { params: { reportId: strin
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        async function fetchReport() {
+        const fetchReport = async () => {
             setIsLoading(true);
             const reportData = await getReportById(params.reportId);
             setReport(reportData);
@@ -109,14 +108,15 @@ export default function ReportDetailPage({ params }: { params: { reportId: strin
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="space-y-3">
-                         <h3 className="font-semibold text-lg flex items-center"><FileText className="mr-2 h-5 w-5 text-primary" />Detailed Report</h3>
-                         <p className="text-muted-foreground whitespace-pre-wrap bg-muted/50 p-4 rounded-md">{report.fullReport}</p>
-                    </div>
-                    
-                    <Separator />
-                     <div className="space-y-3">
                          <h3 className="font-semibold text-lg flex items-center"><FileText className="mr-2 h-5 w-5 text-primary" />Work Accomplished</h3>
                          <p className="text-muted-foreground whitespace-pre-wrap bg-muted/50 p-4 rounded-md">{report.declaredTasks}</p>
+                    </div>
+
+                    <Separator />
+                    
+                    <div className="space-y-3">
+                         <h3 className="font-semibold text-lg flex items-center"><FileText className="mr-2 h-5 w-5 text-primary" />Detailed Report</h3>
+                         <p className="text-muted-foreground whitespace-pre-wrap bg-muted/50 p-4 rounded-md">{report.fullReport}</p>
                     </div>
 
                     {report.summary && (
@@ -135,6 +135,13 @@ export default function ReportDetailPage({ params }: { params: { reportId: strin
                         <div className="space-y-3">
                             <h3 className="font-semibold text-lg flex items-center"><MessageSquare className="mr-2 h-5 w-5 text-primary" />Lecturer's Feedback</h3>
                             <p className="text-muted-foreground whitespace-pre-wrap bg-muted/50 p-4 rounded-md">{report.lecturerComment}</p>
+                        </div>
+                    )}
+                    
+                     {report.supervisorComment && (
+                        <div className="space-y-3">
+                            <h3 className="font-semibold text-lg flex items-center"><MessageSquare className="mr-2 h-5 w-5 text-primary" />Supervisor's Feedback</h3>
+                            <p className="text-muted-foreground whitespace-pre-wrap bg-muted/50 p-4 rounded-md">{report.supervisorComment}</p>
                         </div>
                     )}
 
