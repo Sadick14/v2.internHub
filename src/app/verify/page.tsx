@@ -9,16 +9,47 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { verifyInvite } from '@/services/invitesService';
+import { verifyInvite, checkInviteExists } from '@/services/invitesService';
+import { Mail, KeyRound } from 'lucide-react';
 
 export default function VerifyPage() {
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [emailConfirmed, setEmailConfirmed] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
-  const handleVerify = async (e: React.FormEvent) => {
+  const handleCheckEmail = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setIsLoading(true);
+      try {
+          const exists = await checkInviteExists(email);
+          if (exists) {
+              toast({
+                  title: "Verification Code Sent",
+                  description: "A verification code has been sent to your email. Please check your inbox.",
+              });
+              setEmailConfirmed(true);
+          } else {
+              toast({
+                  title: "No Invite Found",
+                  description: "We couldn't find a pending invitation for this email address. Please contact your administrator.",
+                  variant: "destructive",
+              });
+          }
+      } catch (error: any) {
+           toast({
+              title: "Error",
+              description: `An unexpected error occurred: ${error.message}`,
+              variant: "destructive",
+            });
+      } finally {
+          setIsLoading(false);
+      }
+  }
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
@@ -39,7 +70,7 @@ export default function VerifyPage() {
       } else {
         toast({
           title: "Verification Failed",
-          description: "Invalid email or verification code. Please try again.",
+          description: "Invalid verification code. Please try again.",
           variant: "destructive",
         });
       }
@@ -63,39 +94,63 @@ export default function VerifyPage() {
                 <h1 className="text-3xl font-bold font-headline mt-2">Verify Your Account</h1>
             </div>
             <CardDescription>
-              Please enter your email and the verification code sent to you by your administrator.
+              {emailConfirmed 
+                ? 'Please enter the verification code sent to your email.'
+                : 'Please enter your institutional email to begin.'}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleVerify}>
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="student.id@university.edu"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                 <div className="grid gap-2">
-                  <Label htmlFor="verificationCode">Verification Code</Label>
-                  <Input
-                    id="verificationCode"
-                    type="text"
-                    placeholder="Enter your code"
-                    required
-                    value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value)}
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Verifying...' : 'Verify and Proceed'}
-                </Button>
-              </div>
-            </form>
+            {!emailConfirmed ? (
+                 <form onSubmit={handleCheckEmail}>
+                    <div className="grid gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="email">Email Address</Label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="student.id@university.edu"
+                                    required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="pl-10"
+                                />
+                            </div>
+                        </div>
+                        <Button type="submit" className="w-full" disabled={isLoading}>
+                            {isLoading ? 'Checking...' : 'Continue'}
+                        </Button>
+                    </div>
+                </form>
+            ) : (
+                <form onSubmit={handleVerifyCode}>
+                    <div className="grid gap-4">
+                        <div className="grid gap-2">
+                        <Label htmlFor="verificationCode">Verification Code</Label>
+                         <div className="relative">
+                             <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                id="verificationCode"
+                                type="text"
+                                placeholder="Enter your 6-digit code"
+                                required
+                                value={verificationCode}
+                                onChange={(e) => setVerificationCode(e.target.value)}
+                                className="pl-10"
+                            />
+                        </div>
+                        </div>
+                        <Button type="submit" className="w-full" disabled={isLoading}>
+                        {isLoading ? 'Verifying...' : 'Verify and Proceed'}
+                        </Button>
+                         <Button variant="link" size="sm" onClick={() => setEmailConfirmed(false)}>
+                            Use a different email
+                        </Button>
+                    </div>
+                </form>
+            )}
+            
              <div className="mt-4 text-center text-sm">
               Already have an account?{' '}
               <Link href="/login" className="underline text-primary">

@@ -47,6 +47,15 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
     console.log(`An invite has been created for ${inviteData.email} with code ${verificationCode}`);
 }
 
+
+export async function checkInviteExists(email: string): Promise<boolean> {
+    const invitesCol = collection(db, 'invites');
+    const q = query(invitesCol, where('email', '==', email), where('status', '==', 'pending'));
+    const snapshot = await getDocs(q);
+    return !snapshot.empty;
+}
+
+
 export async function getPendingInvites(): Promise<Invite[]> {
     const invitesCol = collection(db, 'invites');
     const q = query(invitesCol, where('status', '==', 'pending'));
