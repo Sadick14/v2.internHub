@@ -7,7 +7,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import {
   Bell,
   Home,
-  FileText,
   Users,
   ListChecks,
   Award,
@@ -44,7 +43,6 @@ export default function SupervisorLayout({ children }: { children: ReactNode }) 
   const navItems = [
     { href: '/supervisor/dashboard', label: 'Dashboard', icon: Home },
     { href: '/supervisor/tasks', label: 'Daily Tasks', icon: ListChecks, badge: '2' },
-    { href: '/supervisor/reports', label: 'Pending Reports', icon: FileText, badge: '2' },
     { href: '/supervisor/interns', label: 'My Interns', icon: Users },
     { href: '/supervisor/evaluate-student', label: 'Evaluate Interns', icon: Award },
   ];

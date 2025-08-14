@@ -2,14 +2,6 @@
 'use client';
 import {
   Activity,
-  Briefcase,
-  CheckCircle2,
-  Clock,
-  ArrowRight,
-  CalendarCheck,
-  MapPin,
-  FileText,
-  CalendarDays,
   Users,
   ListChecks,
 } from 'lucide-react'
@@ -33,18 +25,14 @@ import {
 import { useRole } from '@/hooks/use-role';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getReportsBySupervisor, type Report } from '@/services/reportsService';
 import { useEffect, useState } from 'react';
 import { getInternsBySupervisor, type UserProfile } from '@/services/userService';
 import { getTasksBySupervisor, type DailyTask } from '@/services/tasksService';
-import { format, differenceInDays } from 'date-fns';
-import { Progress } from '@/components/ui/progress';
 
 export default function SupervisorDashboardPage() {
   const { user, loading } = useRole();
   const [interns, setInterns] = useState<UserProfile[]>([]);
   const [pendingTasks, setPendingTasks] = useState<DailyTask[]>([]);
-  const [pendingReports, setPendingReports] = useState<Report[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
@@ -52,15 +40,14 @@ export default function SupervisorDashboardPage() {
       if (!user || !user.uid) return;
       setDataLoading(true);
       
-      const [internsData, tasksData, reportsData] = await Promise.all([
+      const [internsData, tasksData] = await Promise.all([
         getInternsBySupervisor(user.uid),
+        // A student marks a task as 'Completed' to submit it for review.
         getTasksBySupervisor(user.uid, ['Completed']),
-        getReportsBySupervisor(user.uid, ['Pending'])
       ]);
       
       setInterns(internsData);
       setPendingTasks(tasksData);
-      setPendingReports(reportsData);
 
       setDataLoading(false);
     }
@@ -117,7 +104,7 @@ export default function SupervisorDashboardPage() {
           </div>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Assigned Interns</CardTitle>
@@ -136,18 +123,6 @@ export default function SupervisorDashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold text-accent">+{pendingTasks.length}</div>
             <p className="text-xs text-muted-foreground">completed by interns</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Reports to Review</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold text-accent`}>+{pendingReports.length}</div>
-             <p className="text-xs text-muted-foreground">
-                pending your feedback
-             </p>
           </CardContent>
         </Card>
          <Card>
