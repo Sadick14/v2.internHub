@@ -21,6 +21,7 @@ export interface InternshipProfile {
     endDate: Date;
     status: 'active' | 'pending';
     createdAt: Date;
+    updatedAt?: Date;
 }
 
 export interface InternshipProfileDetails extends Omit<InternshipProfile, 'id' | 'companyId' | 'supervisorId' | 'status' | 'createdAt'> {
