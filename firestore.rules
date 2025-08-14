@@ -1,30 +1,59 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+  
+    function isAuth() {
+      return request.auth != null;
+    }
     
-    // Invites can be read and written by anyone. 
-    // The security is handled by the verification code logic in the server action.
-    match /invites/{inviteId} {
-      allow read, write: if true;
+    function isAdmin() {
+      return isAuth() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
     match /users/{userId} {
-      // Allow any authenticated user to read user profiles.
-      allow read: if request.auth != null;
-
-      // Allow a user to create their own user document upon registration.
-      // This is the key fix for the registration permission denied error.
-      allow create: if request.auth != null && request.auth.uid == userId;
-      
-      // Only admins can update or delete user documents.
-      allow update, delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      // Any authenticated user can read user profiles.
+      allow read: if isAuth();
+      // A user can create their OWN user document. This is key for registration.
+      allow create: if request.auth.uid == userId;
+      // Only admins can update or delete users.
+      allow update, delete: if isAdmin();
     }
 
-    // Admins have broad access to other collections.
-    // This rule provides a fallback for collections not explicitly defined.
-    match /{document=**} {
-      allow read, write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    match /invites/{inviteId} {
+      // Allow unauthenticated access for the verification/registration flow.
+      // Security is handled by server-side code checking the verification code.
+      allow read, write: if true;
+    }
+
+    match /faculties/{facultyId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+    
+    match /departments/{departmentId} {
+       allow read: if isAuth();
+       allow write: if isAdmin();
+    }
+
+    match /internship_terms/{termId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    match /settings/{settingId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    match /audit_logs/{logId} {
+       allow read, write: if isAdmin();
+    }
+    
+    match /reports/{reportId} {
+      // TODO: Add more granular rules (e.g., student can create, assigned lecturer can update)
+      allow read, write: if isAuth();
     }
   }
 }
