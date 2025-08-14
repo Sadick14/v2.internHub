@@ -124,3 +124,31 @@ export async function getReportsByStudentId(studentId: string): Promise<Report[]
 
     return reportList;
 }
+
+// A new function for admins to see all reports or unassigned ones.
+export async function getAllReports(filter: 'all' | 'unassigned' = 'all'): Promise<Report[]> {
+    const reportsCol = collection(db, 'reports');
+    let q;
+
+    if (filter === 'unassigned') {
+        q = query(reportsCol, where('lecturerId', '==', ''), orderBy('reportDate', 'desc'));
+    } else {
+        q = query(reportsCol, orderBy('reportDate', 'desc'));
+    }
+    
+    const reportSnapshot = await getDocs(q);
+
+     const reportsWithStudentNames = await Promise.all(reportSnapshot.docs.map(async (doc) => {
+        const data = doc.data();
+        const student = await getUserById(data.studentId);
+        return {
+            id: doc.id,
+            ...data,
+            studentName: student?.fullName || 'Unknown Student',
+            reportDate: (data.reportDate as Timestamp).toDate(),
+            createdAt: (data.createdAt as Timestamp).toDate(),
+        } as Report & { studentName: string };
+    }));
+    
+    return reportsWithStudentNames;
+}

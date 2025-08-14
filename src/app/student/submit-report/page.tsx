@@ -88,8 +88,8 @@ export default function SubmitReportPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if(!user || !profile || !reportDate || !user.lecturerId) {
-       toast({ title: "Error", description: "Cannot submit report. User profile, internship details, or assigned lecturer is missing.", variant: "destructive"});
+    if(!user || !profile || !reportDate) {
+       toast({ title: "Error", description: "Cannot submit report. User profile or internship details are missing.", variant: "destructive"});
        return;
     }
     if(!summary) {
@@ -102,13 +102,13 @@ export default function SubmitReportPage() {
         const reportData: NewReportData = {
             studentId: user.uid,
             internshipId: profile.id,
-            lecturerId: user.lecturerId,
+            lecturerId: user.lecturerId || '', // Pass lecturerId if it exists, otherwise pass an empty string
             reportDate: reportDate,
             declaredTasks: formData.declaredTasks,
             summary: summary,
         };
         await createReport(reportData);
-        toast({ title: "Report Submitted!", description: "Your daily report has been sent to your lecturer for review."});
+        toast({ title: "Report Submitted!", description: "Your daily report has been sent for review."});
         // Reset form
         setFormData({ declaredTasks: '', fullReport: '' });
         setSummary('');
@@ -188,7 +188,7 @@ export default function SubmitReportPage() {
                 <CardTitle className="font-headline">AI Report Summary</CardTitle>
                 <CardDescription>
                   Generate a summary of your report. This is required for submission.
-                </CardDescription>
+                </Description>
               </div>
               <Button type="button" onClick={handleGenerateSummary} disabled={isGenerating || !formData.fullReport || !formData.declaredTasks} variant="outline" size="icon">
                 <Wand2 className="h-5 w-5" />
