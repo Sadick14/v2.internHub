@@ -45,81 +45,87 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
     }
 
     try {
-        await sendMail({
-            to: email,
-            subject: 'You have been invited to InternshipTrack',
-            text: `Hello ${firstName},\n\nYou have been invited to join InternshipTrack. Please go to the registration page and use the verification code to complete your account setup.\n\nThank you,\nThe InternshipTrack Team`,
-            html: `<p>Hello ${firstName},</p><p>You have been invited to join InternshipTrack. Please go to the registration page and use the verification code to complete your account setup.</p><p>Thank you,<br>The InternshipTrack Team</p>`,
-        });
-    } catch (error: any) {
-        console.error("Email sending failed:", error);
-        // Throw a detailed error message to be displayed on the client
-        throw new Error(`Failed to send invite email: ${error.message}. Please check your email server credentials and configuration.`);
-    }
+        // 2. Create the user document with a 'pending' status
+        const pendingUserRef = doc(collection(db, 'users'));
+        const userData: Partial<UserProfile> = {
+            fullName: `${firstName} ${lastName}`,
+            email: email,
+            role: role,
+            status: 'pending',
+            facultyId: facultyId || '',
+            departmentId: departmentId || '',
+            createdAt: new Date(),
+        };
 
-
-    // 2. Create the user document with a 'pending' status
-    const pendingUserRef = doc(collection(db, 'users'));
-    const userData: Partial<UserProfile> = {
-        fullName: `${firstName} ${lastName}`,
-        email: email,
-        role: role,
-        status: 'pending',
-        facultyId: facultyId || '',
-        departmentId: departmentId || '',
-        createdAt: new Date(),
-    };
-
-    if (role === 'student') {
-        userData.indexNumber = indexNumber || '';
-        userData.programOfStudy = programOfStudy || '';
-    }
-    
-    await setDoc(pendingUserRef, userData);
-
-
-    // 3. Create the invite document, linking it to the pending user
-    const verificationCode = generateSecureCode();
-    const invitesCol = collection(db, 'invites');
-    
-    const newInvite: any = {
-        email,
-        role,
-        firstName,
-        lastName,
-        pendingUserId: pendingUserRef.id,
-        status: 'pending',
-        verificationCode,
-        createdAt: serverTimestamp(),
-    };
-
-    if (role === 'student') {
-        newInvite.indexNumber = indexNumber;
-        newInvite.programOfStudy = programOfStudy;
-    }
-     if (role === 'student' || role === 'lecturer' || role === 'hod') {
-        newInvite.facultyId = facultyId;
-        newInvite.departmentId = departmentId;
-    }
-
-    await addDoc(invitesCol, newInvite);
-
-    // 4. Create an audit log
-    if (invitedBy) {
-        try {
-            await createAuditLog({
-                action: 'Create Invite',
-                details: `Invited ${firstName} ${lastName} (${email}) as a ${role}.`,
-                userId: invitedBy.id,
-                userName: invitedBy.name,
-                userEmail: 'N/A' // Email of the inviter is not readily available here.
-            });
-        } catch (error) {
-            console.error("Failed to create audit log for invite:", error);
+        if (role === 'student') {
+            userData.indexNumber = indexNumber || '';
+            userData.programOfStudy = programOfStudy || '';
         }
-    }
+        
+        await setDoc(pendingUserRef, userData);
 
-    return { pendingUserId: pendingUserRef.id };
+
+        // 3. Create the invite document, linking it to the pending user
+        const verificationCode = generateSecureCode();
+        const invitesCol = collection(db, 'invites');
+        
+        const newInvite: any = {
+            email,
+            role,
+            firstName,
+            lastName,
+            pendingUserId: pendingUserRef.id,
+            status: 'pending',
+            verificationCode,
+            createdAt: serverTimestamp(),
+        };
+
+        if (role === 'student') {
+            newInvite.indexNumber = indexNumber;
+            newInvite.programOfStudy = programOfStudy;
+        }
+        if (role === 'student' || role === 'lecturer' || role === 'hod') {
+            newInvite.facultyId = facultyId;
+            newInvite.departmentId = departmentId;
+        }
+
+        await addDoc(invitesCol, newInvite);
+        
+         try {
+            await sendMail({
+                to: email,
+                subject: 'You have been invited to InternshipTrack',
+                text: `Hello ${firstName},\n\nYou have been invited to join InternshipTrack. Please go to the registration page and use the verification code to complete your account setup.\n\nThank you,\nThe InternshipTrack Team`,
+                html: `<p>Hello ${firstName},</p><p>You have been invited to join InternshipTrack. Please go to the registration page and use the verification code to complete your account setup.</p><p>Thank you,<br>The InternshipTrack Team</p>`,
+            });
+        } catch (error: any) {
+            console.error("Email sending failed:", error);
+            // Throw a detailed error message to be displayed on the client
+            throw new Error(`Failed to send invite email: ${error.message}. Please check your email server credentials and configuration.`);
+        }
+
+
+        // 4. Create an audit log
+        if (invitedBy) {
+            try {
+                await createAuditLog({
+                    action: 'Create Invite',
+                    details: `Invited ${firstName} ${lastName} (${email}) as a ${role}.`,
+                    userId: invitedBy.id,
+                    userName: invitedBy.name,
+                    userEmail: 'N/A' // Email of the inviter is not readily available here.
+                });
+            } catch (error) {
+                console.error("Failed to create audit log for invite:", error);
+            }
+        }
+
+        return { pendingUserId: pendingUserRef.id };
+
+    } catch (error: any) {
+        console.error(`Error in createInvite for ${email}:`, error);
+        throw new Error(`Failed to create invite in database: ${error.message}`);
+    }
 }
 
 
