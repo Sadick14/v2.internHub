@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { verifyInvite, checkInviteExists } from '@/services/invitesService';
+import { verifyInvite, sendVerificationEmail } from '@/services/invitesService';
 import { Mail, KeyRound } from 'lucide-react';
 
 export default function VerifyPage() {
@@ -24,8 +24,8 @@ export default function VerifyPage() {
       e.preventDefault();
       setIsLoading(true);
       try {
-          const exists = await checkInviteExists(email);
-          if (exists) {
+          const { success, error } = await sendVerificationEmail(email);
+          if (success) {
               toast({
                   title: "Verification Code Sent",
                   description: "A verification code has been sent to your email. Please check your inbox.",
@@ -33,8 +33,8 @@ export default function VerifyPage() {
               setEmailConfirmed(true);
           } else {
               toast({
-                  title: "No Invite Found",
-                  description: "We couldn't find a pending invitation for this email address. Please contact your administrator.",
+                  title: "Error Sending Code",
+                  description: error || "We couldn't find a pending invitation for this email address.",
                   variant: "destructive",
               });
           }

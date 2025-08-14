@@ -1,9 +1,12 @@
 
+'use server';
+
 import { db, auth } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, getDocs, query, where, Timestamp, writeBatch, documentId, doc, updateDoc } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
 import { createAuditLog } from './auditLogService';
 import { getSettings } from './settingsService';
+import { sendMail } from '@/lib/email';
 
 export interface Invite {
     id?: string;
@@ -50,19 +53,29 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
 }
 
 
-export async function checkInviteExists(email: string): Promise<boolean> {
+export async function sendVerificationEmail(email: string): Promise<{ success: boolean; error?: string }> {
     const invitesCol = collection(db, 'invites');
     const q = query(invitesCol, where('email', '==', email), where('status', '==', 'pending'));
     const snapshot = await getDocs(q);
     
     if (snapshot.empty) {
-        return false;
+        return { success: false, error: "No pending invite found for this email address." };
     }
     
-    // In a real application, an email with the verification code would be sent here.
-    // For this simulation, we just confirm the invite exists.
+    const invite = snapshot.docs[0].data() as Invite;
     
-    return true;
+    try {
+        await sendMail({
+            to: email,
+            subject: 'Verify Your InternshipTrack Account',
+            text: `Your verification code is ${invite.verificationCode}`,
+            html: `<p>Your verification code is <strong>${invite.verificationCode}</strong></p>`,
+        });
+        return { success: true };
+    } catch (error: any) {
+        console.error("Failed to send verification email:", error);
+        return { success: false, error: "Could not send verification email. Please try again later." };
+    }
 }
 
 
