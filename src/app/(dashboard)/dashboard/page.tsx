@@ -1,5 +1,4 @@
 
-
 'use client'
 import { useRole } from '@/hooks/use-role'
 import { useRouter } from 'next/navigation'
@@ -17,7 +16,7 @@ export default function DashboardPage() {
     }
   }, [role, loading, router])
 
-  // Return null or a minimal loader while redirecting
-  // The main layout already shows a full-page loader
+  // While loading, the layout will show a spinner. 
+  // This component doesn't need to show anything until the redirect happens.
   return null;
 }

@@ -17,10 +17,11 @@ export default function DashboardRedirectLayout({ children }: { children: ReactN
   }, []);
 
   useEffect(() => {
-    // If auth state is loaded and there is no user, redirect to login from protected paths.
+    // If auth state is loaded and there is no user, redirect to login from any protected path.
     if (!loading && !user) {
-      const publicPaths = ['/login', '/register', '/verify', '/forgot-password', '/'];
-      if (!publicPaths.includes(pathname)) {
+      const publicPaths = ['/login', '/register', 'verify', '/forgot-password', '/'];
+      // Allow access to root and auth-related pages. Redirect from all others.
+      if (!publicPaths.includes(pathname) && pathname !== '/') {
         router.push('/login');
       }
     }
@@ -40,18 +41,20 @@ export default function DashboardRedirectLayout({ children }: { children: ReactN
         </main>
     );
   }
-
-  // If user is not logged in and on a public page, just show the page content.
-  const publicPaths = ['/login', '/register', '/verify', '/forgot-password', '/'];
-  if (!user && publicPaths.includes(pathname)) {
+  
+  // At this point, loading is false. We can now decide what to render.
+  if (user) {
+    // If the user is logged in, show the requested page content (the dashboard or a specific role page).
     return <>{children}</>;
   }
 
-  // If user is logged in, show the dashboard content.
-  if (user) {
+  // If there's no user and they are on a public path, show that page's content.
+  const publicPaths = ['/login', '/register', 'verify', '/forgot-password', '/'];
+  if (!user && publicPaths.some(p => pathname.startsWith(p))) {
     return <>{children}</>;
   }
 
   // Fallback for any other state (should not be reached often)
+  // This can happen briefly during the transition between states.
   return null;
 }
