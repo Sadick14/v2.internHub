@@ -1,46 +1,55 @@
+
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check for admin role
-    function isAdmin() {
-      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    // Helper function to check if a user has a specific role
+    function isRole(role) {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
     }
 
-    // Users can read their own profile, admins can read/write any profile
+    // Admins have full access to user profiles
     match /users/{userId} {
-      allow read: if request.auth.uid == userId || isAdmin();
-      allow write: if isAdmin();
-    }
-    
-    // Admins can manage invites
-    match /invites/{inviteId} {
-        allow read, write: if isAdmin();
+      allow read, write: if isRole('admin');
+      // Users can read their own profile
+      allow read: if request.auth.uid == userId;
     }
 
-    // Admins can manage university structure
+    // Only admins can manage university structure
     match /faculties/{facultyId} {
-        allow read, write: if isAdmin();
+        allow read: if request.auth.uid != null;
+        allow write: if isRole('admin');
     }
     match /departments/{departmentId} {
-        allow read, write: if isAdmin();
+        allow read: if request.auth.uid != null;
+        allow write: if isRole('admin');
     }
 
-    // Admins can manage internship terms
-     match /internship_terms/{termId} {
-        allow read, write: if isAdmin();
+    // Only admins can manage internship terms
+    match /internship_terms/{termId} {
+        allow read, write: if isRole('admin');
+    }
+
+    // Only admins can manage invites
+    match /invites/{inviteId} {
+        allow read, write: if isRole('admin');
     }
     
-    // Admins can manage global system settings
-    match /system_settings/{settingId} {
-        allow read, write: if isAdmin();
-    }
-    
-    // Reports can be created by students, read by relevant parties
+    // Reports can be managed by relevant parties
     match /reports/{reportId} {
-      allow create: if request.auth.uid == request.resource.data.studentId;
-      // This rule needs refinement to allow lecturers/supervisors to read/update
-      allow read, update: if request.auth.uid == request.resource.data.studentId || isAdmin();
+        // Students can create their own reports
+        allow create: if request.auth.uid == request.resource.data.studentId;
+        // Students can read their own reports
+        // Lecturers, HODs, Supervisors, Admins can read reports
+        allow read: if request.auth.uid == resource.data.studentId || isRole('admin') || isRole('lecturer') || isRole('hod') || isRole('supervisor');
+        // Lecturers, Supervisors, Admins can update reports (for comments/status)
+        allow update: if isRole('admin') || isRole('lecturer') || isRole('supervisor');
+    }
+    
+    // Only admins can manage global settings
+    match /settings/global {
+      allow read, write: if isRole('admin');
     }
 
   }
