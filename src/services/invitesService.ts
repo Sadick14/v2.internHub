@@ -140,6 +140,7 @@ export async function acceptInvite(inviteId: string, userId: string, userProfile
     const { createdAt, ...profileData } = userProfile;
     batch.set(userRef, {
         ...profileData,
+        uid: userId, // Ensure UID is part of the document data for security rules
         createdAt: serverTimestamp()
     });
 

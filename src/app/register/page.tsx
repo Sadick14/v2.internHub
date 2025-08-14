@@ -84,7 +84,7 @@ function RegisterForm() {
         email: inviteDetails.email,
         role: inviteDetails.role,
         status: 'active',
-        // Let the server handle the timestamp
+        // Server will handle the timestamp
         indexNumber: inviteDetails.indexNumber || '',
         programOfStudy: inviteDetails.programOfStudy || '',
         facultyId: inviteDetails.facultyId || '',
