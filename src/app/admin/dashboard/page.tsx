@@ -5,8 +5,6 @@ import {
   Clock,
   Users,
 } from 'lucide-react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -69,17 +67,6 @@ export default function AdminDashboardPage() {
               </p>
             </CardContent>
           </Card>
-        </div>
-        <div>
-          <CardTitle className="font-headline text-lg">Quick Actions</CardTitle>
-          <div className="mt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Button asChild>
-              <Link href="/admin/invite-student">Invite Student</Link>
-            </Button>
-            <Button variant="secondary">Manage Users</Button>
-            <Button variant="secondary">System Settings</Button>
-             <Button variant="secondary">View Audit Logs</Button>
-          </div>
         </div>
       </CardContent>
     </Card>
