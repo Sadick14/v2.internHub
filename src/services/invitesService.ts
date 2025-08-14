@@ -85,6 +85,7 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
 
         await addDoc(invitesCol, newInvite);
         
+         // Send invite email but don't block the process if it fails
          try {
             await sendMail({
                 to: email,
@@ -93,9 +94,9 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
                 html: `<p>Hello ${firstName},</p><p>You have been invited to join InternshipTrack. Please go to the registration page and use the verification code to complete your account setup.</p><p>Thank you,<br>The InternshipTrack Team</p>`,
             });
         } catch (error: any) {
-            console.error("Email sending failed:", error);
-            // Throw a detailed error message to be displayed on the client
-            throw new Error(`Failed to send invite email: ${error.message}. Please check your email server credentials and configuration.`);
+            console.error(`[CRITICAL] Email sending failed for invite to ${email}:`, error);
+            // We log the error but do not throw, so the user can be created.
+            // In a production app, you might add this to a retry queue.
         }
 
 
