@@ -30,7 +30,8 @@ export interface UserProfile {
 export async function getAllUsers(): Promise<UserProfile[]> {
     const usersCol = collection(db, 'users');
     const userSnapshot = await getDocs(usersCol);
-    const userList = userSnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as UserProfile & { uid: string }));
+    // The `uid` field in the document is the auth UID. The document's ID is what we use for internal lookups.
+    const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserProfile & { id: string }));
     const lecturers = userList.filter(u => u.role === 'lecturer');
 
     // Enrich users with faculty and department names
@@ -48,11 +49,12 @@ export async function getAllUsers(): Promise<UserProfile[]> {
         
         let assignedLecturerName = '';
         if (user.role === 'student' && user.lecturerId) {
-            const assignedLecturer = lecturers.find(l => l.uid === user.lecturerId);
+            // The lecturerId is the firestore document ID of the lecturer
+            const assignedLecturer = lecturers.find(l => l.id === user.lecturerId);
             assignedLecturerName = assignedLecturer?.fullName || '';
         }
 
-        return { ...user, facultyName, departmentName, assignedLecturerName };
+        return { ...user, uid: user.uid, facultyName, departmentName, assignedLecturerName };
     }));
 
     return enrichedUsers;
@@ -60,7 +62,9 @@ export async function getAllUsers(): Promise<UserProfile[]> {
 
 export async function getUserById(uid: string): Promise<UserProfile | null> {
     const usersRef = collection(db, 'users');
-    // Find user by auth UID
+    // The UID passed to this function could be an Auth UID or a Firestore Document ID.
+    
+    // First, try querying by the 'uid' field (Auth UID)
     const q = query(usersRef, where("uid", "==", uid));
     const querySnapshot = await getDocs(q);
     
@@ -68,7 +72,7 @@ export async function getUserById(uid: string): Promise<UserProfile | null> {
     if (!querySnapshot.empty) {
         userSnapshot = querySnapshot.docs[0];
     } else {
-        // Fallback for pending users or if UID is the doc ID
+        // If that fails, it might be a Firestore document ID (e.g. from lecturerId)
         try {
             const docRef = doc(db, 'users', uid);
             const docSnap = await getDoc(docRef);
@@ -82,6 +86,7 @@ export async function getUserById(uid: string): Promise<UserProfile | null> {
         }
     }
 
+    if (!userSnapshot) return null;
 
     const userData = userSnapshot.data() as UserProfile;
     
@@ -103,7 +108,7 @@ export async function getUserById(uid: string): Promise<UserProfile | null> {
 
     return {
         ...userData,
-        uid: userSnapshot.id,
+        uid: userSnapshot.id, // Ensure we return the document ID as uid for consistency in some places
         facultyName,
         departmentName
     }
@@ -140,7 +145,7 @@ export async function updateUserStatus(uid: string, status: 'active' | 'inactive
 
 
 export async function assignLecturerToStudent(studentId: string, lecturerId: string): Promise<void> {
-    // Note: The studentId here is the DOCUMENT ID from the users collection
+    // studentId and lecturerId here are DOCUMENT IDs from the users collection
     const studentRef = doc(db, 'users', studentId);
     await updateDoc(studentRef, { lecturerId });
 

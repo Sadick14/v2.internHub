@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -54,11 +55,13 @@ export async function createReport(reportData: NewReportData): Promise<Report> {
 
 export async function getReportsByLecturer(lecturerId: string): Promise<Report[]> {
     const reportsCol = collection(db, 'reports');
+    // lecturerId is a firestore document id, so this query is correct
     const q = query(reportsCol, where('lecturerId', '==', lecturerId), where('status', '==', 'Pending'));
     const reportSnapshot = await getDocs(q);
 
     const reportsWithStudentNames = await Promise.all(reportSnapshot.docs.map(async (doc) => {
         const data = doc.data();
+        // data.studentId here is an auth UID. getUserById handles this correctly.
         const student = await getUserById(data.studentId);
         return {
             id: doc.id,
@@ -93,9 +96,8 @@ export async function rejectReport(reportId: string, lecturerComment: string): P
 
 export async function getReportsByStudentId(studentId: string): Promise<Report[]> {
     const reportsCol = collection(db, 'reports');
-    // Ensure we are querying against the student's document ID, not the auth UID
-    const studentDocId = studentId; // Assuming the passed ID is the document ID for the student
-    const q = query(reportsCol, where('studentId', '==', studentDocId));
+    // The studentId passed here is the auth UID from useRole.
+    const q = query(reportsCol, where('studentId', '==', studentId));
     const reportSnapshot = await getDocs(q);
 
     const reportList = reportSnapshot.docs.map(doc => {

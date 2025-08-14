@@ -118,6 +118,7 @@ export async function createInternshipProfile(details: InternshipProfileDetails)
 
 export async function getInternshipProfileByStudentId(studentId: string): Promise<InternshipProfile | null> {
     const profilesCol = collection(db, 'internship_profiles');
+    // This query now correctly uses the studentId (auth UID) to find the profile
     const q = query(profilesCol, where('studentId', '==', studentId));
     const snapshot = await getDocs(q);
 
