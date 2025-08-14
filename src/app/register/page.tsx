@@ -79,22 +79,9 @@ function RegisterForm() {
       
       // 2. Update Auth profile (optional, but good practice)
       await updateProfile(user, { displayName: fullName });
-
-      // 3. Prepare the user profile data for Firestore
-      const userProfile = {
-        uid: user.uid,
-        fullName,
-        email: inviteDetails.email,
-        role: inviteDetails.role,
-        status: 'active',
-        indexNumber: inviteDetails.indexNumber || '',
-        programOfStudy: inviteDetails.programOfStudy || '',
-        facultyId: inviteDetails.facultyId || '',
-        departmentId: inviteDetails.departmentId || '',
-      };
       
-      // 4. Call the server action to create user doc and update invite
-      await completeUserRegistration(inviteDetails.id, user.uid, userProfile);
+      // 3. Call the server action to activate user and update invite
+      await completeUserRegistration(inviteDetails.id, user.uid);
       
       toast({
         title: "Registration Successful",

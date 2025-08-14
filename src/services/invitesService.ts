@@ -7,6 +7,7 @@ import { collection, addDoc, serverTimestamp, getDocs, query, where, Timestamp, 
 import type { Role } from '@/hooks/use-role';
 import { createAuditLog } from './auditLogService';
 import { sendMail } from '@/lib/email';
+import type { UserProfile } from './userService';
 
 export interface Invite {
     id?: string;
@@ -21,6 +22,7 @@ export interface Invite {
     status: 'pending' | 'accepted';
     createdAt: string; // Serialized date
     verificationCode: string; // OTP
+    pendingUserId: string; // ID of the document in the 'users' collection
 }
 
 function generateSecureCode(): string {
@@ -30,18 +32,34 @@ function generateSecureCode(): string {
     return (randomValue % 900000 + 100000).toString();
 }
 
-export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdAt' | 'id' | 'verificationCode'>): Promise<void> {
+export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdAt' | 'id' | 'verificationCode' | 'pendingUserId'>): Promise<void> {
     const invitesCol = collection(db, 'invites');
+    const usersCol = collection(db, 'users');
     
+    // 1. Create the user document with a 'pending' status
+    const pendingUserRef = await addDoc(usersCol, {
+        fullName: `${inviteData.firstName} ${inviteData.lastName}`,
+        email: inviteData.email,
+        role: inviteData.role,
+        status: 'pending',
+        indexNumber: inviteData.indexNumber || '',
+        programOfStudy: inviteData.programOfStudy || '',
+        facultyId: inviteData.facultyId || '',
+        departmentId: inviteData.departmentId || '',
+        createdAt: serverTimestamp(),
+    });
+
+    // 2. Create the invite document, linking it to the pending user
     const verificationCode = generateSecureCode();
-    
     await addDoc(invitesCol, {
         ...inviteData,
+        pendingUserId: pendingUserRef.id,
         status: 'pending',
         verificationCode,
         createdAt: serverTimestamp(),
     });
 
+    // 3. Create an audit log
     const currentUser = auth.currentUser;
     if (currentUser) {
          await createAuditLog({
@@ -127,16 +145,24 @@ export async function verifyInvite(email: string, code: string): Promise<Invite 
 }
 
 
-export async function completeUserRegistration(inviteId: string, userId: string, userProfile: any) {
-    const userRef = doc(db, 'users', userId);
+export async function completeUserRegistration(inviteId: string, authUid: string) {
     const inviteRef = doc(db, 'invites', inviteId);
+    const inviteSnap = await getDoc(inviteRef);
+
+    if (!inviteSnap.exists()) {
+        throw new Error("Invite not found.");
+    }
+    
+    const inviteData = inviteSnap.data() as Invite;
+    const userRef = doc(db, 'users', inviteData.pendingUserId);
 
     const batch = writeBatch(db);
 
-    // Add the user document to the 'users' collection
-    batch.set(userRef, {
-        ...userProfile,
-        createdAt: serverTimestamp(),
+    // Update the user document to active and add the auth UID
+    batch.update(userRef, { 
+        status: 'active',
+        uid: authUid,
+        updatedAt: serverTimestamp() 
     });
 
     // Update the invite status to 'accepted'

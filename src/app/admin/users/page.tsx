@@ -39,7 +39,7 @@ export default function UserManagementPage() {
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isEditUserOpen, setIsEditUserOpen] = useState(false);
-    const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+    const [currentUser, setCurrentUser] = useState<UserProfile & { id?: string } | null>(null);
     const [faculties, setFaculties] = useState<Faculty[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
     const { toast } = useToast();
@@ -72,7 +72,7 @@ export default function UserManagementPage() {
     };
 
     const handleUpdateUser = async () => {
-        if (!currentUser) return;
+        if (!currentUser || !currentUser.uid) return;
         try {
             await updateUser(currentUser.uid, currentUser);
             toast({ title: "Success", description: "User updated successfully." });
@@ -93,6 +93,10 @@ export default function UserManagementPage() {
     };
 
     const handleToggleUserStatus = async (user: UserProfile) => {
+        if (!user.uid) {
+            toast({ title: "Error", description: `User ID is missing. Cannot update status.`, variant: 'destructive' });
+            return;
+        };
         const newStatus = user.status === 'active' ? 'inactive' : 'active';
          try {
             await updateUserStatus(user.uid, newStatus);
@@ -170,7 +174,7 @@ export default function UserManagementPage() {
                                 users.map((user) => (
                                     <TableRow key={user.uid}>
                                         <TableCell className="font-medium">
-                                            {user.role === 'student' ? (
+                                            {user.role === 'student' && user.uid ? (
                                                 <Link href={`/admin/students/${user.uid}`} className="hover:underline text-primary">
                                                     <div className="font-medium">{user.fullName}</div>
                                                 </Link>
@@ -189,16 +193,16 @@ export default function UserManagementPage() {
                                         <TableCell>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                    <Button aria-haspopup="true" size="icon" variant="ghost" disabled={!user.uid}>
                                                         <MoreHorizontal className="h-4 w-4" />
                                                         <span className="sr-only">Toggle menu</span>
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                     {user.role === 'student' && <DropdownMenuItem asChild><Link href={`/admin/students/${user.uid}`}>View Profile</Link></DropdownMenuItem>}
-                                                    <DropdownMenuItem onClick={() => openEditDialog(user)}>Edit User</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => handleResetPassword(user.email)}>Reset Password</DropdownMenuItem>
+                                                     {user.role === 'student' && user.uid && <DropdownMenuItem asChild><Link href={`/admin/students/${user.uid}`}>View Profile</Link></DropdownMenuItem>}
+                                                    <DropdownMenuItem onClick={() => openEditDialog(user)} disabled={user.status === 'pending'}>Edit User</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleResetPassword(user.email)} disabled={user.status === 'pending'}>Reset Password</DropdownMenuItem>
                                                     <DropdownMenuSeparator />
                                                     <AlertDialog>
                                                         <AlertDialogTrigger asChild>
@@ -300,5 +304,3 @@ export default function UserManagementPage() {
         </>
     )
 }
-
-    

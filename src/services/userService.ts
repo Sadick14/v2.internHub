@@ -1,14 +1,14 @@
 
 
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, getDoc, updateDoc, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc, Timestamp, query, where } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
 import { getFacultyById, getDepartmentById } from './universityService';
 import { createAuditLog } from './auditLogService';
 import { auth } from '@/lib/firebase';
 
 export interface UserProfile {
-    uid: string;
+    uid?: string; // Auth UID - might not exist for 'pending' users
     fullName: string;
     email: string;
     role: Role;
@@ -50,20 +50,38 @@ export async function getAllUsers(): Promise<UserProfile[]> {
             const assignedLecturer = lecturers.find(l => l.uid === user.lecturerId);
             assignedLecturerName = assignedLecturer?.fullName || '';
         }
+        
+        const docId = (user as any).uid;
 
-        return { ...user, facultyName, departmentName, assignedLecturerName };
+        return { ...user, id: docId, facultyName, departmentName, assignedLecturerName };
     }));
 
     return enrichedUsers;
 }
 
 export async function getUserById(uid: string): Promise<UserProfile | null> {
-    const userRef = doc(db, 'users', uid);
-    const userSnapshot = await getDoc(userRef);
+    const usersRef = collection(db, 'users');
+    // First, try finding by actual UID if they are fully registered
+    const userDocRef = doc(usersRef, uid);
+    let userSnapshot = await getDoc(userDocRef);
 
+    // If not found by UID, it might be a pending user whose doc ID is the UID
     if (!userSnapshot.exists()) {
-        return null;
+        const q = query(usersRef, where("uid", "==", uid));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+            userSnapshot = querySnapshot.docs[0];
+        } else {
+             const docRef = doc(db, 'users', uid);
+             const docSnap = await getDoc(docRef);
+             if (docSnap.exists()) {
+                 userSnapshot = docSnap;
+             } else {
+                return null;
+             }
+        }
     }
+
 
     const userData = userSnapshot.data() as UserProfile;
     
@@ -122,5 +140,3 @@ export async function assignLecturerToStudent(studentId: string, lecturerId: str
         });
     }
 }
-
-    
