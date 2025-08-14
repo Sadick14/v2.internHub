@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import type { Role } from '@/hooks/use-role';
-import { acceptInvite, verifyInvite, type Invite } from '@/services/invitesService';
+import { verifyInvite, completeUserRegistration, type Invite } from '@/services/invitesService';
 
 function RegisterForm() {
   const router = useRouter();
@@ -71,27 +71,30 @@ function RegisterForm() {
     setIsLoading(true);
 
     try {
+      // 1. Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, inviteDetails.email, password);
       const user = userCredential.user;
       
       const fullName = `${inviteDetails.firstName} ${inviteDetails.lastName}`;
+      
+      // 2. Update Auth profile (optional, but good practice)
       await updateProfile(user, { displayName: fullName });
 
-      // This profile will be saved to the 'users' collection in Firestore
+      // 3. Prepare the user profile data for Firestore
       const userProfile = {
         uid: user.uid,
         fullName,
         email: inviteDetails.email,
         role: inviteDetails.role,
         status: 'active',
-        // Server will handle the timestamp
         indexNumber: inviteDetails.indexNumber || '',
         programOfStudy: inviteDetails.programOfStudy || '',
         facultyId: inviteDetails.facultyId || '',
         departmentId: inviteDetails.departmentId || '',
       };
       
-      await acceptInvite(inviteDetails.id, user.uid, userProfile);
+      // 4. Call the server action to create user doc and update invite
+      await completeUserRegistration(inviteDetails.id, user.uid, userProfile);
       
       toast({
         title: "Registration Successful",

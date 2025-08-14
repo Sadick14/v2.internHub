@@ -127,17 +127,21 @@ export async function verifyInvite(email: string, code: string): Promise<Invite 
 }
 
 
-export async function acceptInvite(inviteId: string, userId: string, userProfile: any) {
+export async function completeUserRegistration(inviteId: string, userId: string, userProfile: any) {
     const userRef = doc(db, 'users', userId);
     const inviteRef = doc(db, 'invites', inviteId);
 
-    // Create the user document first.
-    await setDoc(userRef, {
+    const batch = writeBatch(db);
+
+    // Add the user document to the 'users' collection
+    batch.set(userRef, {
         ...userProfile,
-        uid: userId, // Ensure the UID is part of the document data
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
     });
 
-    // Then update the invite status.
-    await updateDoc(inviteRef, { status: 'accepted' });
+    // Update the invite status to 'accepted'
+    batch.update(inviteRef, { status: 'accepted' });
+    
+    // Commit the batch
+    await batch.commit();
 }
