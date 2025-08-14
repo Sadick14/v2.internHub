@@ -2,7 +2,8 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, where, serverTimestamp, Timestamp, startOfDay, endOfDay } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { startOfDay, endOfDay } from 'date-fns';
 import { createAuditLog } from './auditLogService';
 import { auth } from '@/lib/firebase';
 import { getUserById } from './userService';
@@ -78,4 +79,3 @@ export async function getTodayCheckIn(studentId: string): Promise<CheckIn | null
         timestamp: (data.timestamp as Timestamp).toDate(),
     } as CheckIn;
 }
-
