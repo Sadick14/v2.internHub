@@ -69,16 +69,14 @@ export async function getTasksByDate(studentId: string, date: Date): Promise<Dai
     return tasksForDate;
 }
 
-export async function getTasksBySupervisor(supervisorId: string, status: DailyTask['status'][]): Promise<DailyTask[]> {
+export async function getTasksBySupervisor(supervisorId: string, statusFilter: DailyTask['status'][]): Promise<DailyTask[]> {
     const q = query(
         tasksCollectionRef,
-        where('supervisorId', '==', supervisorId),
-        where('status', 'in', status),
-        orderBy('date', 'desc')
+        where('supervisorId', '==', supervisorId)
     );
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map(doc => {
+    const tasks = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
             id: doc.id,
@@ -87,6 +85,11 @@ export async function getTasksBySupervisor(supervisorId: string, status: DailyTa
             createdAt: (data.createdAt as Timestamp).toDate(),
         } as DailyTask;
     });
+
+    // Filter by status and sort by date in code to avoid composite index
+    return tasks
+        .filter(task => statusFilter.includes(task.status))
+        .sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
 export async function updateTaskStatus(taskId: string, status: 'Completed' | 'Approved' | 'Rejected', supervisorFeedback?: string): Promise<void> {
