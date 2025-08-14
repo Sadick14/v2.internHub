@@ -80,7 +80,24 @@ export default function InviteUserPage() {
         e.preventDefault();
         setIsLoading(true);
         try {
-            await createInvite(formData);
+            // Construct payload based on role
+            const payload: any = {
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                email: formData.email,
+                role: formData.role,
+            }
+
+            if (formData.role === 'student') {
+                payload.indexNumber = formData.indexNumber;
+                payload.programOfStudy = formData.programOfStudy;
+            }
+            if (formData.role === 'student' || formData.role === 'lecturer' || formData.role === 'hod') {
+                payload.facultyId = formData.facultyId;
+                payload.departmentId = formData.departmentId;
+            }
+
+            await createInvite(payload);
             toast({
                 title: "Invite Sent",
                 description: `An invitation has been sent to ${formData.email}.`,
@@ -103,19 +120,35 @@ export default function InviteUserPage() {
     };
 
     const handleDownloadTemplate = () => {
-        const headers = "firstName,lastName,indexNumber,email,role,facultyId,departmentId,programOfStudy";
+        let headers = "firstName,lastName,email";
+        let filename = `${formData.role}_invite_template.csv`;
+
+        switch(formData.role) {
+            case 'student':
+                headers = "firstName,lastName,email,indexNumber,programOfStudy,facultyId,departmentId";
+                break;
+            case 'lecturer':
+            case 'hod':
+                headers = "firstName,lastName,email,facultyId,departmentId";
+                break;
+            case 'supervisor':
+            case 'admin':
+                // Default headers are fine
+                break;
+        }
+
         const blob = new Blob([headers], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
-        link.setAttribute("download", "user_invite_template.csv");
+        link.setAttribute("download", filename);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         toast({
             title: "Template Downloaded",
-            description: "A CSV template has been downloaded.",
+            description: `A CSV template for the ${formData.role} role has been downloaded.`,
         });
     };
     
@@ -197,6 +230,15 @@ export default function InviteUserPage() {
                     </TabsContent>
                     <TabsContent value="bulk">
                         <div className="space-y-4 pt-4">
+                             <div className="text-sm p-4 bg-secondary rounded-md border">
+                                <p className="font-semibold">Instructions:</p>
+                                <ol className="list-decimal list-inside space-y-1 mt-2">
+                                    <li>First, select the desired role (e.g., 'Student') from the 'Single Invite' tab.</li>
+                                    <li>Click 'Download Template' to get the CSV file with the correct columns for that role.</li>
+                                    <li>Fill the template with user data. For faculty and department, use their unique IDs, not their names.</li>
+                                    <li>Upload the completed CSV file below and click 'Upload & Send Invites'.</li>
+                                </ol>
+                            </div>
                             <Card className="bg-muted/40">
                                 <CardContent className="pt-6">
                                      <div className="space-y-2 text-center">
