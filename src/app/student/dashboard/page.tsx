@@ -35,7 +35,7 @@ import { getReportsByStudentId, type Report } from '@/services/reportsService';
 import { useEffect, useState } from 'react';
 import { getInternshipProfileByStudentId, type InternshipProfile } from '@/services/internshipProfileService';
 import { getTodayCheckIn, type CheckIn } from '@/services/checkInService';
-import { format, differenceInDays } from 'date-fns';
+import { format, differenceInDays, differenceInBusinessDays } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
 
 export default function StudentDashboardPage() {
@@ -100,8 +100,8 @@ export default function StudentDashboardPage() {
     )
   }
 
-  const internshipDurationDays = profile ? differenceInDays(profile.endDate, profile.startDate) + 1 : 0;
-  const daysCompleted = profile ? differenceInDays(new Date(), profile.startDate) + 1 : 0;
+  const internshipDurationDays = profile ? differenceInBusinessDays(profile.endDate, profile.startDate) : 0;
+  const daysCompleted = profile ? differenceInBusinessDays(new Date(), profile.startDate) : 0;
   const progressPercentage = internshipDurationDays > 0 ? Math.min(100, Math.round((daysCompleted / internshipDurationDays) * 100)) : 0;
   const submittedReportsCount = reports.length;
   const pendingReportsCount = reports.filter(r => r.status === 'Pending').length;
@@ -131,7 +131,7 @@ export default function StudentDashboardPage() {
               </div>
               <div className="flex-shrink-0 mt-3 md:mt-0">
                   {checkIn ? (
-                    <Link href="/student/daily-report" passHref>
+                    <Link href="/student/submit-report" passHref>
                         <Button className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-medium transition rounded-lg px-4 py-2 text-sm">
                             <FileText className="mr-2 h-4 w-4" /> Submit Today's Report
                         </Button>
