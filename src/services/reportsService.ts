@@ -109,7 +109,9 @@ export async function rejectReport(reportId: string, lecturerComment: string): P
 export async function getReportsByStudentId(studentId: string): Promise<Report[]> {
     const reportsCol = collection(db, 'reports');
     // The studentId passed here is the auth UID from useRole.
-    const q = query(reportsCol, where('studentId', '==', studentId), orderBy('reportDate', 'desc'));
+    // Querying by studentId and ordering by another field requires a composite index.
+    // To avoid this, we query only by studentId and sort the results in the application code.
+    const q = query(reportsCol, where('studentId', '==', studentId));
     const reportSnapshot = await getDocs(q);
 
     const reportList = reportSnapshot.docs.map(doc => {
@@ -122,7 +124,8 @@ export async function getReportsByStudentId(studentId: string): Promise<Report[]
         } as Report
     });
 
-    return reportList;
+    // Sort the reports by date in descending order (newest first)
+    return reportList.sort((a, b) => b.reportDate.getTime() - a.reportDate.getTime());
 }
 
 // A new function for admins to see all reports or unassigned ones.
