@@ -4,6 +4,7 @@ import { collection, addDoc, serverTimestamp, getDocs, query, where, Timestamp, 
 import type { Role } from '@/hooks/use-role';
 import { createAuditLog } from './auditLogService';
 import { sendMail } from '@/lib/email';
+import { getSettings } from './settingsService';
 
 export interface Invite {
     id?: string;
@@ -57,6 +58,12 @@ export async function checkInviteExists(email: string): Promise<boolean> {
         return false;
     }
 
+    const settings = await getSettings();
+    if (!settings?.notifications.newInviteToUser) {
+        console.log("Email notifications for new invites are disabled.");
+        return true;
+    }
+    
     // Send verification code email
     const invite = snapshot.docs[0].data() as Invite;
     try {

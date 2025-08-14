@@ -338,6 +338,7 @@ export default function InternshipTermsPage() {
                                     <div className="flex items-center justify-between space-x-2 rounded-lg border p-4"><Skeleton className="h-5 w-48" /><Skeleton className="h-6 w-11" /></div>
                                     <div className="flex items-center justify-between space-x-2 rounded-lg border p-4"><Skeleton className="h-5 w-48" /><Skeleton className="h-6 w-11" /></div>
                                     <div className="flex items-center justify-between space-x-2 rounded-lg border p-4"><Skeleton className="h-5 w-48" /><Skeleton className="h-6 w-11" /></div>
+                                    <div className="flex items-center justify-between space-x-2 rounded-lg border p-4"><Skeleton className="h-5 w-48" /><Skeleton className="h-6 w-11" /></div>
                                 </div>
                              ) : (
                                 <div className="space-y-6">
