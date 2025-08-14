@@ -6,17 +6,13 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import {
   Bell,
-  FileText,
   Home,
-  LineChart,
-  UserPlus,
   Users,
+  Building,
 } from 'lucide-react';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { UserNav } from '@/components/layout/user-nav';
-import { RoleSwitcher } from '@/components/layout/role-switcher';
 import { useRole } from '@/hooks/use-role';
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarInset, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 
@@ -42,10 +38,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   const navItems = [
     { href: '/admin/dashboard', label: 'Dashboard', icon: Home },
-    { href: '/admin/reports', label: 'Reports', icon: FileText, badge: '6' },
-    { href: '/admin/students', label: 'Students', icon: Users },
-    { href: '/admin/invite-student', label: 'Invite Student', icon: UserPlus },
-    { href: '/admin/analytics', label: 'Analytics', icon: LineChart },
+    { href: '/admin/users', label: 'User Management', icon: Users },
+    { href: '/admin/university-structure', label: 'University Structure', icon: Building },
   ];
 
   if (!isMounted || loading) {
@@ -83,7 +77,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   <Link href={item.href}>
                     <item.icon />
                     <span>{item.label}</span>
-                    {item.badge && <Badge className="ml-auto">{item.badge}</Badge>}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -98,7 +91,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
          <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
             <SidebarTrigger className="md:hidden" />
              <div className="flex w-full items-center gap-4 justify-end">
-                <RoleSwitcher />
                 <Button variant="outline" size="icon">
                   <Bell className="h-4 w-4" />
                   <span className="sr-only">Toggle notifications</span>
