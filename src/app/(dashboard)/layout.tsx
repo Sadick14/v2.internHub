@@ -17,6 +17,7 @@ export default function DashboardRedirectLayout({ children }: { children: ReactN
   }, []);
 
   useEffect(() => {
+    // If auth state is loaded and there is no user, redirect to login from protected paths.
     if (!loading && !user) {
       const publicPaths = ['/login', '/register', '/verify', '/forgot-password', '/'];
       if (!publicPaths.includes(pathname)) {
@@ -40,10 +41,17 @@ export default function DashboardRedirectLayout({ children }: { children: ReactN
     );
   }
 
-  // For public pages, we don't want to render the dashboard layout.
-  if (!user && !loading) {
+  // If user is not logged in and on a public page, just show the page content.
+  const publicPaths = ['/login', '/register', '/verify', '/forgot-password', '/'];
+  if (!user && publicPaths.includes(pathname)) {
     return <>{children}</>;
   }
 
-  return <>{children}</>
+  // If user is logged in, show the dashboard content.
+  if (user) {
+    return <>{children}</>;
+  }
+
+  // Fallback for any other state (should not be reached often)
+  return null;
 }
