@@ -9,10 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { auth, db } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
+import { acceptInvite, verifyInvite } from '@/services/invitesService';
 
 function RegisterForm() {
   const router = useRouter();
@@ -27,6 +27,8 @@ function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isFromInvite, setIsFromInvite] = useState(false);
+  const [inviteDetails, setInviteDetails] = useState<any>(null);
+
 
   useEffect(() => {
     const inviteEmail = searchParams.get('email');
@@ -40,6 +42,15 @@ function RegisterForm() {
       setLastName(inviteLastName);
       setInviteId(id);
       setIsFromInvite(true);
+      // It's better to refetch the invite details here to get all data
+      const fetchInvite = async () => {
+          const code = searchParams.get('code'); // Assuming code is also passed
+          if (code) {
+             const details = await verifyInvite(inviteEmail, code);
+             setInviteDetails(details);
+          }
+      };
+      fetchInvite();
     }
   }, [searchParams]);
 
@@ -52,31 +63,33 @@ function RegisterForm() {
       });
       return;
     }
+    if (!inviteDetails) {
+        toast({ title: "Error", description: "Invite details are missing. Please try the verification process again.", variant: 'destructive'});
+        return;
+    }
     setIsLoading(true);
 
     try {
-      // This is now the final step of the invite flow
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      // TODO: Fetch full invite details to get role and other data
-      // For now, we assume 'student' role if coming from invite
-      const userRole: Role = 'student'; 
+      
       const fullName = `${firstName} ${lastName}`;
-
       await updateProfile(user, { displayName: fullName });
 
-      await setDoc(doc(db, "users", user.uid), {
+      const userProfile = {
         uid: user.uid,
         fullName,
         email,
-        role: userRole,
+        role: inviteDetails.role,
         status: 'active',
         createdAt: new Date(),
-        // TODO: Add other details from invite like department, etc.
-      });
+        indexNumber: inviteDetails.indexNumber || '',
+        programOfStudy: inviteDetails.programOfStudy || '',
+        facultyId: inviteDetails.facultyId || '',
+        departmentId: inviteDetails.departmentId || '',
+      };
       
-      // TODO: Mark invite as 'accepted'
+      await acceptInvite(inviteId, user.uid, userProfile);
       
       toast({
         title: "Registration Successful",
@@ -96,7 +109,6 @@ function RegisterForm() {
   };
   
   if (!isFromInvite) {
-      // Optionally, show a message or redirect if someone lands here directly
       return (
          <div className="flex items-center justify-center min-h-screen bg-background">
               <Card className="w-full max-w-md mx-auto p-4">

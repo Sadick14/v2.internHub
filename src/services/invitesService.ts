@@ -1,8 +1,9 @@
 
 import { db, auth } from '@/lib/firebase';
-import { collection, addDoc, serverTimestamp, getDocs, query, where, Timestamp, writeBatch, documentId } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs, query, where, Timestamp, writeBatch, documentId, doc, updateDoc } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
 import { createAuditLog } from './auditLogService';
+import { sendMail } from '@/lib/email';
 
 export interface Invite {
     id?: string;
@@ -25,7 +26,7 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
     // Generate a simple 6-digit verification code
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    await addDoc(invitesCol, {
+    const newInviteRef = await addDoc(invitesCol, {
         ...inviteData,
         status: 'pending',
         verificationCode,
@@ -43,7 +44,6 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
         });
     }
 
-    // In a real application, this would also trigger an email to be sent.
     console.log(`An invite has been created for ${inviteData.email} with code ${verificationCode}`);
 }
 
@@ -52,7 +52,28 @@ export async function checkInviteExists(email: string): Promise<boolean> {
     const invitesCol = collection(db, 'invites');
     const q = query(invitesCol, where('email', '==', email), where('status', '==', 'pending'));
     const snapshot = await getDocs(q);
-    return !snapshot.empty;
+    
+    if (snapshot.empty) {
+        return false;
+    }
+
+    // Send verification code email
+    const invite = snapshot.docs[0].data() as Invite;
+    try {
+        await sendMail({
+            to: email,
+            subject: 'Your InternshipTrack Verification Code',
+            text: `Your verification code is ${invite.verificationCode}`,
+            html: `<p>Your verification code is <strong>${invite.verificationCode}</strong></p>`,
+        });
+    } catch (error) {
+        console.error("Failed to send verification email:", error);
+        // We can choose to not throw an error to the user, but log it
+        // Or re-throw a custom error
+        throw new Error('Failed to send verification email. Please try again later.');
+    }
+    
+    return true;
 }
 
 

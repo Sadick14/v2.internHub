@@ -65,6 +65,7 @@ export default function VerifyPage() {
           firstName: invite.firstName,
           lastName: invite.lastName,
           inviteId: invite.id!,
+          code: invite.verificationCode!,
         });
         router.push(`/register?${params.toString()}`);
       } else {
@@ -74,7 +75,7 @@ export default function VerifyPage() {
           variant: "destructive",
         });
       }
-    } catch (error: any) {
+    } catch (error: any)       {
        toast({
           title: "Error",
           description: `An unexpected error occurred: ${error.message}`,
@@ -119,7 +120,7 @@ export default function VerifyPage() {
                             </div>
                         </div>
                         <Button type="submit" className="w-full" disabled={isLoading}>
-                            {isLoading ? 'Checking...' : 'Continue'}
+                            {isLoading ? 'Sending Code...' : 'Continue'}
                         </Button>
                     </div>
                 </form>
