@@ -3,7 +3,6 @@ import { db, auth } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, getDocs, query, where, Timestamp, writeBatch, documentId, doc, updateDoc } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
 import { createAuditLog } from './auditLogService';
-import { sendMail } from '@/lib/email';
 import { getSettings } from './settingsService';
 
 export interface Invite {
@@ -45,6 +44,8 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
         });
     }
 
+    // This is a placeholder for sending an email. In a real app, you would use a transactional email service.
+    // For now, we log it to the console.
     console.log(`An invite has been created for ${inviteData.email} with code ${verificationCode}`);
 }
 
@@ -57,28 +58,9 @@ export async function checkInviteExists(email: string): Promise<boolean> {
     if (snapshot.empty) {
         return false;
     }
-
-    const settings = await getSettings();
-    if (!settings?.notifications.newInviteToUser) {
-        console.log("Email notifications for new invites are disabled.");
-        return true;
-    }
     
-    // Send verification code email
-    const invite = snapshot.docs[0].data() as Invite;
-    try {
-        await sendMail({
-            to: email,
-            subject: 'Your InternshipTrack Verification Code',
-            text: `Your verification code is ${invite.verificationCode}`,
-            html: `<p>Your verification code is <strong>${invite.verificationCode}</strong></p>`,
-        });
-    } catch (error) {
-        console.error("Failed to send verification email:", error);
-        // We can choose to not throw an error to the user, but log it
-        // Or re-throw a custom error
-        throw new Error('Failed to send verification email. Please try again later.');
-    }
+    // In a real application, an email with the verification code would be sent here.
+    // For this simulation, we just confirm the invite exists.
     
     return true;
 }
