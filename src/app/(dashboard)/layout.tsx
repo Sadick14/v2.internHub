@@ -17,17 +17,22 @@ export default function DashboardRedirectLayout({ children }: { children: ReactN
   }, []);
 
   useEffect(() => {
-    // If auth state is loaded and there is no user, redirect to login from any protected path.
-    if (!loading && !user) {
-      const publicPaths = ['/login', '/register', 'verify', '/forgot-password', '/'];
-      // Allow access to root and auth-related pages. Redirect from all others.
-      if (!publicPaths.includes(pathname) && pathname !== '/') {
-        router.push('/login');
-      }
+    // We need to wait for the component to be mounted and for the auth state to be determined.
+    if (!isMounted || loading) {
+      return;
     }
-  }, [user, loading, router, pathname]);
 
-  if (!isMounted || loading) {
+    const publicPaths = ['/login', '/register', '/verify', '/forgot-password'];
+    const isPublicPath = publicPaths.some(p => pathname.startsWith(p)) || pathname === '/';
+
+    // If we're done loading and there's no user, and they are on a protected page, redirect to login.
+    if (!user && !isPublicPath) {
+      router.push('/login');
+    }
+  }, [user, loading, router, pathname, isMounted]);
+
+  // While loading or before mounting, show a global loading spinner.
+  if (loading || !isMounted) {
     return (
         <main className="flex-1 overflow-y-auto">
             <div className="flex items-center justify-center h-full p-4 md:p-6">
@@ -42,19 +47,16 @@ export default function DashboardRedirectLayout({ children }: { children: ReactN
     );
   }
   
-  // At this point, loading is false. We can now decide what to render.
-  if (user) {
-    // If the user is logged in, show the requested page content (the dashboard or a specific role page).
+  // If we are done loading and there is a user, or if the path is public, we can render the children.
+  // This prevents showing protected content to logged-out users.
+  const publicPaths = ['/login', '/register', '/verify', '/forgot-password'];
+  const isPublicPath = publicPaths.some(p => pathname.startsWith(p)) || pathname === '/';
+
+  if (user || isPublicPath) {
     return <>{children}</>;
   }
 
-  // If there's no user and they are on a public path, show that page's content.
-  const publicPaths = ['/login', '/register', 'verify', '/forgot-password', '/'];
-  if (!user && publicPaths.some(p => pathname.startsWith(p))) {
-    return <>{children}</>;
-  }
-
-  // Fallback for any other state (should not be reached often)
-  // This can happen briefly during the transition between states.
+  // If there's no user and it's not a public path, we've already started the redirect,
+  // so we can return null to avoid flashing any content.
   return null;
 }
