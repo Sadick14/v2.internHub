@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { db, auth } from '@/lib/firebase';
@@ -29,7 +30,7 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
     // Generate a simple 6-digit verification code
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    const newInviteRef = await addDoc(invitesCol, {
+    await addDoc(invitesCol, {
         ...inviteData,
         status: 'pending',
         verificationCode,
@@ -47,9 +48,8 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
         });
     }
 
-    // This is a placeholder for sending an email. In a real app, you would use a transactional email service.
-    // For now, we log it to the console.
-    console.log(`An invite has been created for ${inviteData.email} with code ${verificationCode}`);
+    // For debugging: log the generated code to the server console.
+    console.log(`An invite has been created for ${inviteData.email} with verification code: ${verificationCode}`);
 }
 
 
@@ -64,6 +64,11 @@ export async function sendVerificationEmail(email: string): Promise<{ success: b
     
     const invite = snapshot.docs[0].data() as Invite;
     
+    if (!invite.verificationCode) {
+        console.error("Verification code is missing for invite:", snapshot.docs[0].id);
+        return { success: false, error: "Could not find a verification code for this invite." };
+    }
+
     try {
         await sendMail({
             to: email,
