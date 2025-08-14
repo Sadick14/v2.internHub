@@ -19,6 +19,7 @@ export interface UserProfile {
     facultyId?: string;
     departmentId?: string;
     lecturerId?: string; // Auth UID of the assigned lecturer
+    supervisorId?: string; // This would be added when a student sets up their profile
     internshipId?: string; // ID of the active internship
     createdAt?: Date;
 
@@ -144,4 +145,30 @@ export async function assignLecturerToStudent(studentFirestoreId: string, lectur
             details: `Assigned lecturer ${lecturer.fullName} to student ${student.fullName}.`
         });
     }
+}
+
+
+export async function getInternsBySupervisor(supervisorId: string): Promise<UserProfile[]> {
+    const profilesCol = collection(db, 'internship_profiles');
+    const profileQuery = query(profilesCol, where('supervisorId', '==', supervisorId));
+    const profileSnapshot = await getDocs(profileQuery);
+
+    if (profileSnapshot.empty) {
+        return [];
+    }
+
+    const studentIds = profileSnapshot.docs.map(doc => doc.data().studentId);
+
+    const usersCol = collection(db, 'users');
+    const studentsQuery = query(usersCol, where('uid', 'in', studentIds));
+    const studentsSnapshot = await getDocs(studentsQuery);
+
+    return studentsSnapshot.docs.map(doc => {
+         const data = doc.data();
+         return {
+            ...(data as Omit<UserProfile, 'uid' | 'firestoreId'>),
+            uid: data.uid,
+            firestoreId: doc.id
+         }
+    });
 }
