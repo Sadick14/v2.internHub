@@ -141,6 +141,7 @@ export async function getInternshipProfileByStudentId(studentId: string): Promis
     const profileDoc = snapshot.docs[0];
     const data = profileDoc.data();
     
+    // Manually convert Timestamps to Date objects to ensure serialization.
     const plainObject: any = { id: profileDoc.id };
 
     for (const key in data) {
