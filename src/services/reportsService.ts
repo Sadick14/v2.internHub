@@ -89,6 +89,52 @@ export async function getReportsByLecturer(lecturerId: string, statuses: Report[
     return reportsWithStudentNames;
 }
 
+export async function getReportsBySupervisor(supervisorId: string, statuses?: Report['status'][]): Promise<Report[]> {
+    const profilesCol = collection(db, 'internship_profiles');
+    const profileQuery = query(profilesCol, where('supervisorId', '==', supervisorId));
+    const profileSnapshot = await getDocs(profileQuery);
+
+    if (profileSnapshot.empty) {
+        return [];
+    }
+
+    const studentIds = profileSnapshot.docs.map(doc => doc.data().studentId);
+    
+    if (studentIds.length === 0) {
+        return [];
+    }
+
+    const reportsCol = collection(db, 'reports');
+    let reportQuery;
+
+    if (statuses && statuses.length > 0) {
+        reportQuery = query(
+            reportsCol,
+            where('studentId', 'in', studentIds),
+            where('status', 'in', statuses),
+            orderBy('reportDate', 'desc')
+        );
+    } else {
+         reportQuery = query(
+            reportsCol,
+            where('studentId', 'in', studentIds),
+            orderBy('reportDate', 'desc')
+        );
+    }
+    
+    const reportSnapshot = await getDocs(reportQuery);
+    
+    return reportSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            reportDate: (data.reportDate as Timestamp).toDate(),
+            createdAt: (data.createdAt as Timestamp).toDate(),
+        } as Report;
+    });
+}
+
 
 export async function approveReport(reportId: string, lecturerComment: string): Promise<void> {
     const reportRef = doc(db, 'reports', reportId);
