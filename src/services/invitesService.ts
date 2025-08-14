@@ -1,7 +1,8 @@
 
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, getDocs, query, where, Timestamp } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
+import { createAuditLog } from './auditLogService';
 
 export interface Invite {
     id?: string;
@@ -19,11 +20,23 @@ export interface Invite {
 
 export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdAt' | 'id'>): Promise<void> {
     const invitesCol = collection(db, 'invites');
-    await addDoc(invitesCol, {
+    const docRef = await addDoc(invitesCol, {
         ...inviteData,
         status: 'pending',
         createdAt: serverTimestamp(),
     });
+
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+         await createAuditLog({
+            action: 'Create Invite',
+            details: `Invited ${inviteData.firstName} ${inviteData.lastName} (${inviteData.email}) as a ${inviteData.role}.`,
+            userId: currentUser.uid,
+            userName: currentUser.displayName || 'Admin',
+            userEmail: currentUser.email || 'N/A'
+        });
+    }
+
     // In a real application, this would also trigger an email to be sent.
     console.log(`An invite has been created for ${inviteData.email}.`);
 }
