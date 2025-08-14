@@ -18,7 +18,9 @@ export interface Report {
 
 export async function getReportsByStudentId(studentId: string): Promise<Report[]> {
     const reportsCol = collection(db, 'reports');
-    const q = query(reportsCol, where('studentId', '==', studentId));
+    // Ensure we are querying against the student's document ID, not the auth UID
+    const studentDocId = studentId; // Assuming the passed ID is the document ID for the student
+    const q = query(reportsCol, where('studentId', '==', studentDocId));
     const reportSnapshot = await getDocs(q);
 
     const reportList = reportSnapshot.docs.map(doc => {
