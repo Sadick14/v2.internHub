@@ -3,7 +3,7 @@
 
 import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, Timestamp, serverTimestamp, doc, updateDoc, orderBy } from 'firebase/firestore';
-import { startOfDay, endOfDay } from 'date-fns';
+import { startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 
 export interface DailyTask {
     id: string;
@@ -38,16 +38,21 @@ export async function createTask(taskData: NewDailyTask): Promise<void> {
 }
 
 export async function getTasksByDate(studentId: string, date: Date): Promise<DailyTask[]> {
+    // Query by studentId first
     const q = query(
         tasksCollectionRef,
         where('studentId', '==', studentId),
-        where('date', '>=', startOfDay(date)),
-        where('date', '<=', endOfDay(date)),
         orderBy('date', 'desc')
     );
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map(doc => {
+    const todayInterval = {
+        start: startOfDay(date),
+        end: endOfDay(date),
+    };
+
+    // Filter by date in the application code
+    const tasksForDate = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
             id: doc.id,
@@ -55,7 +60,9 @@ export async function getTasksByDate(studentId: string, date: Date): Promise<Dai
             date: (data.date as Timestamp).toDate(),
             createdAt: (data.createdAt as Timestamp).toDate(),
         } as DailyTask;
-    });
+    }).filter(task => isWithinInterval(task.date, todayInterval));
+
+    return tasksForDate;
 }
 
 export async function getTasksBySupervisor(supervisorId: string, status: DailyTask['status'][]): Promise<DailyTask[]> {

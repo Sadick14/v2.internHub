@@ -9,14 +9,15 @@ import { doc, getDoc, query, where, collection, getDocs } from "firebase/firesto
 
 export type Role = "student" | "lecturer" | "hod" | "supervisor" | "admin"
 
-type AppUser = {
-  uid: string // This will be the Firestore Document ID
-  authUid: string // This is the Firebase Auth UID
+export type AppUser = {
+  uid: string // This is the Firebase Auth UID
+  firestoreId: string; // This is the Firestore Document ID
   name: string
   email: string
   initials: string
   role: Role,
   internshipId?: string
+  lecturerId?: string
 }
 
 const allRoles: Role[] = ["student", "lecturer", "hod", "supervisor", "admin"];
@@ -45,13 +46,14 @@ onAuthStateChanged(auth, async (user) => {
         const name = userData.fullName || "Anonymous";
         const userRole = userData.role || "student";
         appStore.set(userAtom, {
-            uid: userDoc.id, // Firestore Document ID
-            authUid: user.uid, // Firebase Auth UID
+            uid: user.uid, // Firebase Auth UID
+            firestoreId: userDoc.id, // Firestore Document ID
             name,
             email: userData.email || "",
             initials: name.split(' ').map((n: string) => n[0]).join(''),
             role: userRole,
             internshipId: userData.internshipId,
+            lecturerId: userData.lecturerId,
         });
         appStore.set(roleAtom, userRole);
     } else {

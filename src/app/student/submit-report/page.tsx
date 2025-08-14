@@ -1,6 +1,6 @@
 
 'use client'
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,15 +11,14 @@ import { Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRole } from "@/hooks/use-role";
-import { createReport, NewReportData } from "@/services/reportsService";
+import { createReport, type NewReportData } from "@/services/reportsService";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { getInternshipProfileByStudentId } from "@/services/internshipProfileService";
-import type { InternshipProfile } from "@/services/internshipProfileService";
-import { useEffect } from "react";
+import { getInternshipProfileByStudentId, type InternshipProfile } from "@/services/internshipProfileService";
+
 
 export default function SubmitReportPage() {
   const { user } = useRole();
@@ -38,12 +37,16 @@ export default function SubmitReportPage() {
   useEffect(() => {
     async function fetchProfile() {
       if(user?.uid) {
-        const profileData = await getInternshipProfileByStudentId(user.uid);
-        setProfile(profileData);
+        try {
+           const profileData = await getInternshipProfileByStudentId(user.uid);
+           setProfile(profileData);
+        } catch (error) {
+            toast({ title: "Error", description: "Could not load internship profile.", variant: "destructive"})
+        }
       }
     }
     fetchProfile();
-  }, [user]);
+  }, [user, toast]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
