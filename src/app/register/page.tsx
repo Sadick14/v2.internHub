@@ -1,47 +1,88 @@
+
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db } from '@/lib/firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
-  const [fullName, setFullName] = useState('');
+
   const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [inviteId, setInviteId] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const role: Role = 'admin'; // Hardcode role to admin
+  const [isFromInvite, setIsFromInvite] = useState(false);
+
+  useEffect(() => {
+    const inviteEmail = searchParams.get('email');
+    const inviteFirstName = searchParams.get('firstName');
+    const inviteLastName = searchParams.get('lastName');
+    const id = searchParams.get('inviteId');
+
+    if (inviteEmail && inviteFirstName && inviteLastName && id) {
+      setEmail(inviteEmail);
+      setFirstName(inviteFirstName);
+      setLastName(inviteLastName);
+      setInviteId(id);
+      setIsFromInvite(true);
+    }
+  }, [searchParams]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      toast({
+        title: "Passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
     setIsLoading(true);
 
     try {
+      // This is now the final step of the invite flow
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+
+      // TODO: Fetch full invite details to get role and other data
+      // For now, we assume 'student' role if coming from invite
+      const userRole: Role = 'student'; 
+      const fullName = `${firstName} ${lastName}`;
+
+      await updateProfile(user, { displayName: fullName });
 
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         fullName,
         email,
-        role,
+        role: userRole,
+        status: 'active',
+        createdAt: new Date(),
+        // TODO: Add other details from invite like department, etc.
       });
-
+      
+      // TODO: Mark invite as 'accepted'
+      
       toast({
         title: "Registration Successful",
-        description: "Admin account has been created.",
+        description: "Your account has been created. You can now log in.",
       });
-      router.push('/dashboard');
+      router.push('/login');
 
     } catch (error: any) {
       toast({
@@ -53,62 +94,80 @@ export default function RegisterPage() {
       setIsLoading(false);
     }
   };
+  
+  if (!isFromInvite) {
+      // Optionally, show a message or redirect if someone lands here directly
+      return (
+         <div className="flex items-center justify-center min-h-screen bg-background">
+              <Card className="w-full max-w-md mx-auto p-4">
+                 <CardHeader>
+                    <CardTitle className="text-2xl font-headline">Invalid Access</CardTitle>
+                    <CardDescription>
+                    This page is for completing an invitation. Please use the link from your invite email.
+                    </CardDescription>
+                </CardHeader>
+                 <CardContent>
+                     <Button asChild className="w-full">
+                        <Link href="/verify">Verify Your Invite</Link>
+                    </Button>
+                </CardContent>
+              </Card>
+         </div>
+      )
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md mx-auto p-4">
         <Card>
           <CardHeader>
-             <div className="text-center mb-4">
-              <Link href="/" className="flex items-center justify-center gap-2 font-semibold">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12 mx-auto text-primary">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                  <path d="m9 12 2 2 4-4"></path>
-                </svg>
-              </Link>
-              <h1 className="text-3xl font-bold font-headline mt-2">InternshipTrack</h1>
-            </div>
-            <CardTitle className="text-2xl font-headline">Admin Registration</CardTitle>
+            <CardTitle className="text-2xl font-headline">Welcome, {firstName}!</CardTitle>
             <CardDescription>
-              Create a new administrator account.
+              Create a password to activate your InternshipTrack account.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleRegister}>
               <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="full-name">Full Name</Label>
-                  <Input id="full-name" placeholder="John Doe" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
-                </div>
-                <div className="grid gap-2">
+                 <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+                  <Input id="email" type="email" value={email} disabled />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="firstName">First Name</Label>
+                        <Input id="firstName" value={firstName} disabled />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="lastName">Last Name</Label>
+                        <Input id="lastName" value={lastName} disabled />
+                    </div>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="password">Password</Label>
                   <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input id="confirmPassword" type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? 'Registering...' : 'Create Admin Account'}
+                  {isLoading ? 'Activating Account...' : 'Set Password & Activate'}
                 </Button>
               </div>
             </form>
-            <div className="mt-4 text-center text-sm">
-              Already have an account?{' '}
-              <Link href="/login" className="underline text-primary">
-                Login
-              </Link>
-            </div>
           </CardContent>
         </Card>
       </div>
     </div>
   );
+}
+
+
+export default function RegisterPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <RegisterForm />
+        </Suspense>
+    )
 }

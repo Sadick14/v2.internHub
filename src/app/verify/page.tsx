@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -6,16 +7,51 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import { verifyInvite } from '@/services/invitesService';
 
 export default function VerifyPage() {
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
 
-  const handleVerify = (e: React.FormEvent) => {
+  const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Verification logic will be implemented here
-    console.log("Verification attempt:", { email, verificationCode });
+    setIsLoading(true);
+    try {
+      const invite = await verifyInvite(email, verificationCode);
+      if (invite) {
+        toast({
+          title: "Verification Successful",
+          description: "Please proceed to set up your account.",
+        });
+        // Pass invite data to the registration page via query params
+        const params = new URLSearchParams({
+          email: invite.email,
+          firstName: invite.firstName,
+          lastName: invite.lastName,
+          inviteId: invite.id!,
+        });
+        router.push(`/register?${params.toString()}`);
+      } else {
+        toast({
+          title: "Verification Failed",
+          description: "Invalid email or verification code. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+       toast({
+          title: "Error",
+          description: `An unexpected error occurred: ${error.message}`,
+          variant: "destructive",
+        });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
