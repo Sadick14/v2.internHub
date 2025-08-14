@@ -3,7 +3,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, where, Timestamp, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, Timestamp, serverTimestamp, doc, updateDoc, orderBy } from 'firebase/firestore';
 import { createAuditLog } from './auditLogService';
 import { getUserById } from './userService';
 
@@ -41,8 +41,16 @@ export async function createReport(reportData: NewReportData): Promise<Report> {
 
     const newDocRef = await addDoc(collection(db, 'reports'), dataToSave);
 
-    // Placeholder for audit log
-    // await createAuditLog(...)
+    const student = await getUserById(reportData.studentId);
+    if (student) {
+        await createAuditLog({
+            userId: student.uid!,
+            userName: student.fullName,
+            userEmail: student.email,
+            action: 'Submit Report',
+            details: `Student ${student.fullName} submitted a daily report.`,
+        });
+    }
 
     return {
         id: newDocRef.id,
@@ -53,15 +61,19 @@ export async function createReport(reportData: NewReportData): Promise<Report> {
     } as Report;
 }
 
-export async function getReportsByLecturer(lecturerId: string): Promise<Report[]> {
+export async function getReportsByLecturer(lecturerId: string, statuses: Report['status'][]): Promise<Report[]> {
     const reportsCol = collection(db, 'reports');
-    // lecturerId is a firestore document id, so this query is correct
-    const q = query(reportsCol, where('lecturerId', '==', lecturerId), where('status', '==', 'Pending'));
+    // lecturerId is the Auth UID
+    const q = query(
+        reportsCol, 
+        where('lecturerId', '==', lecturerId), 
+        where('status', 'in', statuses),
+        orderBy('reportDate', 'desc')
+    );
     const reportSnapshot = await getDocs(q);
 
     const reportsWithStudentNames = await Promise.all(reportSnapshot.docs.map(async (doc) => {
         const data = doc.data();
-        // data.studentId here is an auth UID. getUserById handles this correctly.
         const student = await getUserById(data.studentId);
         return {
             id: doc.id,
@@ -72,7 +84,7 @@ export async function getReportsByLecturer(lecturerId: string): Promise<Report[]
         } as Report & { studentName: string };
     }));
     
-    return reportsWithStudentNames.sort((a,b) => b.reportDate.getTime() - a.reportDate.getTime());
+    return reportsWithStudentNames;
 }
 
 
@@ -97,7 +109,7 @@ export async function rejectReport(reportId: string, lecturerComment: string): P
 export async function getReportsByStudentId(studentId: string): Promise<Report[]> {
     const reportsCol = collection(db, 'reports');
     // The studentId passed here is the auth UID from useRole.
-    const q = query(reportsCol, where('studentId', '==', studentId));
+    const q = query(reportsCol, where('studentId', '==', studentId), orderBy('reportDate', 'desc'));
     const reportSnapshot = await getDocs(q);
 
     const reportList = reportSnapshot.docs.map(doc => {
@@ -110,6 +122,5 @@ export async function getReportsByStudentId(studentId: string): Promise<Report[]
         } as Report
     });
 
-    // sort by reportDate descending
-    return reportList.sort((a, b) => b.reportDate.getTime() - a.reportDate.getTime());
+    return reportList;
 }

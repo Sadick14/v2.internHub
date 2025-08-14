@@ -19,7 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { UserNav } from '@/components/layout/user-nav';
 import { useRole } from '@/hooks/use-role';
-import { SidebarProvider, Sidebar, SidebarTrigger, SidebarInset, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
+import { SidebarProvider, Sidebar, SidebarTrigger, SidebarInset, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarSeparator } from '@/components/ui/sidebar';
 
 export default function StudentLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -45,10 +45,12 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
   const navItems = [
     { href: '/student/dashboard', label: 'Dashboard', icon: Home },
     { href: '/student/internship-setup', label: 'Internship Profile', icon: Briefcase },
-    { href: '/student/attendance', label: 'Attendance', icon: CalendarCheck },
+    { type: 'separator', label: 'Daily Activities' },
     { href: '/student/daily-check-in', label: 'Daily Check-in', icon: MapPin },
-    { href: '/student/daily-tasks', label: 'Daily Tasks', icon: ListTodo },
-    { href: '/student/submit-report', label: 'Submit Report', icon: FileText },
+    { href: '/student/daily-tasks', label: 'Declare Daily Tasks', icon: ListTodo },
+    { href: '/student/submit-report', label: 'Submit Daily Report', icon: FileText },
+    { type: 'separator', label: 'History & Progress' },
+    { href: '/student/attendance', label: 'Attendance History', icon: CalendarCheck },
     { href: '/student/reports', label: 'Report History', icon: ClipboardList },
     { href: '/student/progress-evaluation', label: 'Progress Evaluation', icon: TrendingUp },
   ];
@@ -70,7 +72,7 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider>
-      <Sidebar collapsible="icon">
+      <Sidebar>
         <SidebarHeader>
           <Link href='/student/dashboard' className="flex items-center gap-2 font-semibold text-primary-foreground">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
@@ -82,10 +84,12 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            {navItems.map(item => (
+            {navItems.map((item, index) => (
+              item.type === 'separator' ? 
+              <SidebarSeparator key={index} className="my-1" /> :
               <SidebarMenuItem key={item.label}>
-                <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label}>
-                  <Link href={item.href}>
+                <SidebarMenuButton asChild isActive={pathname.startsWith(item.href!)} tooltip={item.label}>
+                  <Link href={item.href!}>
                     <item.icon />
                     <span>{item.label}</span>
                   </Link>
