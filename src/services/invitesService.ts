@@ -1,5 +1,6 @@
 
 
+
 'use server';
 
 import { db, auth } from '@/lib/firebase';
@@ -28,6 +29,7 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
     
     // Generate a simple 6-digit verification code
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log(`Generated verification code ${verificationCode} for ${inviteData.email}`);
 
     await addDoc(invitesCol, {
         ...inviteData,
@@ -117,7 +119,7 @@ export async function verifyInvite(email: string, code: string): Promise<Invite 
 
     const inviteDoc = snapshot.docs[0];
     const data = inviteDoc.data();
-    // Ensure timestamp is serialized
+    // Ensure timestamp is serialized for client component props
     const createdAt = data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : new Date().toISOString();
 
     return { id: inviteDoc.id, ...data, createdAt } as Invite;
@@ -127,9 +129,12 @@ export async function verifyInvite(email: string, code: string): Promise<Invite 
 export async function acceptInvite(inviteId: string, userId: string, userProfile: any) {
     const batch = writeBatch(db);
 
-    // 1. Create the user document
+    // 1. Create the user document with a server-side timestamp
     const userRef = doc(db, 'users', userId);
-    batch.set(userRef, userProfile);
+    batch.set(userRef, {
+        ...userProfile,
+        createdAt: serverTimestamp()
+    });
 
     // 2. Update the invite status to 'accepted'
     const inviteRef = doc(db, 'invites', inviteId);

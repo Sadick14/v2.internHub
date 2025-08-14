@@ -76,13 +76,14 @@ function RegisterForm() {
       const fullName = `${inviteDetails.firstName} ${inviteDetails.lastName}`;
       await updateProfile(user, { displayName: fullName });
 
+      // This profile will be saved to the 'users' collection in Firestore
       const userProfile = {
         uid: user.uid,
         fullName,
         email: inviteDetails.email,
         role: inviteDetails.role,
         status: 'active',
-        createdAt: new Date(),
+        // createdAt will be set on the server by the acceptInvite function
         indexNumber: inviteDetails.indexNumber || '',
         programOfStudy: inviteDetails.programOfStudy || '',
         facultyId: inviteDetails.facultyId || '',
