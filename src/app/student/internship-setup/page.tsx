@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,13 +11,14 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { useRole } from '@/hooks/use-role';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Briefcase, Building2, Mail, User, Clock } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
-import { createInternshipProfile } from '@/services/internshipProfileService';
+import { createInternshipProfile, getInternshipProfileByStudentId, type InternshipProfile } from '@/services/internshipProfileService';
+import { Badge } from '@/components/ui/badge';
 
 const internshipSetupSchema = z.object({
   companyName: z.string().min(2, "Company name is required."),
@@ -33,8 +34,8 @@ const internshipSetupSchema = z.object({
 
 type InternshipSetupFormValues = z.infer<typeof internshipSetupSchema>;
 
-export default function InternshipSetupPage() {
-    const { user, loading: userLoading } = useRole();
+function InternshipSetupForm() {
+    const { user } = useRole();
     const { toast } = useToast();
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,7 +49,7 @@ export default function InternshipSetupPage() {
             supervisorEmail: '',
         }
     });
-    
+
     async function onSubmit(data: InternshipSetupFormValues) {
         if (!user?.uid || !user.name || !user.email) {
              toast({ title: 'Error', description: 'User information is not available. Please log in again.', variant: 'destructive' });
@@ -69,7 +70,6 @@ export default function InternshipSetupPage() {
                     title: 'Success!',
                     description: result.message,
                 });
-                // A hard refresh might be needed to fully reload the user context
                 window.location.href = '/student/dashboard';
             } else {
                  toast({
@@ -88,26 +88,7 @@ export default function InternshipSetupPage() {
             setIsSubmitting(false);
         }
     }
-
-
-    if (userLoading) {
-        return (
-            <Card>
-                <CardHeader>
-                    <Skeleton className="h-8 w-1/2" />
-                    <Skeleton className="h-4 w-3/4" />
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-10 w-1/4" />
-                </CardContent>
-            </Card>
-        )
-    }
-
-    return (
+     return (
         <Card>
             <CardHeader>
                 <CardTitle className="font-headline">Internship Profile Setup</CardTitle>
@@ -231,4 +212,146 @@ export default function InternshipSetupPage() {
             </CardContent>
         </Card>
     );
+}
+
+function InternshipProfileDisplay({ profile }: { profile: InternshipProfile }) {
+    
+    const getStatusVariant = (status: string) => {
+        switch (status) {
+            case 'active': return 'default';
+            case 'pending': return 'secondary';
+            default: return 'outline';
+        }
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle className="font-headline">Your Internship Profile</CardTitle>
+                        <CardDescription>
+                            These are the details of your current internship placement.
+                        </CardDescription>
+                    </div>
+                    <Badge variant={getStatusVariant(profile.status)} className="capitalize">{profile.status}</Badge>
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-8">
+                <div>
+                    <h3 className="text-lg font-semibold font-headline mb-4 flex items-center"><Briefcase className="mr-2 h-5 w-5 text-primary" />Company Details</h3>
+                    <div className="grid sm:grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-start gap-3">
+                            <Building2 className="w-4 h-4 mt-1 text-muted-foreground" />
+                            <div>
+                                <p className="text-muted-foreground">Company Name</p>
+                                <p className="font-medium">{profile.companyName}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <Building2 className="w-4 h-4 mt-1 text-muted-foreground" />
+                             <div>
+                                <p className="text-muted-foreground">Company Address</p>
+                                <p className="font-medium">{profile.companyAddress}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                 <div>
+                    <h3 className="text-lg font-semibold font-headline mb-4 flex items-center"><User className="mr-2 h-5 w-5 text-primary" />Supervisor Details</h3>
+                    <div className="grid sm:grid-cols-2 gap-4 text-sm">
+                         <div className="flex items-start gap-3">
+                            <User className="w-4 h-4 mt-1 text-muted-foreground" />
+                            <div>
+                                <p className="text-muted-foreground">Supervisor Name</p>
+                                <p className="font-medium">{profile.supervisorName}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <Mail className="w-4 h-4 mt-1 text-muted-foreground" />
+                            <div>
+                                <p className="text-muted-foreground">Supervisor Email</p>
+                                <p className="font-medium">{profile.supervisorEmail}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 className="text-lg font-semibold font-headline mb-4 flex items-center"><Clock className="mr-2 h-5 w-5 text-primary" />Internship Duration</h3>
+                    <div className="grid sm:grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-start gap-3">
+                            <CalendarIcon className="w-4 h-4 mt-1 text-muted-foreground" />
+                             <div>
+                                <p className="text-muted-foreground">Start Date</p>
+                                <p className="font-medium">{format(profile.startDate, "PPP")}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                             <CalendarIcon className="w-4 h-4 mt-1 text-muted-foreground" />
+                            <div>
+                                <p className="text-muted-foreground">End Date</p>
+                                <p className="font-medium">{format(profile.endDate, "PPP")}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+
+export default function InternshipSetupPage() {
+    const { user, loading: userLoading } = useRole();
+    const { toast } = useToast();
+    const [profile, setProfile] = useState<InternshipProfile | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+     useEffect(() => {
+        if (userLoading) return;
+        if (!user) {
+            setIsLoading(false);
+            return;
+        };
+
+        async function fetchProfile() {
+            try {
+                const existingProfile = await getInternshipProfileByStudentId(user!.uid);
+                setProfile(existingProfile);
+            } catch (error: any) {
+                toast({
+                    title: 'Error fetching profile',
+                    description: error.message,
+                    variant: 'destructive',
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        fetchProfile();
+    }, [user, userLoading, toast]);
+
+
+    if (isLoading || userLoading) {
+        return (
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-1/2" />
+                    <Skeleton className="h-4 w-3/4" />
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-1/4" />
+                </CardContent>
+            </Card>
+        )
+    }
+
+    // If profile exists, show the display component. Otherwise, show the form.
+    return profile ? <InternshipProfileDisplay profile={profile} /> : <InternshipSetupForm />;
 }

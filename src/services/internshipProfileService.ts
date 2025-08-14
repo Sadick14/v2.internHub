@@ -2,20 +2,28 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, where, writeBatch, serverTimestamp, doc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, writeBatch, serverTimestamp, doc, Timestamp } from 'firebase/firestore';
 import { createInvite } from './invitesService';
 import { createAuditLog } from './auditLogService';
 
-export interface InternshipProfileDetails {
+export interface InternshipProfile {
+    id: string;
     studentId: string;
-    studentName: string;
-    studentEmail: string;
+    companyId: string;
     companyName: string;
     companyAddress: string;
+    supervisorId: string;
     supervisorName: string;
     supervisorEmail: string;
     startDate: Date;
     endDate: Date;
+    status: 'active' | 'pending';
+    createdAt: Date;
+}
+
+export interface InternshipProfileDetails extends Omit<InternshipProfile, 'id' | 'companyId' | 'supervisorId' | 'status' | 'createdAt'> {
+    studentName: string;
+    studentEmail: string;
 }
 
 export async function createInternshipProfile(details: InternshipProfileDetails): Promise<{ success: boolean; message: string }> {
@@ -62,7 +70,10 @@ export async function createInternshipProfile(details: InternshipProfileDetails)
         batch.set(profileRef, {
             studentId: details.studentId,
             companyId: companyId,
+            companyName: details.companyName,
+            companyAddress: details.companyAddress,
             supervisorId: supervisorInviteResult.pendingUserId,
+            supervisorName: details.supervisorName,
             supervisorEmail: details.supervisorEmail,
             startDate: details.startDate,
             endDate: details.endDate,
@@ -79,7 +90,7 @@ export async function createInternshipProfile(details: InternshipProfileDetails)
 
         // 6. Create an audit log for this action
         await createAuditLog({
-            userId: details.studentId, // This should be the auth UID, but doc ID is ok for now
+            userId: details.studentId,
             userName: details.studentName,
             userEmail: details.studentEmail,
             action: 'Setup Internship Profile',
@@ -92,4 +103,26 @@ export async function createInternshipProfile(details: InternshipProfileDetails)
         console.error("Error creating internship profile:", error);
         return { success: false, message: `Failed to create internship profile: ${error.message}` };
     }
+}
+
+
+export async function getInternshipProfileByStudentId(studentId: string): Promise<InternshipProfile | null> {
+    const profilesCol = collection(db, 'internship_profiles');
+    const q = query(profilesCol, where('studentId', '==', studentId));
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+        return null;
+    }
+
+    const profileDoc = snapshot.docs[0];
+    const data = profileDoc.data();
+
+    return {
+        id: profileDoc.id,
+        ...data,
+        startDate: (data.startDate as Timestamp).toDate(),
+        endDate: (data.endDate as Timestamp).toDate(),
+        createdAt: (data.createdAt as Timestamp).toDate(),
+    } as InternshipProfile;
 }
