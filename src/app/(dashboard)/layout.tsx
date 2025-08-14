@@ -1,6 +1,8 @@
 'use client';
 import type { ReactNode } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   Bell,
   FileText,
@@ -21,20 +23,48 @@ import {
 } from '@/components/ui/card';
 import { UserNav } from '@/components/layout/user-nav';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { RoleSwitcher } from '@/components/layout/role-switcher';
+import { useRole } from '@/hooks/use-role';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, loading, role } = useRole();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
   const navItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: Home },
-    { href: '/reports', label: 'Reports', icon: FileText, badge: '6' },
-    { href: '/students', label: 'Students', icon: Users },
-    { href: '/submit-report', label: 'Submit Report', icon: Package },
-    { href: '/analytics', label: 'Analytics', icon: LineChart },
+    { href: '/dashboard', label: 'Dashboard', icon: Home, roles: ['student', 'lecturer', 'hod', 'supervisor', 'admin'] },
+    { href: '/reports', label: 'Reports', icon: FileText, badge: '6', roles: ['lecturer', 'hod', 'supervisor', 'admin'] },
+    { href: '/students', label: 'Students', icon: Users, roles: ['lecturer', 'hod', 'admin'] },
+    { href: '/submit-report', label: 'Submit Report', icon: Package, roles: ['student'] },
+    { href: '/analytics', label: 'Analytics', icon: LineChart, roles: ['hod', 'admin'] },
   ];
+
+  const filteredNavItems = navItems.filter(item => item.roles.includes(role));
+
+  if (loading) {
+    return (
+       <div className="flex items-center justify-center min-h-screen">
+          <div className="flex flex-col items-center gap-4">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10 text-primary animate-spin">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <p className="text-muted-foreground">Loading your dashboard...</p>
+          </div>
+       </div>
+    )
+  }
+   if (!user) {
+    return null; // or a login prompt, though the effect will redirect
+  }
+
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
@@ -55,7 +85,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-              {navItems.map(item => (
+              {filteredNavItems.map(item => (
                 <Link
                   key={item.label}
                   href={item.href}
@@ -113,7 +143,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   </svg>
                   <span className="font-headline">InternshipTrack</span>
                 </Link>
-                {navItems.map(item => (
+                {filteredNavItems.map(item => (
                   <Link
                     key={item.label}
                     href={item.href}

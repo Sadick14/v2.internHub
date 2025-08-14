@@ -13,9 +13,23 @@ import {
 } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { useRole } from "@/hooks/use-role"
+import { auth } from "@/lib/firebase"
+import { signOut } from "firebase/auth"
+import { useRouter } from "next/navigation"
+import { Skeleton } from "../ui/skeleton"
 
 export function UserNav() {
-  const { user } = useRole()
+  const { user, loading } = useRole()
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/login');
+  }
+
+  if (loading) {
+    return <Skeleton className="h-9 w-9 rounded-full" />
+  }
 
   if (!user) return null
 
@@ -50,8 +64,8 @@ export function UserNav() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/login">Log out</Link>
+        <DropdownMenuItem onClick={handleLogout}>
+          Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

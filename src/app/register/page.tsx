@@ -1,11 +1,64 @@
+'use client';
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { auth, db } from '@/lib/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import type { Role } from '@/hooks/use-role';
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [role, setRole] = useState<Role | ''>('');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!role) {
+      toast({ title: "Please select a role.", variant: "destructive" });
+      return;
+    }
+    setIsLoading(true);
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        fullName,
+        email,
+        role,
+      });
+
+      toast({
+        title: "Registration Successful",
+        description: "Your account has been created.",
+      });
+      router.push('/dashboard');
+
+    } catch (error: any) {
+      toast({
+        title: "Registration Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md mx-auto p-4">
@@ -26,41 +79,47 @@ export default function RegisterPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4">
-               <div className="grid gap-2">
-                <Label htmlFor="role">Your Role</Label>
-                 <Select>
-                  <SelectTrigger id="role">
-                    <SelectValue placeholder="Select your role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="student">Student</SelectItem>
-                    <SelectItem value="lecturer">Lecturer</SelectItem>
-                    <SelectItem value="supervisor">Company Supervisor</SelectItem>
-                  </SelectContent>
-                </Select>
+            <form onSubmit={handleRegister}>
+              <div className="grid gap-4">
+                 <div className="grid gap-2">
+                  <Label htmlFor="role">Your Role</Label>
+                   <Select value={role} onValueChange={(value) => setRole(value as Role)}>
+                    <SelectTrigger id="role">
+                      <SelectValue placeholder="Select your role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="student">Student</SelectItem>
+                      <SelectItem value="lecturer">Lecturer</SelectItem>
+                      <SelectItem value="supervisor">Company Supervisor</SelectItem>
+                      <SelectItem value="hod">Head of Department</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="full-name">Full Name</Label>
+                  <Input id="full-name" placeholder="John Doe" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="m@example.com"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                </div>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Registering...' : 'Register'}
+                </Button>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="full-name">Full Name</Label>
-                <Input id="full-name" placeholder="John Doe" required />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" required />
-              </div>
-              <Button asChild type="submit" className="w-full">
-                <Link href="/dashboard">Register</Link>
-              </Button>
-            </div>
+            </form>
             <div className="mt-4 text-center text-sm">
               Already have an account?{' '}
               <Link href="/login" className="underline text-primary">
