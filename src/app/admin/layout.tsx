@@ -99,7 +99,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-         <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
+         <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-card px-4 sm:px-6">
             <SidebarTrigger className="md:hidden" />
              <div className="flex w-full items-center gap-4 justify-end">
                 <Button variant="outline" size="icon">
