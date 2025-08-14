@@ -291,7 +291,7 @@ export default function InviteUserPage() {
                                                 <TableCell>{invite.firstName} {invite.lastName}</TableCell>
                                                 <TableCell className="capitalize">{invite.role}</TableCell>
                                                 <TableCell>{departments.find(d => d.id === invite.departmentId)?.name || 'N/A'}</TableCell>
-                                                <TableCell>{invite.createdAt?.toLocaleDateString() || 'N/A'}</TableCell>
+                                                <TableCell>{invite.createdAt ? new Date(invite.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
                                             </TableRow>
                                         ))
                                     ) : (
@@ -309,4 +309,5 @@ export default function InviteUserPage() {
             </CardContent>
         </Card>
     );
-}
+
+    
