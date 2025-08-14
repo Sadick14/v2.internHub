@@ -4,6 +4,7 @@
 import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, Timestamp, serverTimestamp, doc, updateDoc, orderBy } from 'firebase/firestore';
 import { startOfDay, endOfDay, isWithinInterval } from 'date-fns';
+import { getUserById } from './userService';
 
 export interface DailyTask {
     id: string;
@@ -69,10 +70,17 @@ export async function getTasksByDate(studentId: string, date: Date): Promise<Dai
     return tasksForDate;
 }
 
-export async function getTasksBySupervisor(supervisorId: string, statusFilter: DailyTask['status'][]): Promise<DailyTask[]> {
+export async function getTasksBySupervisor(supervisorAuthId: string, statusFilter: DailyTask['status'][]): Promise<DailyTask[]> {
+    const supervisorProfile = await getUserById(supervisorAuthId);
+    if (!supervisorProfile || !supervisorProfile.firestoreId) {
+        console.error("Could not find supervisor profile for auth UID:", supervisorAuthId);
+        return [];
+    }
+    const supervisorFirestoreId = supervisorProfile.firestoreId;
+
     const q = query(
         tasksCollectionRef,
-        where('supervisorId', '==', supervisorId)
+        where('supervisorId', '==', supervisorFirestoreId)
     );
     const snapshot = await getDocs(q);
 
