@@ -1,4 +1,5 @@
 
+
 'use client'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useRole } from '@/hooks/use-role'
@@ -16,6 +17,20 @@ export default function DashboardPage() {
       router.replace(`/${role}/dashboard`)
     }
   }, [role, loading, router])
+
+  // Prevents flash of content before redirect
+  if (loading || !role) {
+     return (
+        <div className="flex items-center justify-center h-full">
+            <div className="flex flex-col items-center gap-4">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10 text-primary animate-spin">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <p className="text-muted-foreground">Loading your dashboard...</p>
+            </div>
+        </div>
+    )
+  }
 
   return (
       <Card>

@@ -1,7 +1,7 @@
 
 'use client';
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import {
@@ -16,18 +16,11 @@ import {
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { UserNav } from '@/components/layout/user-nav';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { RoleSwitcher } from '@/components/layout/role-switcher';
 import { useRole } from '@/hooks/use-role';
+import { SidebarProvider, Sidebar, SidebarTrigger, SidebarInset, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -35,10 +28,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, loading, role } = useRole();
 
   useEffect(() => {
-    // Wait until loading is finished before checking for a user
     if (!loading && !user) {
-      // Don't redirect if we are already on a public page like login
-      if (pathname !== '/login') {
+      if (pathname !== '/login' && pathname !== '/register' && pathname !== '/verify' && pathname !== '/forgot-password' && pathname !== '/') {
         router.push('/login');
       }
     }
@@ -56,11 +47,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const getDashboardHomeLink = () => {
     if (!role) return '/dashboard';
     return `/${role}/dashboard`;
-  }
+  };
 
   const filteredNavItems = navItems.filter(item => {
     if (!role) return false;
-    if (item.href === '/dashboard') return true; // Always show dashboard link
+    if (item.href === '/dashboard') return true;
     return item.roles.includes(role);
   });
 
@@ -79,143 +70,63 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return renderLoading();
   }
 
-   if (!user) {
-    // This allows public pages like login/register to render without the full dashboard layout.
-    // The useEffect above will handle redirection for protected pages.
-    return <div />;
+  if (!user && (pathname.startsWith('/dashboard') || (role && pathname.startsWith(`/${role}`)))) {
+    return renderLoading();
+  }
+  
+  // For public pages, we don't want to render the dashboard layout.
+  if (!user) {
+    return <>{children}</>;
   }
 
-
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-      <div className="hidden border-r bg-card md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
-          <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-            <Link href={getDashboardHomeLink()} className="flex items-center gap-2 font-semibold">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 text-primary">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                <path d="m9 12 2 2 4-4"></path>
-              </svg>
-              <span className="font-headline">InternshipTrack</span>
-            </Link>
-            <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
-              <Bell className="h-4 w-4" />
-              <span className="sr-only">Toggle notifications</span>
-            </Button>
-          </div>
-          <div className="flex-1">
-            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-              {filteredNavItems.map(item => {
-                const href = item.href === '/dashboard' ? getDashboardHomeLink() : item.href;
-                return (
-                <Link
-                  key={item.label}
-                  href={href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                    pathname.startsWith(href) ? "bg-muted text-primary" : ""
-                  )}
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.label}
-                  {item.badge && <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">{item.badge}</Badge>}
-                </Link>
-              )})}
-            </nav>
-          </div>
-          <div className="mt-auto p-4">
-            <Card>
-              <CardHeader className="p-2 pt-0 md:p-4">
-                <CardTitle className="font-headline">Need Help?</CardTitle>
-                <CardDescription>
-                  Contact support for assistance with the platform.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-2 md:p-4">
-                <Button variant="secondary" className="w-full">
-                  Contact Support
+    <SidebarProvider>
+      <Sidebar collapsible="icon">
+        <SidebarHeader>
+          <Link href={getDashboardHomeLink()} className="flex items-center gap-2 font-semibold">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 text-primary">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <path d="m9 12 2 2 4-4"></path>
+            </svg>
+            <span className="font-headline group-data-[collapsible=icon]:hidden">InternshipTrack</span>
+          </Link>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            {filteredNavItems.map(item => {
+              const href = item.href === '/dashboard' ? getDashboardHomeLink() : item.href;
+              return (
+              <SidebarMenuItem key={item.label}>
+                <SidebarMenuButton asChild isActive={pathname.startsWith(href)} tooltip={item.label}>
+                  <Link href={href}>
+                    <item.icon />
+                    <span>{item.label}</span>
+                    {item.badge && <Badge className="ml-auto">{item.badge}</Badge>}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )})}
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+           <UserNav />
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarInset>
+         <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6">
+            <SidebarTrigger className="md:hidden" />
+             <div className="flex w-full items-center gap-4 justify-end">
+                <RoleSwitcher />
+                <Button variant="outline" size="icon">
+                  <Bell className="h-4 w-4" />
+                  <span className="sr-only">Toggle notifications</span>
                 </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-       <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="outline" size="icon" className="md:hidden fixed top-4 right-4 z-50">
-            <Bell className="h-4 w-4" />
-            <span className="sr-only">Toggle notifications</span>
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-full">
-          <div className="flex h-full max-h-screen flex-col gap-2">
-            <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-              <Link href={getDashboardHomeLink()} className="flex items-center gap-2 font-semibold">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 text-primary">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                  <path d="m9 12 2 2 4-4"></path>
-                </svg>
-                <span className="font-headline">InternshipTrack</span>
-              </Link>
-            </div>
-            <div className="flex-1">
-              <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-                {filteredNavItems.map(item => {
-                  const href = item.href === '/dashboard' ? getDashboardHomeLink() : item.href;
-                  return (
-                    <Link
-                      key={item.label}
-                      href={href}
-                      className={cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                        pathname.startsWith(href) ? "bg-muted text-primary" : ""
-                      )}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {item.label}
-                      {item.badge && <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">{item.badge}</Badge>}
-                    </Link>
-                  )
-                })}
-              </nav>
-            </div>
-            <div className="mt-auto p-4">
-              <Card>
-                <CardHeader className="p-2 pt-0 md:p-4">
-                  <CardTitle className="font-headline">Need Help?</CardTitle>
-                  <CardDescription>
-                    Contact support for assistance with the platform.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-2 md:p-4">
-                  <Button variant="secondary" className="w-full">
-                    Contact Support
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
-      <main className="flex w-full flex-col overflow-y-auto">
-        <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 pt-4">
-            <div className="flex items-center gap-4 md:hidden">
-              <Link href={getDashboardHomeLink()} className="flex items-center gap-2 font-semibold">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 text-primary">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    <path d="m9 12 2 2 4-4"></path>
-                  </svg>
-              </Link>
-            </div>
-            <div className="ml-auto flex items-center gap-4">
-              <RoleSwitcher />
-              <UserNav />
             </div>
         </header>
-        <div className="container pt-6 md:pt-10">
-          <div className="mt-4">{children}</div>
-        </div>
-      </main>
-    </div>
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          {children}
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
