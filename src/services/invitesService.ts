@@ -74,20 +74,28 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
     // 3. Create the invite document, linking it to the pending user
     const verificationCode = generateSecureCode();
     const invitesCol = collection(db, 'invites');
-    await addDoc(invitesCol, {
+    
+    const newInvite: any = {
         email,
         role,
         firstName,
         lastName,
-        indexNumber,
-        programOfStudy,
-        facultyId,
-        departmentId,
         pendingUserId: pendingUserRef.id,
         status: 'pending',
         verificationCode,
         createdAt: serverTimestamp(),
-    });
+    };
+
+    if (role === 'student') {
+        newInvite.indexNumber = indexNumber;
+        newInvite.programOfStudy = programOfStudy;
+    }
+     if (role === 'student' || role === 'lecturer' || role === 'hod') {
+        newInvite.facultyId = facultyId;
+        newInvite.departmentId = departmentId;
+    }
+
+    await addDoc(invitesCol, newInvite);
 
     // 4. Create an audit log
     if (invitedBy) {
