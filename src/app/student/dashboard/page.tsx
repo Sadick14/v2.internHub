@@ -10,6 +10,7 @@ import {
   MapPin,
   FileText,
   CalendarDays,
+  ListChecks,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -37,6 +38,19 @@ import { getInternshipProfileByStudentId, type InternshipProfile } from '@/servi
 import { getTodayCheckIn, type CheckIn } from '@/services/checkInService';
 import { format, differenceInDays, differenceInBusinessDays } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
+
+const StatCard = ({ icon: Icon, label, value, color = 'primary' }: { icon: React.ElementType, label: string, value: string | number, color?: string }) => (
+    <div className="stat-card bg-white rounded-xl shadow-sm p-6 flex items-center">
+        <div className={`bg-${color}/10 p-3 rounded-lg`}>
+            <Icon className={`text-${color} text-xl`} />
+        </div>
+        <div className="ml-4">
+            <p className="text-gray-500 text-sm">{label}</p>
+            <p className="text-2xl font-bold text-gray-800">{value}</p>
+        </div>
+    </div>
+);
+
 
 export default function StudentDashboardPage() {
   const { user, loading } = useRole();
@@ -117,83 +131,43 @@ export default function StudentDashboardPage() {
 
 
   return (
-     <div className="flex flex-col gap-4 lg:gap-6">
-       <Card className="bg-gradient-to-r from-primary/80 to-primary rounded-xl p-6 text-primary-foreground shadow-lg">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-              <div>
-                  <h2 className="text-2xl font-bold mb-1">Welcome back, {user?.name || 'Student'}!</h2>
-                  <p className="opacity-90 text-sm">
-                      {checkIn ? 
-                        (pendingReportsCount > 0 ? `You have ${pendingReportsCount} reports pending review.` : 'You are all caught up on your reports.') 
-                        : "Please check in to record your attendance for today."
-                      }
-                  </p>
+     <div className="space-y-6">
+       <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-800">Welcome back, {user?.name || 'Student'}!</h1>
+          <p className="text-gray-600">Here's what's happening with your internship today.</p>
+      </div>
+
+       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <StatCard icon={CalendarDays} label="Days Completed" value={`${daysCompleted} / ${internshipDurationDays}`} color="blue-500" />
+            <StatCard icon={ListChecks} label="Reports Submitted" value={`${submittedReportsCount}`} color="green-500" />
+            <StatCard icon={Clock} label="Hours Logged" value={`${daysCompleted * 8}`} color="purple-500" />
+            <StatCard icon={MapPin} label="Today's Check-in" value={checkIn ? 'Done' : 'Pending'} color="yellow-500" />
+        </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
+              <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-semibold text-gray-800">Internship Progress</h3>
+                  <span className="text-sm text-gray-500">Week {Math.floor(daysCompleted / 5) + 1} of {Math.floor(internshipDurationDays / 5)}</span>
               </div>
-              <div className="flex-shrink-0 mt-3 md:mt-0">
-                  {checkIn ? (
-                    <Link href="/student/submit-report" passHref>
-                        <Button className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-medium transition rounded-lg px-4 py-2 text-sm">
-                            <FileText className="mr-2 h-4 w-4" /> Submit Today's Report
-                        </Button>
-                    </Link>
-                  ) : (
-                    <Link href="/student/daily-check-in" passHref>
-                        <Button className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-medium transition rounded-lg px-4 py-2 text-sm animate-pulse">
-                            <MapPin className="mr-2 h-4 w-4" /> Check-in Now
-                        </Button>
-                    </Link>
-                  )}
+              <Progress value={progressPercentage} className="h-3" />
+              <div className="flex justify-between text-sm text-muted-foreground mt-2">
+                <span>Start</span>
+                <span>{progressPercentage}%</span>
+                <span>End</span>
               </div>
           </div>
-      </Card>
-
-      <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardDescription>Internship Progress</CardDescription>
-              <CalendarDays className="w-4 h-4 text-muted-foreground" />
-            </div>
-            <CardTitle className="text-2xl font-bold">{daysCompleted} / {internshipDurationDays} Days</CardTitle>
-          </CardHeader>
-          <CardContent>
-              <Progress value={progressPercentage} className="h-2" />
-              <p className="text-xs text-muted-foreground mt-2">You are {progressPercentage}% through your internship.</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Reports Submitted</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+{submittedReportsCount}</div>
-            <p className="text-xs text-muted-foreground">{pendingReportsCount} pending approval</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Check-in</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${checkIn ? 'text-primary' : 'text-muted-foreground'}`}>{checkIn ? 'Complete' : 'Pending'}</div>
-             <p className="text-xs text-muted-foreground">
-                {checkIn ? `at ${format(checkIn.timestamp, 'p')}` : 'Action required'}
-             </p>
-          </CardContent>
-        </Card>
-         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Last Activity</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary capitalize">{profile?.status || 'Active'}</div>
-            <p className="text-xs text-muted-foreground">at {profile?.companyName}</p>
-          </CardContent>
-        </Card>
+          
+          <div className="bg-white rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-6">Quick Actions</h3>
+              <div className="space-y-3">
+                  <Button asChild className="w-full justify-start"><Link href="/student/daily-check-in"><MapPin className="mr-2"/> Daily Check-in</Link></Button>
+                  <Button asChild className="w-full justify-start"><Link href="/student/daily-tasks"><ListTodo className="mr-2"/> Declare Tasks</Link></Button>
+                  <Button asChild className="w-full justify-start"><Link href="/student/submit-report"><FileText className="mr-2"/> Submit Report</Link></Button>
+              </div>
+          </div>
       </div>
+
        <Card>
         <CardHeader>
           <CardTitle className="font-headline">Recent Reports</CardTitle>

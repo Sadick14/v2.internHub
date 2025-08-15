@@ -75,14 +75,13 @@ export default function SupervisorLayout({ children }: { children: ReactNode }) 
 
   return (
     <SidebarProvider>
-      <Sidebar collapsible="icon">
+      <Sidebar>
         <SidebarHeader>
-           <Link href='/supervisor/dashboard' className="flex items-center gap-2 font-semibold text-primary-foreground">
-             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-              <path d="m9 12 2 2 4-4"></path>
-            </svg>
-            <span className="font-headline group-data-[collapsible=icon]:hidden">Intern Hub</span>
+           <Link href='/supervisor/dashboard' className="flex items-center">
+             <div className="bg-primary p-2 rounded-lg">
+                <GraduationCap className="text-white text-2xl logo-icon"/>
+            </div>
+            <h1 className="text-xl font-bold ml-3 text-gray-800 logo-text">Intern Hub</h1>
           </Link>
         </SidebarHeader>
         <SidebarContent>
@@ -93,7 +92,7 @@ export default function SupervisorLayout({ children }: { children: ReactNode }) 
                   <Link href={item.href}>
                     <item.icon />
                     <span>{item.label}</span>
-                     {item.badge && <Badge className="ml-auto bg-background text-primary hover:bg-background/90">{item.badge}</Badge>}
+                     {item.badge && <Badge className="ml-auto bg-destructive text-destructive-foreground">{item.badge}</Badge>}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -105,13 +104,18 @@ export default function SupervisorLayout({ children }: { children: ReactNode }) 
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-         <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-card px-4 sm:px-6">
-            <SidebarTrigger className="md:hidden" />
-             <div className="flex w-full items-center gap-4 justify-end">
-                <NotificationBell />
+         <header className="bg-white shadow-sm z-30">
+            <div className="flex items-center justify-between px-6 py-4">
+                <div className="flex items-center">
+                    <SidebarTrigger />
+                    <h2 className="text-xl font-semibold text-gray-800 ml-4">Supervisor Dashboard</h2>
+                </div>
+                <div className="flex items-center space-x-4">
+                    <NotificationBell />
+                </div>
             </div>
         </header>
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+        <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
           {children}
         </main>
       </SidebarInset>

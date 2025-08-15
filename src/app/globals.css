@@ -4,55 +4,55 @@
 
 @layer base {
   :root {
-    --background: 240 5% 96%; /* f8fafc */
-    --foreground: 240 10% 3.9%;
+    --background: 220 20% 96%; /* #f5f7fb */
+    --foreground: 224 22% 17%; /* #212529 */
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 224 22% 17%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 221 83% 53%; /* #2563eb */
-    --primary-foreground: 210 40% 98%;
-    --secondary: 226 71% 40%; /* #1e40af */
-    --secondary-foreground: 210 40% 98%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 0 84.2% 60.2%; /* This will be the red color */
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 221 83% 53%;
-    --chart-1: 221 83% 53%;
-    --chart-2: 0 72% 51%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --popover-foreground: 224 22% 17%;
+    --primary: 227 84% 58%; /* #4361ee */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 242 58% 50%; /* #3f37c9 */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 20% 92%; /* adjusted for light theme */
+    --muted-foreground: 220 10% 45%;
+    --accent: 211 81% 62%; /* #4895ef */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 343 91% 53%; /* #f72585 */
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 227 84% 58%;
     --radius: 0.5rem;
+    --chart-1: 227 84% 58%;
+    --chart-2: 242 58% 50%;
+    --chart-3: 197 71% 54%; /* #4cc9f0 */
+    --chart-4: 271 81% 28%; /* #7209b7 */
+    --chart-5: 343 91% 53%; /* #f72585 */
   }
   .dark {
-    --background: 222 47% 11%; /* 0f172a */
-    --foreground: 0 0% 98%; /* f8fafc */
+    --background: 224 22% 17%;
+    --foreground: 0 0% 98%;
     --card: 222 47% 11%;
     --card-foreground: 0 0% 98%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 221 83% 53%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 72% 51%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 217 91% 59%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --primary: 227 84% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 242 58% 50%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 13% 18%;
+    --muted-foreground: 220 10% 65%;
+    --accent: 211 81% 62%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 343 91% 53%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 28%;
+    --input: 220 13% 28%;
+    --ring: 227 84% 58%;
+    --chart-1: 227 84% 58%;
+    --chart-2: 242 58% 50%;
+    --chart-3: 197 71% 54%;
+    --chart-4: 271 81% 28%;
+    --chart-5: 343 91% 53%;
   }
 }
 
@@ -63,41 +63,4 @@
   body {
     @apply bg-background text-foreground;
   }
-}
-
-@layer components {
-    .gradient-text {
-        @apply bg-gradient-to-r from-primary to-accent;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    .hero-pattern {
-        background: radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.1) 0%, transparent 20%),
-                    radial-gradient(circle at 90% 80%, rgba(30, 64, 175, 0.1) 0%, transparent 20%);
-    }
-
-    .feature-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-    
-    .testimonial-card {
-        transition: all 0.3s ease;
-    }
-
-    .testimonial-card:hover {
-        transform: scale(1.02);
-    }
-
-    .pulse {
-      animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
-        70% { box-shadow: 0 0 0 15px rgba(37, 99, 235, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
-    }
-
 }

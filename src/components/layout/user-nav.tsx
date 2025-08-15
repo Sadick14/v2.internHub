@@ -32,67 +32,32 @@ export function UserNav() {
   }
 
   if (loading) {
-    return <Skeleton className="h-9 w-9 rounded-full" />
+    return (
+        <div className="flex items-center gap-2">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <div className={cn("space-y-1", sidebarState === 'collapsed' && 'hidden')}>
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-3 w-28" />
+            </div>
+        </div>
+    )
   }
 
   if (!user) return null
 
-  if (sidebarState === 'collapsed') {
-     return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-9 w-9 rounded-full hover:bg-muted">
-              <Avatar className="h-9 w-9">
-                <AvatarImage src={`https://placehold.co/40x40.png`} alt={user.name} data-ai-hint="person portrait" />
-                <AvatarFallback>{user.initials}</AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
-            <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{user.name}</p>
-                <p className="text-xs leading-none text-muted-foreground">
-                  {user.email}
-                </p>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem asChild>
-                <Link href="/account/profile">Profile</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                Settings
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
-              Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-     )
-  }
-
   return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-           <Button variant="ghost" className="w-full h-auto justify-start p-2 rounded-lg bg-background hover:bg-muted text-foreground">
-              <div className="flex justify-between items-center w-full">
-                <div className="flex items-center gap-2">
-                  <Avatar className="h-9 w-9">
-                      <AvatarImage src={`https://placehold.co/40x40.png`} alt={user.name} data-ai-hint="person portrait" />
+           <Button variant="ghost" className="w-full h-auto justify-start p-0 rounded-lg hover:bg-transparent">
+              <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10">
+                      <AvatarImage src={`https://i.pravatar.cc/150?u=${user.email}`} alt={user.name} />
                       <AvatarFallback>{user.initials}</AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col space-y-1 items-start text-left">
-                      <p className="text-sm font-medium leading-none">{user.name}</p>
-                      <p className="text-xs leading-none text-muted-foreground truncate max-w-[150px]">
-                        {user.email}
-                      </p>
+                  <div className={cn("flex flex-col items-start text-left", sidebarState === 'collapsed' && 'hidden')}>
+                      <p className="text-sm font-medium text-gray-800 leading-tight">{user.name}</p>
+                      <p className="text-xs text-gray-500 leading-tight capitalize">{user.role}</p>
                   </div>
-                </div>
-                <ChevronsUpDown className="h-4 w-4 text-muted-foreground ml-2"/>
               </div>
            </Button>
         </DropdownMenuTrigger>

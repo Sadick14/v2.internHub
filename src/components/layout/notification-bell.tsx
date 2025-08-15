@@ -28,9 +28,6 @@ export function NotificationBell() {
         };
 
         fetchNotifications();
-
-        // Optional: Set up a real-time listener here if needed
-        // For now, we fetch on component mount and popover open.
     }, [user]);
     
     useEffect(() => {
@@ -53,8 +50,6 @@ export function NotificationBell() {
     };
     
     const handleMarkAllAsRead = async () => {
-        // In a real app, you might have a dedicated service function for this.
-        // For now, we'll mark them one by one.
         for (const notification of notifications) {
             if (!notification.isRead) {
                 await markNotificationAsRead(notification.id);
@@ -67,26 +62,23 @@ export function NotificationBell() {
     return (
         <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
-                 <Button variant="outline" size="icon" className="relative">
-                    <Bell className="h-4 w-4" />
+                 <Button variant="ghost" size="icon" className="relative text-gray-500 hover:text-primary">
+                    <Bell className="h-6 w-6" />
                     {unreadCount > 0 && (
-                         <Badge
-                            variant="destructive"
-                            className="absolute -top-2 -right-2 h-5 w-5 rounded-full flex items-center justify-center p-0"
-                        >
-                            {unreadCount}
-                        </Badge>
+                         <span className="absolute top-0 right-0 bg-destructive text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">{unreadCount}</span>
                     )}
                     <span className="sr-only">Toggle notifications</span>
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-0">
+            <PopoverContent className="w-80 p-0" align="end">
                  <div className="p-4 border-b">
                     <div className="flex justify-between items-center">
                         <h4 className="font-medium">Notifications</h4>
-                        <Button variant="ghost" size="sm" onClick={handleMarkAllAsRead} disabled={unreadCount === 0}>
-                            <CheckCheck className="mr-2 h-4 w-4" /> Mark all as read
-                        </Button>
+                        {unreadCount > 0 && 
+                            <Button variant="ghost" size="sm" onClick={handleMarkAllAsRead} disabled={unreadCount === 0}>
+                                <CheckCheck className="mr-2 h-4 w-4" /> Mark all as read
+                            </Button>
+                        }
                     </div>
                 </div>
                  <ScrollArea className="h-96">
@@ -95,7 +87,7 @@ export function NotificationBell() {
                            <div
                                 key={notification.id}
                                 className={cn(
-                                    "p-4 border-b text-sm hover:bg-accent/50",
+                                    "p-4 border-b text-sm hover:bg-gray-50",
                                     !notification.isRead && "bg-primary/5"
                                 )}
                             >
