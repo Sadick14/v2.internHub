@@ -176,16 +176,18 @@ function AttendanceTab({ internId }: { internId: string }) {
 export default function InternDetailPage({ params }: { params: { internId: string } }) {
     const [intern, setIntern] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const internId = params.internId;
 
     useEffect(() => {
         async function fetchData() {
+            if (!internId) return;
             setIsLoading(true);
-            const internData = await getUserById(params.internId);
+            const internData = await getUserById(internId);
             setIntern(internData);
             setIsLoading(false);
         }
         fetchData();
-    }, [params.internId]);
+    }, [internId]);
 
     if (isLoading) {
         return (
