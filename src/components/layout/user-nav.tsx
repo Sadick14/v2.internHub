@@ -80,20 +80,22 @@ export function UserNav() {
   return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-           <Button variant="ghost" className="w-full h-auto justify-between flex items-center gap-2 p-2 rounded-lg hover:bg-primary/80">
-              <div className="flex items-center gap-2">
-                <Avatar className="h-9 w-9">
-                    <AvatarImage src={`https://placehold.co/40x40.png`} alt={user.name} data-ai-hint="person portrait" />
-                    <AvatarFallback>{user.initials}</AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col space-y-1 items-start">
-                    <p className="text-sm font-medium leading-none">{user.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user.email}
-                    </p>
+           <Button variant="ghost" className="w-full h-auto justify-start p-2 rounded-lg hover:bg-primary/80">
+              <div className="flex justify-between items-center w-full">
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-9 w-9">
+                      <AvatarImage src={`https://placehold.co/40x40.png`} alt={user.name} data-ai-hint="person portrait" />
+                      <AvatarFallback>{user.initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col space-y-1 items-start">
+                      <p className="text-sm font-medium leading-none">{user.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground truncate max-w-[150px]">
+                        {user.email}
+                      </p>
+                  </div>
                 </div>
+                <ChevronsUpDown className="h-4 w-4 text-muted-foreground ml-2"/>
               </div>
-              <ChevronsUpDown className="h-4 w-4 text-muted-foreground"/>
            </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="end" forceMount>
