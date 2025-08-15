@@ -42,7 +42,7 @@ function ProfileTab({ intern }: { intern: UserProfile }) {
                 </div>
                 <div className="flex items-center gap-3">
                     <Calendar className="w-4 h-4 text-muted-foreground" />
-                    <span>Joined on: {intern.createdAt?.toLocaleDateString() || 'N/A'}</span>
+                    <span>Joined on: {intern.createdAt ? new Date(intern.createdAt).toLocaleDateString() : 'N/A'}</span>
                 </div>
             </CardContent>
         </Card>
@@ -176,18 +176,21 @@ function AttendanceTab({ internId }: { internId: string }) {
 export default function InternDetailPage({ params }: { params: { internId: string } }) {
     const [intern, setIntern] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const internId = params.internId;
-
+    
     useEffect(() => {
+        const internId = params.internId;
         async function fetchData() {
-            if (!internId) return;
+            if (!internId) {
+                setIsLoading(false);
+                return;
+            };
             setIsLoading(true);
             const internData = await getUserById(internId);
             setIntern(internData);
             setIsLoading(false);
         }
         fetchData();
-    }, [internId]);
+    }, [params.internId]);
 
     if (isLoading) {
         return (
