@@ -12,7 +12,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check } from 'lucide-react';
+import { Check, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function HistoryPage() {
@@ -55,6 +55,73 @@ export default function HistoryPage() {
             toast({ title: 'Error', description: `Failed to update task: ${error.message}`, variant: 'destructive' });
         }
     };
+    
+    const handleDownload = () => {
+        if (!user) return;
+
+        let content = `<html><head><title>Internship Data for ${user.name}</title>`;
+        content += `<style>body{font-family:sans-serif;line-height:1.5;} h1,h2,h3{color:#333;} .section{margin-bottom:2rem;padding-bottom:1rem;border-bottom:1px solid #eee;} .task-item, .report-item{margin-bottom:1.5rem;}</style>`;
+        content += `</head><body>`;
+        content += `<h1>Internship Data for ${user.name}</h1>`;
+        
+        // Tasks Section
+        content += `<div class="section"><h2>Daily Tasks History</h2>`;
+        if (tasks.length > 0) {
+            tasks.forEach(task => {
+                content += `<div class="task-item">`;
+                content += `<h3>Task for ${format(task.date, 'PPP')}</h3>`;
+                content += `<p><strong>Description:</strong> ${task.description}</p>`;
+                content += `<p><strong>Learning Objectives:</strong> ${task.learningObjectives}</p>`;
+                content += `<p><strong>Status:</strong> ${task.status}</p>`;
+                if (task.supervisorFeedback) {
+                    content += `<p><strong>Feedback:</strong> ${task.supervisorFeedback}</p>`;
+                }
+                content += `</div>`;
+            });
+        } else {
+            content += `<p>No tasks found.</p>`;
+        }
+        content += `</div>`;
+
+        // Reports Section
+        content += `<div class="section"><h2>Daily Reports History</h2>`;
+        if (reports.length > 0) {
+            reports.forEach(report => {
+                content += `<div class="report-item">`;
+                content += `<h3>Report for ${format(report.reportDate, 'PPP')}</h3>`;
+                content += `<p><strong>Status:</strong> ${report.status}</p>`;
+                content += `<h4>Work Accomplished:</h4><pre>${report.declaredTasks}</pre>`;
+                content += `<h4>Detailed Report:</h4><pre>${report.fullReport}</pre>`;
+                if (report.summary) {
+                    content += `<h4>AI Summary:</h4><p>${report.summary}</p>`;
+                }
+                 if (report.supervisorComment) {
+                    content += `<h4>Supervisor Feedback:</h4><p>${report.supervisorComment}</p>`;
+                }
+                 if (report.lecturerComment) {
+                    content += `<h4>Lecturer Feedback:</h4><p>${report.lecturerComment}</p>`;
+                }
+                content += `</div>`;
+            });
+        } else {
+            content += `<p>No reports found.</p>`;
+        }
+        content += `</div>`;
+        
+        content += `</body></html>`;
+        
+        const blob = new Blob([content], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Internship_Data.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        toast({ title: 'Download Started', description: 'Your data is being downloaded as an HTML file.'});
+    };
 
     const getReportStatusVariant = (status: string) => {
         switch (status) {
@@ -78,8 +145,16 @@ export default function HistoryPage() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline">My History</CardTitle>
-                <CardDescription>A log of all your submitted reports and declared tasks.</CardDescription>
+                <div className="flex justify-between items-center">
+                     <div>
+                        <CardTitle className="font-headline">My History</CardTitle>
+                        <CardDescription>A log of all your submitted reports and declared tasks.</CardDescription>
+                     </div>
+                     <Button variant="outline" onClick={handleDownload} disabled={isLoading}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Download All Data
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="reports">
