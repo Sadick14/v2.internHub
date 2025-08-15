@@ -129,17 +129,19 @@ export async function getTodayCheckInsForInterns(internIds: string[]): Promise<C
     }
 
     const now = new Date();
-    const startOfToday = startOfDay(now);
+    const todayInterval = {
+        start: startOfDay(now),
+        end: endOfDay(now),
+    };
 
     const q = query(
         checkInCollectionRef,
-        where('studentId', 'in', internIds),
-        where('timestamp', '>=', startOfToday)
+        where('studentId', 'in', internIds)
     );
     
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map(doc => {
+    const allCheckins = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
             id: doc.id,
@@ -147,6 +149,9 @@ export async function getTodayCheckInsForInterns(internIds: string[]): Promise<C
             timestamp: (data.timestamp as Timestamp).toDate(),
         } as CheckIn;
     });
+
+    // Filter for today's check-ins in the application code
+    return allCheckins.filter(checkin => isWithinInterval(checkin.timestamp, todayInterval));
 }
 
 export async function getCheckInsForInterns(internIds: string[]): Promise<CheckIn[]> {
