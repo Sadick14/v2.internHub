@@ -50,6 +50,15 @@ export default function StudentDetailPage({ params }: { params: { studentId: str
         fetchData();
     }, [params.studentId]);
 
+    const getStatusVariant = (status: Report['status']) => {
+        switch (status) {
+            case 'Approved': return 'default';
+            case 'Pending': return 'secondary';
+            case 'Rejected': return 'destructive';
+            default: return 'outline';
+        }
+    };
+
     if (isLoading) {
         return <StudentDetailSkeleton />
     }
@@ -69,15 +78,6 @@ export default function StudentDetailPage({ params }: { params: { studentId: str
             </Card>
         )
     }
-
-    const getStatusVariant = (status: Report['status']) => {
-        switch (status) {
-            case 'Approved': return 'default';
-            case 'Pending': return 'secondary';
-            case 'Rejected': return 'destructive';
-            default: return 'outline';
-        }
-    };
 
     return (
         <div className="space-y-6">
@@ -203,7 +203,7 @@ export default function StudentDetailPage({ params }: { params: { studentId: str
                 </CardContent>
             </Card>
         </div>
-    )
+    );
 }
 
 function StudentDetailSkeleton() {
