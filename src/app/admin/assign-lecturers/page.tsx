@@ -56,7 +56,7 @@ export default function AssignLecturersPage() {
         const isReassigning = !!selectedStudent.lecturerId;
         setIsAssigning(true);
         try {
-            await assignLecturerToStudent(selectedStudent.uid, selectedLecturerId);
+            await assignLecturerToStudent(selectedStudent.firestoreId, selectedLecturerId);
             toast({
                 title: 'Success',
                 description: `${isReassigning ? 'Re-assigned' : 'Assigned'} lecturer to ${selectedStudent.fullName}.`
