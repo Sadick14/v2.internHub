@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { getAllUsers, type UserProfile } from '@/services/userService';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function StudentsPage() {
     const [students, setStudents] = useState<UserProfile[]>([]);
@@ -55,9 +56,9 @@ export default function StudentsPage() {
                         <TableRow>
                             <TableHead>Name</TableHead>
                             <TableHead>Department</TableHead>
-                            <TableHead>Internship Company</TableHead>
+                            <TableHead>Assigned Lecturer</TableHead>
                             <TableHead>Status</TableHead>
-                            <TableHead><span className="sr-only">Actions</span></TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -68,7 +69,7 @@ export default function StudentsPage() {
                                     <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                                     <TableCell><Skeleton className="h-5 w-16" /></TableCell>
-                                    <TableCell><Skeleton className="h-5 w-8" /></TableCell>
+                                    <TableCell className="text-right"><Skeleton className="h-9 w-20" /></TableCell>
                                 </TableRow>
                             ))
                         ) : students.length > 0 ? (
@@ -81,14 +82,16 @@ export default function StudentsPage() {
                                          <div className="text-sm text-muted-foreground">{student.email}</div>
                                     </TableCell>
                                     <TableCell>{student.departmentName || 'N/A'}</TableCell>
-                                    <TableCell>Innovate LLC</TableCell>
+                                    <TableCell>{student.assignedLecturerName || 'Unassigned'}</TableCell>
                                     <TableCell>
                                         <Badge variant={getStatusVariant(student.status)}>{student.status || 'inactive'}</Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                         <Link href={`/admin/students/${student.uid}`}>
-                                            View
-                                        </Link>
+                                        <Button asChild variant="outline" size="sm">
+                                            <Link href={`/admin/students/${student.uid}`}>
+                                                View Details
+                                            </Link>
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))

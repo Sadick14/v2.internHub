@@ -74,7 +74,7 @@ export default function UserManagementPage() {
     const handleUpdateUser = async () => {
         if (!currentUser || !currentUser.uid) return;
         try {
-            await updateUser(currentUser.uid, currentUser);
+            await updateUser(currentUser.firestoreId, currentUser);
             toast({ title: "Success", description: "User updated successfully." });
             setIsEditUserOpen(false);
             fetchPageData();
@@ -99,7 +99,7 @@ export default function UserManagementPage() {
         };
         const newStatus = user.status === 'active' ? 'inactive' : 'active';
          try {
-            await updateUserStatus(user.uid, newStatus);
+            await updateUserStatus(user.firestoreId, newStatus);
             toast({ title: "Success", description: `User status changed to ${newStatus}.` });
             fetchPageData();
         } catch (error: any) {
@@ -176,10 +176,10 @@ export default function UserManagementPage() {
                                         <TableCell className="font-medium">
                                             {user.role === 'student' && user.uid ? (
                                                 <Link href={`/admin/students/${user.uid}`} className="hover:underline text-primary">
-                                                    <div className="font-medium">{user.fullName}</div>
+                                                    {user.fullName}
                                                 </Link>
                                             ) : (
-                                                 <div className="font-medium">{user.fullName}</div>
+                                                user.fullName
                                             )}
                                            
                                             <div className="text-sm text-muted-foreground">{user.email}</div>

@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getUserById, type UserProfile } from '@/services/userService';
 import { getReportsByStudentId, type Report } from '@/services/reportsService';
+import { getInternshipProfileByStudentId, type InternshipProfile } from '@/services/internshipProfileService';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Briefcase, Calendar, Mail, Phone, User as UserIcon } from 'lucide-react';
+import { ArrowLeft, Briefcase, Calendar, Mail, Phone, User as UserIcon, Building2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import {
@@ -18,22 +19,33 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { format } from 'date-fns';
 
 export default function StudentDetailPage({ params }: { params: { studentId: string } }) {
     const [student, setStudent] = useState<UserProfile | null>(null);
+    const [profile, setProfile] = useState<InternshipProfile | null>(null);
     const [reports, setReports] = useState<Report[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         async function fetchData() {
             setIsLoading(true);
-            const studentData = await getUserById(params.studentId);
-            setStudent(studentData);
-            if (studentData) {
-                const reportsData = await getReportsByStudentId(params.studentId);
-                setReports(reportsData);
+            try {
+                 const studentData = await getUserById(params.studentId);
+                setStudent(studentData);
+                if (studentData) {
+                    const [profileData, reportsData] = await Promise.all([
+                        getInternshipProfileByStudentId(studentData.uid),
+                        getReportsByStudentId(studentData.uid)
+                    ]);
+                    setProfile(profileData);
+                    setReports(reportsData);
+                }
+            } catch (e) {
+                console.error("Failed to fetch student details:", e);
+            } finally {
+                setIsLoading(false);
             }
-            setIsLoading(false);
         }
         fetchData();
     }, [params.studentId]);
@@ -96,7 +108,7 @@ export default function StudentDetailPage({ params }: { params: { studentId: str
                             <a href={`mailto:${student.email}`} className="text-primary hover:underline">{student.email}</a>
                         </div>
                          <div className="flex items-center gap-3 text-sm">
-                            <Briefcase className="w-4 h-4 text-muted-foreground" />
+                            <Building2 className="w-4 h-4 text-muted-foreground" />
                             <span>{student.departmentName}, {student.facultyName}</span>
                         </div>
                          <div className="flex items-center gap-3 text-sm">
@@ -111,16 +123,40 @@ export default function StudentDetailPage({ params }: { params: { studentId: str
                         <CardHeader>
                             <CardTitle>Internship Details</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <p className="text-muted-foreground">Company, supervisor, and progress details will be shown here.</p>
+                        <CardContent className="space-y-4 text-sm">
+                            {profile ? (
+                                <>
+                                    <div className="flex items-center gap-3">
+                                        <Briefcase className="w-4 h-4 text-muted-foreground" />
+                                        <span>Works at <span className="font-semibold">{profile.companyName}</span></span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <UserIcon className="w-4 h-4 text-muted-foreground" />
+                                        <span>Supervisor: <span className="font-semibold">{profile.supervisorName}</span> ({profile.supervisorEmail})</span>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <Clock className="w-4 h-4 text-muted-foreground" />
+                                        <span>Duration: {format(new Date(profile.startDate), 'PPP')} - {format(new Date(profile.endDate), 'PPP')}</span>
+                                    </div>
+                                </>
+                            ) : (
+                                <p className="text-muted-foreground">Student has not set up their internship profile yet.</p>
+                            )}
                         </CardContent>
                      </Card>
                       <Card>
                         <CardHeader>
-                            <CardTitle>Recent Activity</CardTitle>
+                            <CardTitle>Supervising Lecturer</CardTitle>
                         </Header>
-                        <CardContent>
-                            <p className="text-muted-foreground">A timeline of recent student activities will appear here.</p>
+                        <CardContent className="text-sm">
+                            {student.assignedLecturerName ? (
+                                 <div className="flex items-center gap-3">
+                                    <UserIcon className="w-4 h-4 text-muted-foreground" />
+                                    <span className="font-semibold">{student.assignedLecturerName}</span>
+                                </div>
+                            ) : (
+                                 <p className="text-muted-foreground">No supervising lecturer has been assigned yet.</p>
+                            )}
                         </CardContent>
                      </Card>
                 </div>
@@ -129,7 +165,7 @@ export default function StudentDetailPage({ params }: { params: { studentId: str
             <Card>
                 <CardHeader>
                     <CardTitle className="font-headline">Daily Reports</CardTitle>
-                    <CardDescription>A complete log of all submitted daily reports.</CardDescription>
+                    <CardDescription>A complete log of all submitted daily reports by the student.</CardDescription>
                 </CardHeader>
                 <CardContent>
                      <Table>
@@ -137,8 +173,8 @@ export default function StudentDetailPage({ params }: { params: { studentId: str
                             <TableRow>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead>Lecturer Comment</TableHead>
                                 <TableHead>Supervisor Comment</TableHead>
+                                <TableHead>Lecturer Comment</TableHead>
                                 <TableHead><span className="sr-only">Actions</span></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -148,8 +184,8 @@ export default function StudentDetailPage({ params }: { params: { studentId: str
                                 <TableRow key={report.id}>
                                     <TableCell className="font-medium">{report.reportDate.toLocaleDateString()}</TableCell>
                                     <TableCell><Badge variant={getStatusVariant(report.status)}>{report.status}</Badge></TableCell>
-                                    <TableCell className="text-muted-foreground truncate max-w-xs">{report.lecturerComment || 'None'}</TableCell>
                                     <TableCell className="text-muted-foreground truncate max-w-xs">{report.supervisorComment || 'None'}</TableCell>
+                                    <TableCell className="text-muted-foreground truncate max-w-xs">{report.lecturerComment || 'None'}</TableCell>
                                     <TableCell className="text-right">
                                         <Button variant="outline" size="sm">View Report</Button>
                                     </TableCell>
