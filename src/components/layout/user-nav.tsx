@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation"
 import { Skeleton } from "../ui/skeleton"
 import { useSidebar } from "../ui/sidebar"
 import { ChevronsUpDown } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export function UserNav() {
   const { user, loading } = useRole()
