@@ -11,7 +11,7 @@ import { getAllTerms, createTerm, updateTerm, type InternshipTerm } from '@/serv
 import { getSettings, updateSettings, type SystemSettings } from '@/services/settingsService';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, PlusCircle, Archive, CheckCircle, MoreHorizontal, Download, Save } from 'lucide-react';
+import { CalendarIcon, PlusCircle, Archive, CheckCircle, MoreHorizontal, Download, Save, Send } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { sendEvaluationReminders } from '@/services/remindersService';
 
 const termSchema = z.object({
   name: z.string().min(1, "A name is required."),
@@ -52,6 +53,7 @@ export default function InternshipTermsPage() {
     const [terms, setTerms] = useState<InternshipTerm[]>([]);
     const [isLoadingTerms, setIsLoadingTerms] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSendingReminders, setIsSendingReminders] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isLoadingSettings, setIsLoadingSettings] = useState(true);
 
@@ -174,6 +176,33 @@ export default function InternshipTermsPage() {
         });
         console.log(`Request to download archive for term ${termId}`);
     };
+
+    const handleSendReminders = async () => {
+        setIsSendingReminders(true);
+        try {
+            const result = await sendEvaluationReminders();
+            if (result.success) {
+                toast({
+                    title: 'Reminders Sent',
+                    description: `Successfully sent ${result.remindersSent} evaluation reminders to supervisors.`
+                });
+            } else {
+                toast({
+                    title: 'Error',
+                    description: result.message,
+                    variant: 'destructive'
+                });
+            }
+        } catch (error: any) {
+             toast({
+                title: 'Error',
+                description: `An unexpected error occurred: ${error.message}`,
+                variant: 'destructive',
+            });
+        } finally {
+            setIsSendingReminders(false);
+        }
+    }
 
     return (
         <div className="space-y-6">
@@ -314,6 +343,27 @@ export default function InternshipTermsPage() {
                             </TableBody>
                         </Table>
                     )}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">System Actions</CardTitle>
+                    <CardDescription>Perform manual system-wide actions and triggers.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <h3 className="font-semibold">Send Evaluation Reminders</h3>
+                            <p className="text-sm text-muted-foreground">
+                                Notify supervisors who have not yet completed their intern evaluations for the active term.
+                            </p>
+                        </div>
+                         <Button onClick={handleSendReminders} disabled={isSendingReminders}>
+                            <Send className="mr-2 h-4 w-4" />
+                            {isSendingReminders ? 'Sending...' : 'Send Reminders'}
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
 
