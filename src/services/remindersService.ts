@@ -65,6 +65,7 @@ export async function sendEvaluationReminders(): Promise<{ success: boolean; mes
         for (const supervisorId of supervisorsToNotify) {
             await createNotification({
                 userId: supervisorId,
+                type: 'EVALUATION_REMINDER',
                 title: 'Evaluation Reminder',
                 message: "You have pending intern evaluations to complete. Please submit them as soon as possible.",
                 href: '/supervisor/evaluate-student',
@@ -113,6 +114,7 @@ export async function sendTermEndingReminders(): Promise<{ success: boolean, mes
         for(const user of activeUsers) {
              await createNotification({
                 userId: user.uid,
+                type: 'TERM_ENDING_REMINDER',
                 title: 'Internship Term Ending Soon',
                 message: `The current internship term '${activeTerm.name}' is ending. Please ensure all reports and evaluations are finalized.`,
             });

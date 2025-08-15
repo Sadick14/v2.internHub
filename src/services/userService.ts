@@ -106,8 +106,17 @@ export async function getUserById(uid: string): Promise<UserProfile | null> {
                 return await enrichUser(docSnap);
             }
         } catch (e) {
-             console.error("Error fetching user by doc ID:", e);
-             return null
+             // It's possible the ID is a firestoreId if the user is pending
+             try {
+                 const docRef = doc(db, 'users', uid);
+                 const docSnap = await getDoc(docRef);
+                 if (docSnap.exists()) {
+                     return await enrichUser(docSnap);
+                 }
+             } catch (e2) {
+                console.error("Error fetching user by doc ID after failing to fetch by UID:", e2);
+                return null;
+             }
         }
         return null;
     }
@@ -163,9 +172,10 @@ export async function assignLecturerToStudent(studentFirestoreId: string, lectur
 
          await createNotification({
             userId: student.uid,
+            type: 'LECTURER_ASSIGNED',
             title: "Lecturer Assigned",
             message: `You have been assigned ${lecturer.fullName} as your supervising lecturer.`,
-            href: '/student/dashboard'
+            href: '/student/supervisors'
         });
     }
 }

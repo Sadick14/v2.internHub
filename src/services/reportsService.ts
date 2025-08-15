@@ -57,6 +57,7 @@ export async function createReport(reportData: NewReportData): Promise<Report> {
         if (reportData.lecturerId) {
              await createNotification({
                 userId: reportData.lecturerId,
+                type: 'NEW_REPORT_SUBMITTED',
                 title: 'New Report Submitted',
                 message: `${student.fullName} has submitted a new daily report for your review.`,
                 href: '/lecturer/reports'
@@ -161,6 +162,7 @@ export async function approveReport(reportId: string, lecturerComment: string): 
 
      await createNotification({
         userId: reportData.studentId,
+        type: 'REPORT_APPROVED',
         title: 'Report Approved',
         message: 'Your daily report has been approved by your lecturer.',
         href: `/student/reports/${reportId}`
@@ -182,6 +184,7 @@ export async function rejectReport(reportId: string, lecturerComment: string): P
 
      await createNotification({
         userId: reportData.studentId,
+        type: 'REPORT_REJECTED',
         title: 'Report Needs Review',
         message: 'Your lecturer has requested changes to your daily report.',
         href: `/student/reports/${reportId}`

@@ -44,6 +44,7 @@ export async function createTask(taskData: NewDailyTask): Promise<void> {
     if (supervisorProfile && studentProfile) {
         await createNotification({
             userId: supervisorProfile.uid,
+            type: 'TASK_DECLARED',
             title: 'New Task Declared',
             message: `${studentProfile.fullName} has declared a new task for today.`,
             href: '/supervisor/tasks'
@@ -151,6 +152,7 @@ export async function updateTaskStatus(taskId: string, status: 'Completed' | 'Ap
         if (student) {
             await createNotification({
                 userId: student.uid,
+                type: status === 'Approved' ? 'TASK_APPROVED' : 'TASK_REJECTED',
                 title: `Task ${status}`,
                 message: `Your supervisor has ${status.toLowerCase()} your task: "${taskData.description.substring(0, 30)}..."`,
                 href: '/student/daily-tasks'

@@ -86,26 +86,14 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
 
         await addDoc(invitesCol, newInvite);
         
-         // Send invite email but don't block the process if it fails
-         try {
-            await sendMail({
-                to: email,
-                subject: 'You have been invited to InternshipTrack',
-                text: `Hello ${firstName},\n\nYou have been invited to join InternshipTrack. Please go to the registration page and use the verification code to complete your account setup.\n\nThank you,\nThe InternshipTrack Team`,
-                html: `<p>Hello ${firstName},</p><p>You have been invited to join InternshipTrack. Please go to the registration page and use the verification code to complete your account setup.</p><p>Thank you,<br>The InternshipTrack Team</p>`,
-            });
-        } catch (error: any) {
-            console.error(`[CRITICAL] Email sending failed for invite to ${email}:`, error);
-            // We log the error but do not throw, so the user can be created.
-            // In a production app, you might add this to a retry queue.
-        }
-
+        // Let the notification service handle sending the email based on system settings
         await createNotification({
-            userId: pendingUserRef.id, // The new user gets the notification
+            userId: pendingUserRef.id,
+            type: 'NEW_INVITE',
             title: "You're Invited!",
-            message: `You have been invited to join InternshipTrack as a ${role}.`,
+            message: `You have been invited to join InternshipTrack as a ${role}. Please check your email for instructions.`,
             href: "/verify"
-        })
+        });
 
 
         // 3. Create an audit log
