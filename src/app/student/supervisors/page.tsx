@@ -37,7 +37,7 @@ const SupervisorInfoCard = ({ title, description, user, companyName }: { title: 
                 <div className="flex items-center gap-4">
                      <Avatar className="w-16 h-16">
                         <AvatarImage src={`https://placehold.co/100x100.png`} data-ai-hint="person portrait" />
-                        <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        <AvatarFallback>{user.name ? user.name.split(' ').map(n => n[0]).join('') : 'U'}</AvatarFallback>
                     </Avatar>
                     <div>
                         <h3 className="text-xl font-semibold">{user.name}</h3>
