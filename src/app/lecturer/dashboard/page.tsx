@@ -132,7 +132,7 @@ export default function LecturerDashboardPage() {
                             <div className="text-sm text-muted-foreground">{student.email}</div>
                         </TableCell>
                         <TableCell>{student.departmentName || 'N/A'}</TableCell>
-                        <TableCell>Company Placeholder</TableCell>
+                        <TableCell>{student.companyName || 'N/A'}</TableCell>
                         <TableCell>
                             <Badge variant={student.status === 'active' ? 'default' : 'outline'}>{student.status}</Badge>
                         </TableCell>

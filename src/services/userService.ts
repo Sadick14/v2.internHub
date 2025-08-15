@@ -36,6 +36,7 @@ export interface UserProfile {
     facultyName?: string;
     departmentName?: string;
     assignedLecturerName?: string;
+    companyName?: string;
 }
 
 export interface StudentDetails {
@@ -73,13 +74,20 @@ const enrichUser = async (userDoc: any): Promise<UserProfile> => {
         }
     }
 
+     let companyName = '';
+    if (user.role === 'student' && user.internshipId) {
+        const profile = await getInternshipProfileByStudentId(user.uid);
+        companyName = profile?.companyName || '';
+    }
+
     return { 
         ...user, 
         uid: user.uid!,
         createdAt: user.createdAt?.toDate(), 
         facultyName, 
         departmentName, 
-        assignedLecturerName 
+        assignedLecturerName,
+        companyName
     };
 };
 
