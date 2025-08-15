@@ -50,18 +50,16 @@ export async function createNotification(notificationData: NewAppNotification): 
         
         let shouldSendEmail = false;
         
-        if (!settings) { // If settings can't be loaded, default to not sending emails for safety
-            if(notificationData.type === 'NEW_INVITE') {
-                 // Invites should always go out if the service is called
+        if (!settings) { 
+             console.error("System settings not found. Halting email dispatch for most notifications.");
+             // Only allow critical emails like invites to proceed without settings.
+             if (notificationData.type === 'NEW_INVITE') {
                  shouldSendEmail = true;
-            } else {
-                 console.error("System settings not found. Halting email dispatch.");
-                 return;
-            }
+             }
         } else {
-            // For critical alerts, we might want to bypass settings, but we will make them configurable.
              switch(notificationData.type) {
-                case 'NEW_INVITE': // Invite emails are handled by invitesService
+                case 'NEW_INVITE':
+                    shouldSendEmail = settings.notifications.newInviteToUser;
                     break;
                 case 'NEW_REPORT_SUBMITTED':
                     shouldSendEmail = settings.notifications.newReportToLecturer;
@@ -84,11 +82,12 @@ export async function createNotification(notificationData: NewAppNotification): 
                 case 'LECTURER_ASSIGNED':
                     shouldSendEmail = settings.notifications.lecturerAssignedToStudent;
                     break;
-                // Explicitly check reminder settings
+                // For reminders and alerts, we assume they should always send if enabled.
+                // The logic to *trigger* these is separate from the notification creation.
                 case 'EVALUATION_REMINDER':
                 case 'TERM_ENDING_REMINDER':
                 case 'ABUSE_REPORT_SUBMITTED':
-                    shouldSendEmail = true; // These are critical and should likely always send.
+                    shouldSendEmail = true;
                     break;
             }
         }
@@ -100,25 +99,28 @@ export async function createNotification(notificationData: NewAppNotification): 
                 try {
                     await sendMail({
                         to: user.email,
-                        subject: notificationData.title,
+                        subject: `Intern Hub: ${notificationData.title}`,
                         text: notificationData.message,
                         html: `<p>${notificationData.message}</p><p>You can view this notification in the app: <a href="https://internshiptrack-iru7j.web.app${notificationData.href || '/'}">View Details</a></p>`,
                     });
                 } catch(emailError) {
                     console.error(`[CRITICAL] Email sending failed for user ${user.email} for notification type ${notificationData.type}:`, emailError);
                 }
+            } else {
+                 console.warn(`[EMAIL] Could not send email for notification type ${notificationData.type} because user ${notificationData.userId} has no email address.`);
             }
         }
 
     } catch (error) {
-        console.error("Failed to create notification:", error);
+        console.error("[NOTIFICATION] Failed to create notification:", error);
     }
 }
 
 export async function getNotifications(userId: string): Promise<AppNotification[]> {
     const q = query(
         notificationsCollectionRef, 
-        where('userId', '==', userId)
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc')
     );
     const snapshot = await getDocs(q);
 
@@ -131,8 +133,7 @@ export async function getNotifications(userId: string): Promise<AppNotification[
         } as AppNotification;
     });
 
-    // Sort in code to avoid composite index
-    return notifications.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return notifications;
 }
 
 export async function markNotificationAsRead(notificationId: string): Promise<void> {
