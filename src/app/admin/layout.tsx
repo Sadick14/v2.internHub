@@ -53,6 +53,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     { href: '/admin/university-structure', label: 'University Structure', icon: Building },
     { href: '/admin/internship-terms', label: 'Internship Terms', icon: CalendarClock },
     { href: '/admin/audit-logs', label: 'Audit Logs', icon: Shield },
+    { href: '/admin/abuse-reports', label: 'Abuse Reports', icon: Shield },
   ];
 
   if (!isMounted || loading || !user) {

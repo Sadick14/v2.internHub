@@ -12,6 +12,9 @@ import {
   CalendarDays,
   ListChecks,
   ListTodo,
+  AlertTriangle,
+  Shield,
+  Loader2
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -39,6 +42,12 @@ import { getInternshipProfileByStudentId, type InternshipProfile } from '@/servi
 import { getTodayCheckIn, type CheckIn } from '@/services/checkInService';
 import { format, differenceInDays, differenceInBusinessDays } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { createAbuseReport } from '@/services/abuseReportsService';
 
 const StatCard = ({ icon: Icon, label, value, color = 'primary' }: { icon: React.ElementType, label: string, value: string | number, color?: string }) => (
     <div className="stat-card bg-white rounded-xl shadow-sm p-6 flex items-center">
@@ -51,6 +60,74 @@ const StatCard = ({ icon: Icon, label, value, color = 'primary' }: { icon: React
         </div>
     </div>
 );
+
+function ReportAbuseDialog() {
+    const { user } = useRole();
+    const { toast } = useToast();
+    const [isOpen, setIsOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [message, setMessage] = useState("");
+
+    const handleSubmit = async () => {
+        if (!user || !user.uid || !user.name) {
+            toast({ title: "Error", description: "You must be logged in to submit a report.", variant: "destructive" });
+            return;
+        }
+        if (message.length < 20) {
+            toast({ title: "Error", description: "Please provide a more detailed description of the situation.", variant: "destructive" });
+            return;
+        }
+        setIsSubmitting(true);
+        try {
+            await createAbuseReport(user.uid, user.name, message);
+            toast({
+                title: "Report Submitted",
+                description: "Your report has been sent confidentially to your lecturer and a system administrator. They will be in touch shortly."
+            });
+            setMessage("");
+            setIsOpen(false);
+        } catch (error: any) {
+            toast({ title: "Submission Failed", description: error.message, variant: "destructive" });
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                <Button variant="destructive">
+                    <Shield className="mr-2 h-4 w-4" /> Report an Issue
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Confidential Abuse & Harassment Report</DialogTitle>
+                    <DialogDescription>
+                        Your safety is our top priority. Please use this form to report any incident of abuse, harassment, or misconduct. This report will be sent directly to your supervising lecturer and a system administrator.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-2">
+                    <Label htmlFor="abuse-message">Please describe the situation in detail:</Label>
+                    <Textarea
+                        id="abuse-message"
+                        rows={8}
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        placeholder="Please provide as much detail as possible, including what happened, when and where it occurred, and who was involved. Your report will be kept confidential."
+                    />
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+                    <Button variant="destructive" onClick={handleSubmit} disabled={isSubmitting}>
+                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Shield className="mr-2 h-4 w-4" />}
+                        Submit Confidential Report
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
 
 
 export default function StudentDashboardPage() {
@@ -137,6 +214,17 @@ export default function StudentDashboardPage() {
           <h1 className="text-2xl font-bold text-gray-800">Welcome back, {user?.name || 'Student'}!</h1>
           <p className="text-gray-600">Here's what's happening with your internship today.</p>
       </div>
+
+       <Alert variant="destructive" className="bg-destructive/10 border-destructive/50 text-destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle className="font-bold text-destructive">Confidential Reporting</AlertTitle>
+          <AlertDescription>
+            <div className="flex justify-between items-center">
+                <p>Your safety is important. If you experience any form of abuse or harassment, please report it immediately.</p>
+                <ReportAbuseDialog />
+            </div>
+          </AlertDescription>
+        </Alert>
 
        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             <StatCard icon={CalendarDays} label="Days Completed" value={`${daysCompleted} / ${internshipDurationDays}`} color="blue-500" />

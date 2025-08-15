@@ -8,7 +8,8 @@ import {
   Home,
   Users,
   LogIn,
-  GraduationCap
+  GraduationCap,
+  Shield
 } from 'lucide-react';
 
 import { UserNav } from '@/components/layout/user-nav';
@@ -37,6 +38,7 @@ export default function LecturerLayout({ children }: { children: ReactNode }) {
     { href: '/lecturer/dashboard', label: 'Dashboard', icon: Home },
     { href: '/lecturer/students', label: 'My Students', icon: Users },
     { href: '/lecturer/check-ins', label: 'Check-ins', icon: LogIn },
+    { href: '/lecturer/abuse-reports', label: 'Abuse Reports', icon: Shield },
   ];
 
   if (loading || !user || role !== 'lecturer') {

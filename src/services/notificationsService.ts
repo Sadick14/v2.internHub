@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import { db } from '@/lib/firebase';
@@ -17,7 +18,8 @@ export type NotificationType =
     | 'TASK_DECLARED'
     | 'LECTURER_ASSIGNED'
     | 'EVALUATION_REMINDER'
-    | 'TERM_ENDING_REMINDER';
+    | 'TERM_ENDING_REMINDER'
+    | 'ABUSE_REPORT_SUBMITTED';
 
 export interface AppNotification {
     id: string;
@@ -45,24 +47,31 @@ export async function createNotification(notificationData: NewAppNotification): 
 
         // 2. Check settings to see if an email should be sent
         const settings = await getSettings();
-        if (!settings) return; // If no settings, no emails.
-
+        
         let shouldSendEmail = false;
-        switch(notificationData.type) {
-            case 'NEW_INVITE':
-                shouldSendEmail = settings.notifications.newInviteToUser;
-                break;
-            case 'NEW_REPORT_SUBMITTED':
-                shouldSendEmail = settings.notifications.newReportToLecturer;
-                break;
-            case 'REPORT_APPROVED':
-                shouldSendEmail = settings.notifications.reportApprovedToStudent;
-                break;
-            case 'REPORT_REJECTED':
-                shouldSendEmail = settings.notifications.reportRejectedToStudent;
-                break;
-            // Add other cases here if more email settings are added
+
+        // For critical alerts like abuse reports, we might want to bypass settings.
+        if (notificationData.type === 'ABUSE_REPORT_SUBMITTED') {
+            shouldSendEmail = true;
+        } else {
+            if (!settings) return; // If no settings, no emails for non-critical notifications
+            switch(notificationData.type) {
+                case 'NEW_INVITE':
+                    shouldSendEmail = settings.notifications.newInviteToUser;
+                    break;
+                case 'NEW_REPORT_SUBMITTED':
+                    shouldSendEmail = settings.notifications.newReportToLecturer;
+                    break;
+                case 'REPORT_APPROVED':
+                    shouldSendEmail = settings.notifications.reportApprovedToStudent;
+                    break;
+                case 'REPORT_REJECTED':
+                    shouldSendEmail = settings.notifications.reportRejectedToStudent;
+                    break;
+                // Add other cases here if more email settings are added
+            }
         }
+
 
         if (shouldSendEmail) {
             const user = await getUserById(notificationData.userId);
