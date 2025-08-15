@@ -49,15 +49,19 @@ export async function createNotification(notificationData: NewAppNotification): 
         const settings = await getSettings();
         
         let shouldSendEmail = false;
-
-        // For critical alerts like abuse reports or reminders, we might want to bypass settings.
-        if (notificationData.type === 'ABUSE_REPORT_SUBMITTED' || notificationData.type === 'EVALUATION_REMINDER' || notificationData.type === 'TERM_ENDING_REMINDER') {
-            shouldSendEmail = true;
+        
+        if (!settings) { // If settings can't be loaded, default to not sending emails for safety
+            if(notificationData.type === 'NEW_INVITE') {
+                 // Invites should always go out if the service is called
+                 shouldSendEmail = true;
+            } else {
+                 console.error("System settings not found. Halting email dispatch.");
+                 return;
+            }
         } else {
-            if (!settings) return; // If no settings, no emails for non-critical notifications
-            switch(notificationData.type) {
-                case 'NEW_INVITE':
-                    shouldSendEmail = settings.notifications.newInviteToUser;
+            // For critical alerts, we might want to bypass settings, but we will make them configurable.
+             switch(notificationData.type) {
+                case 'NEW_INVITE': // Invite emails are handled by invitesService
                     break;
                 case 'NEW_REPORT_SUBMITTED':
                     shouldSendEmail = settings.notifications.newReportToLecturer;
@@ -80,9 +84,15 @@ export async function createNotification(notificationData: NewAppNotification): 
                 case 'LECTURER_ASSIGNED':
                     shouldSendEmail = settings.notifications.lecturerAssignedToStudent;
                     break;
+                // Explicitly check reminder settings
+                case 'EVALUATION_REMINDER':
+                case 'TERM_ENDING_REMINDER':
+                case 'ABUSE_REPORT_SUBMITTED':
+                    shouldSendEmail = true; // These are critical and should likely always send.
+                    break;
             }
         }
-
+        
 
         if (shouldSendEmail) {
             const user = await getUserById(notificationData.userId);
