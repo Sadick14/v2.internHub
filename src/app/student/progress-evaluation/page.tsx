@@ -160,7 +160,7 @@ export default function ProgressEvaluationPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                  <StatCard icon={CalendarCheck} title="Attendance" value={`${attendanceScore.toFixed(0)}%`} description={`${checkIns.length} / ${totalDays} days`} />
                  <StatCard icon={ClipboardList} title="Report Submission" value={`${reportsScore.toFixed(0)}%`} description={`${reports.length} / ${totalDays} reports`} />
-                 <StatCard icon={CheckCircle} title="Task Completion" value={`${taskCompletionScore.toFixed(0)}%`} description={`${approvedTasks} / ${tasks.length} tasks approved`} />
+                 <StatCard icon={CheckCircle} title="Task Completion" value={`${taskCompletionScore.toFixed(0)}%`} description={`${approvedTasks} / ${tasks.length} daily tasks approved`} />
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
