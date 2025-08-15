@@ -6,6 +6,7 @@ import { useRole } from '@/hooks/use-role';
 import { getInternshipProfileByStudentId, type InternshipProfile } from '@/services/internshipProfileService';
 import { getCheckInsByStudentId, type CheckIn } from '@/services/checkInService';
 import { getReportsByStudentId, type Report } from '@/services/reportsService';
+import { getAllTasksByStudentId, type DailyTask } from '@/services/tasksService';
 import { getEvaluationsForStudent, type Evaluation, type EvaluationMetrics } from '@/services/evaluationsService';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
@@ -68,6 +69,7 @@ export default function ProgressEvaluationPage() {
     const [profile, setProfile] = useState<InternshipProfile | null>(null);
     const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
     const [reports, setReports] = useState<Report[]>([]);
+    const [tasks, setTasks] = useState<DailyTask[]>([]);
     const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
 
     useEffect(() => {
@@ -76,16 +78,18 @@ export default function ProgressEvaluationPage() {
             setIsLoading(true);
 
             try {
-                const [profileData, checkInData, reportsData, evaluationsData] = await Promise.all([
+                const [profileData, checkInData, reportsData, tasksData, evaluationsData] = await Promise.all([
                     getInternshipProfileByStudentId(user.uid),
                     getCheckInsByStudentId(user.uid),
                     getReportsByStudentId(user.uid),
+                    getAllTasksByStudentId(user.uid),
                     getEvaluationsForStudent(user.uid)
                 ]);
 
                 setProfile(profileData);
                 setCheckIns(checkInData);
                 setReports(reportsData);
+                setTasks(tasksData);
                 setEvaluations(evaluationsData);
 
             } catch (error) {
@@ -126,7 +130,9 @@ export default function ProgressEvaluationPage() {
     const totalDays = differenceInBusinessDays(new Date(profile.endDate), new Date(profile.startDate));
     const attendanceScore = totalDays > 0 ? (checkIns.length / totalDays) * 100 : 0;
     const reportsScore = totalDays > 0 ? (reports.length / totalDays) * 100 : 0;
-    
+    const approvedTasks = tasks.filter(t => t.status === 'Approved').length;
+    const taskCompletionScore = tasks.length > 0 ? (approvedTasks / tasks.length) * 100 : 0;
+
     const supervisorEval = evaluations.find(e => e.evaluatorRole === 'supervisor');
     const lecturerEval = evaluations.find(e => e.evaluatorRole === 'lecturer');
     const adminEval = evaluations.find(e => e.evaluatorRole === 'admin');
@@ -154,7 +160,7 @@ export default function ProgressEvaluationPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                  <StatCard icon={CalendarCheck} title="Attendance" value={`${attendanceScore.toFixed(0)}%`} description={`${checkIns.length} / ${totalDays} days`} />
                  <StatCard icon={ClipboardList} title="Report Submission" value={`${reportsScore.toFixed(0)}%`} description={`${reports.length} / ${totalDays} reports`} />
-                 <StatCard icon={CheckCircle} title="Task Completion" value="N/A" description="Feature coming soon" />
+                 <StatCard icon={CheckCircle} title="Task Completion" value={`${taskCompletionScore.toFixed(0)}%`} description={`${approvedTasks} / ${tasks.length} tasks approved`} />
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

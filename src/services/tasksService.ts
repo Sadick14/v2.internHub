@@ -83,6 +83,25 @@ export async function getTasksByDate(studentId: string, date: Date): Promise<Dai
     return tasksForDate;
 }
 
+export async function getAllTasksByStudentId(studentId: string): Promise<DailyTask[]> {
+    const q = query(
+        tasksCollectionRef,
+        where('studentId', '==', studentId),
+        orderBy('date', 'desc')
+    );
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            date: (data.date as Timestamp).toDate(),
+            createdAt: (data.createdAt as Timestamp).toDate(),
+        } as DailyTask;
+    });
+}
+
+
 export async function getTasksBySupervisor(supervisorAuthId: string, statusFilter: DailyTask['status'][]): Promise<DailyTask[]> {
     const supervisorProfile = await getUserById(supervisorAuthId);
     if (!supervisorProfile || !supervisorProfile.firestoreId) {
