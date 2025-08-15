@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-
+import { GraduationCap } from 'lucide-react';
 import { useRole } from '@/hooks/use-role';
 
 export default function DashboardRedirectLayout({ children }: { children: ReactNode }) {
@@ -37,10 +37,26 @@ export default function DashboardRedirectLayout({ children }: { children: ReactN
         <main className="flex-1 overflow-y-auto">
             <div className="flex items-center justify-center h-full p-4 md:p-6">
                 <div className="flex flex-col items-center gap-4">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-10 w-10 text-primary animate-spin">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                </svg>
+                <GraduationCap className="h-10 w-10 text-primary animate-spin"/>
                 <p className="text-muted-foreground">Loading your dashboard...</p>
+                 <svg width="200" height="40" viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg" className="text-primary/20">
+                    <circle cx="25" cy="20" r="4" >
+                        <animate attributeName="r" from="4" to="8" dur="0.8s" begin="0s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" from="1" to="0.5" dur="0.8s" begin="0s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="75" cy="20" r="4">
+                        <animate attributeName="r" from="4" to="8" dur="0.8s" begin="0.2s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" from="1" to="0.5" dur="0.8s" begin="0.2s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="125" cy="20" r="4">
+                        <animate attributeName="r" from="4" to="8" dur="0.8s" begin="0.4s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" from="1" to="0.5" dur="0.8s" begin="0.4s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="175" cy="20" r="4">
+                        <animate attributeName="r" from="4" to="8" dur="0.8s" begin="0.6s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" from="1" to="0.5" dur="0.8s" begin="0.6s" repeatCount="indefinite" />
+                    </circle>
+                </svg>
                 </div>
             </div>
         </main>
