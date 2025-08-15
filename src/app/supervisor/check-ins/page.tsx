@@ -2,9 +2,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from "@/components/ui/badge";
-import { getInternsBySupervisor, type UserProfile } from '@/services/userService';
+import { getInternsBySupervisor } from '@/services/userService';
 import { getCheckInsForInterns, type CheckIn } from '@/services/checkInService';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRole } from '@/hooks/use-role';

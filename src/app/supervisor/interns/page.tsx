@@ -1,6 +1,7 @@
 
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -14,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { getInternsBySupervisor, type UserProfile } from '@/services/userService';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRole } from '@/hooks/use-role';
+import { Button } from '@/components/ui/button';
 
 export default function SupervisorInternsPage() {
     const { user } = useRole();
@@ -58,6 +60,7 @@ export default function SupervisorInternsPage() {
                             <TableHead>Email</TableHead>
                             <TableHead>University Department</TableHead>
                             <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Action</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -68,6 +71,7 @@ export default function SupervisorInternsPage() {
                                     <TableCell><Skeleton className="h-5 w-48" /></TableCell>
                                     <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                                     <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                                    <TableCell><Skeleton className="h-9 w-24 ml-auto" /></TableCell>
                                 </TableRow>
                             ))
                         ) : interns.length > 0 ? (
@@ -79,11 +83,18 @@ export default function SupervisorInternsPage() {
                                     <TableCell>
                                         <Badge variant={getStatusVariant(intern.status)}>{intern.status}</Badge>
                                     </TableCell>
+                                    <TableCell className="text-right">
+                                        <Button asChild variant="outline" size="sm">
+                                            <Link href={`/supervisor/interns/${intern.uid}`}>
+                                                View Profile
+                                            </Link>
+                                        </Button>
+                                    </TableCell>
                                 </TableRow>
                             ))
                         ) : (
                              <TableRow>
-                                <TableCell colSpan={4} className="text-center h-24 text-muted-foreground">
+                                <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
                                     You have not been assigned any interns yet.
                                 </TableCell>
                             </TableRow>
