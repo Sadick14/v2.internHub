@@ -86,11 +86,10 @@ export async function getTasksByDate(studentId: string, date: Date): Promise<Dai
 export async function getAllTasksByStudentId(studentId: string): Promise<DailyTask[]> {
     const q = query(
         tasksCollectionRef,
-        where('studentId', '==', studentId),
-        orderBy('date', 'desc')
+        where('studentId', '==', studentId)
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => {
+    const tasks = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
             id: doc.id,
@@ -99,6 +98,8 @@ export async function getAllTasksByStudentId(studentId: string): Promise<DailyTa
             createdAt: (data.createdAt as Timestamp).toDate(),
         } as DailyTask;
     });
+
+    return tasks.sort((a,b) => b.date.getTime() - a.date.getTime());
 }
 
 
