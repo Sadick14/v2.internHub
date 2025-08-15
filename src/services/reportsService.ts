@@ -3,7 +3,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, where, Timestamp, serverTimestamp, doc, updateDoc, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, Timestamp, serverTimestamp, doc, updateDoc, orderBy, getDoc } from 'firebase/firestore';
 import { createAuditLog } from './auditLogService';
 import { getUserById } from './userService';
 import { createNotification } from './notificationsService';
@@ -80,8 +80,7 @@ export async function getReportsByLecturer(lecturerId: string, statuses: Report[
     const q = query(
         reportsCol, 
         where('lecturerId', '==', lecturerId), 
-        where('status', 'in', statuses),
-        orderBy('reportDate', 'desc')
+        where('status', 'in', statuses)
     );
     const reportSnapshot = await getDocs(q);
 
@@ -97,7 +96,8 @@ export async function getReportsByLecturer(lecturerId: string, statuses: Report[
         } as Report & { studentName: string };
     }));
     
-    return reportsWithStudentNames;
+    // Sort in code to avoid needing a composite index
+    return reportsWithStudentNames.sort((a, b) => b.reportDate.getTime() - a.reportDate.getTime());
 }
 
 export async function getReportsBySupervisor(supervisorId: string, statuses?: Report['status'][]): Promise<Report[]> {
