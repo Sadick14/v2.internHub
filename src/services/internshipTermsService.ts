@@ -1,6 +1,7 @@
 
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, addDoc, updateDoc, serverTimestamp, Timestamp, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, doc, addDoc, updateDoc, serverTimestamp, Timestamp, query, orderBy, where } from 'firebase/firestore';
+import { updateUserStatus } from './userService';
 
 export interface InternshipTerm {
     id: string;
@@ -43,4 +44,24 @@ export async function updateTerm(id: string, data: Partial<Omit<InternshipTerm, 
         ...data,
         updatedAt: serverTimestamp(),
     });
+}
+
+export async function archiveTerm(termId: string): Promise<void> {
+    const termDocRef = doc(db, 'internship_terms', termId);
+    
+    // For simplicity, we assume archiving a term makes all currently 'active' students and lecturers 'inactive'.
+    // A more complex system might link users to specific terms.
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('status', '==', 'active'), where('role', 'in', ['student', 'lecturer']));
+    const usersToArchiveSnapshot = await getDocs(q);
+
+    const batch = db.batch();
+
+    usersToArchiveSnapshot.forEach(userDoc => {
+        batch.update(userDoc.ref, { status: 'inactive' });
+    });
+
+    batch.update(termDocRef, { status: 'Archived', updatedAt: serverTimestamp() });
+
+    await batch.commit();
 }
