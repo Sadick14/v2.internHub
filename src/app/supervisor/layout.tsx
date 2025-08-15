@@ -19,23 +19,33 @@ import { UserNav } from '@/components/layout/user-nav';
 import { useRole } from '@/hooks/use-role';
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarInset, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
+import { getTasksBySupervisor } from '@/services/tasksService';
 
 export default function SupervisorLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, role } = useRole();
   const [isMounted, setIsMounted] = useState(false);
+  const [pendingTasksCount, setPendingTasksCount] = useState(0);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   useEffect(() => {
-    if (!loading && isMounted) {
+    async function fetchPendingTasks() {
+        if (user?.uid) {
+            const tasks = await getTasksBySupervisor(user.uid, ['Completed']);
+            setPendingTasksCount(tasks.length);
+        }
+    }
+    if (!loading && isMounted && user) {
       if (!user) {
         router.push('/login');
       } else if (role !== 'supervisor') {
         router.push('/dashboard');
+      } else {
+        fetchPendingTasks();
       }
     }
   }, [user, loading, role, router, isMounted]);
@@ -44,7 +54,7 @@ export default function SupervisorLayout({ children }: { children: ReactNode }) 
   const navItems = [
     { href: '/supervisor/dashboard', label: 'Dashboard', icon: Home },
     { href: '/supervisor/check-ins', label: 'Check-ins', icon: LogIn },
-    { href: '/supervisor/tasks', label: 'Daily Tasks', icon: ListChecks, badge: '2' },
+    { href: '/supervisor/tasks', label: 'Daily Tasks', icon: ListChecks, badge: pendingTasksCount > 0 ? String(pendingTasksCount) : undefined },
     { href: '/supervisor/interns', label: 'My Interns', icon: Users },
     { href: '/supervisor/evaluate-student', label: 'Evaluate Interns', icon: Award },
   ];
