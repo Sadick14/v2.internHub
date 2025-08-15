@@ -27,11 +27,11 @@ export default function LecturerReportsPage() {
     const [feedback, setFeedback] = useState<{ [key: string]: string }>({});
     const [activeTab, setActiveTab] = useState('pending');
 
-    const fetchReports = async (status: 'Pending' | 'History') => {
+    const fetchReports = async (tab: 'pending' | 'history') => {
         if (!user?.uid) return;
         setIsLoading(true);
         try {
-            const statuses: Report['status'][] = status === 'Pending' ? ['Pending'] : ['Approved', 'Rejected'];
+            const statuses: Report['status'][] = tab === 'pending' ? ['Pending'] : ['Approved', 'Rejected'];
             const reportsData = await getReportsByLecturer(user.uid, statuses);
             setReports(reportsData as ReportWithStudentName[]);
         } catch (error) {
@@ -42,12 +42,13 @@ export default function LecturerReportsPage() {
     };
 
     useEffect(() => {
-        if(user?.uid) fetchReports('Pending');
+        if(user?.uid) fetchReports('pending');
     }, [user]);
 
     const handleTabChange = (value: string) => {
-        setActiveTab(value);
-        fetchReports(value === 'pending' ? 'Pending' : 'History');
+        const tab = value as 'pending' | 'history';
+        setActiveTab(tab);
+        fetchReports(tab);
     }
 
     const handleFeedbackChange = (reportId: string, value: string) => {
@@ -65,7 +66,7 @@ export default function LecturerReportsPage() {
                 await rejectReport(reportId, comment);
                 toast({ title: 'Report Rejected', description: 'Feedback has been sent to the student.' });
             }
-            fetchReports('Pending'); // Refresh list after action
+            fetchReports('pending'); // Refresh list after action
         } catch (error: any) {
             toast({ title: 'Error', description: `Failed to ${action} report: ${error.message}`, variant: 'destructive' });
         }
@@ -112,10 +113,10 @@ export default function LecturerReportsPage() {
                                     <h4 className="font-semibold text-sm">Work Accomplished:</h4>
                                     <p className="text-sm text-muted-foreground whitespace-pre-wrap">{report.declaredTasks}</p>
                                 </div>
-                                <div>
+                                {report.summary && <div>
                                     <h4 className="font-semibold text-sm">AI Generated Summary:</h4>
                                     <p className="text-sm text-muted-foreground">{report.summary}</p>
-                                </div>
+                                </div>}
                                 <div className="space-y-2">
                                     <label htmlFor={`feedback-${report.id}`} className="font-semibold text-sm">Your Feedback:</label>
                                     <Textarea
