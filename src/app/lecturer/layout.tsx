@@ -21,12 +21,20 @@ export default function LecturerLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, role } = useRole();
-  const [isMounted, setIsMounted] = useState(false);
   const [pendingReportsCount, setPendingReportsCount] = useState(0);
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    if (loading) {
+      return; // Wait for the auth state to be determined
+    }
+
+    if (!user) {
+      router.push('/login');
+    } else if (role !== 'lecturer') {
+      // If role is determined and it's not lecturer, redirect
+      router.push('/dashboard');
+    }
+  }, [user, loading, role, router]);
 
   useEffect(() => {
     async function fetchPendingReports() {
@@ -35,16 +43,10 @@ export default function LecturerLayout({ children }: { children: ReactNode }) {
             setPendingReportsCount(reports.length);
         }
     }
-    if (!loading && isMounted) {
-      if (!user) {
-        router.push('/login');
-      } else if (role !== 'lecturer') {
-        router.push('/dashboard');
-      } else {
+    if (role === 'lecturer') {
         fetchPendingReports();
-      }
     }
-  }, [user, loading, role, router, isMounted]);
+  }, [user, role]);
 
 
   const navItems = [
@@ -53,7 +55,7 @@ export default function LecturerLayout({ children }: { children: ReactNode }) {
     { href: '/lecturer/reports', label: 'Student Reports', icon: FileText, badge: pendingReportsCount > 0 ? String(pendingReportsCount) : undefined },
   ];
 
-  if (!isMounted || loading || !user) {
+  if (loading || !user || role !== 'lecturer') {
     return (
         <main className="flex-1 overflow-y-auto p-4 md:p-6">
            <div className="flex items-center justify-center h-full">
