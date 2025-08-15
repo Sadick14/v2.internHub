@@ -9,6 +9,10 @@ import { auth } from '@/lib/firebase';
 import { createNotification } from './notificationsService';
 import { getInternshipProfileByStudentId, type InternshipProfile } from './internshipProfileService';
 import { getReportsByStudentId, type Report } from './reportsService';
+import { getAllTasksByStudentId, type DailyTask } from './tasksService';
+import { getCheckInsByStudentId, type CheckIn } from './checkInService';
+import { getEvaluationsForStudent, type Evaluation } from './evaluationsService';
+
 
 export interface UserProfile {
     uid: string; // This is the Firebase Auth UID
@@ -32,6 +36,15 @@ export interface UserProfile {
     facultyName?: string;
     departmentName?: string;
     assignedLecturerName?: string;
+}
+
+export interface StudentDetails {
+    student: UserProfile;
+    profile: InternshipProfile | null;
+    reports: Report[];
+    tasks: DailyTask[];
+    checkIns: CheckIn[];
+    evaluations: Evaluation[];
 }
 
 const enrichUser = async (userDoc: any): Promise<UserProfile> => {
@@ -190,24 +203,26 @@ export async function getInternsBySupervisor(supervisorAuthId: string): Promise<
     return enrichedInterns;
 }
 
-export async function getStudentDetails(studentId: string): Promise<{
-    student: UserProfile,
-    profile: InternshipProfile | null,
-    reports: Report[]
-} | null> {
+export async function getStudentDetails(studentId: string): Promise<StudentDetails | null> {
     const student = await getUserById(studentId);
     if (!student) {
         return null;
     }
 
-    const [profile, reports] = await Promise.all([
+    const [profile, reports, tasks, checkIns, evaluations] = await Promise.all([
         getInternshipProfileByStudentId(student.uid),
-        getReportsByStudentId(student.uid)
+        getReportsByStudentId(student.uid),
+        getAllTasksByStudentId(student.uid),
+        getCheckInsByStudentId(student.uid),
+        getEvaluationsForStudent(student.uid)
     ]);
 
     return {
         student,
         profile,
-        reports
+        reports,
+        tasks,
+        checkIns,
+        evaluations,
     };
 }
