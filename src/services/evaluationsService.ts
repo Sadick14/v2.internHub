@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, Timestamp, serverTimestamp, addDoc, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, where, Timestamp, serverTimestamp, addDoc } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
 import { createAuditLog } from './auditLogService';
 
@@ -58,10 +58,10 @@ export async function createEvaluation(evaluationData: NewEvaluation): Promise<v
 
 
 export async function getEvaluationsForStudent(studentId: string): Promise<Evaluation[]> {
-    const q = query(evaluationsCollectionRef, where('studentId', '==', studentId), orderBy('createdAt', 'desc'));
+    const q = query(evaluationsCollectionRef, where('studentId', '==', studentId));
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map(doc => {
+    const evaluations = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
             id: doc.id,
@@ -69,4 +69,7 @@ export async function getEvaluationsForStudent(studentId: string): Promise<Evalu
             createdAt: (data.createdAt as Timestamp).toDate(),
         } as Evaluation;
     });
+
+    // Sort in code to avoid composite index
+    return evaluations.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
