@@ -15,23 +15,33 @@ import { UserNav } from '@/components/layout/user-nav';
 import { useRole } from '@/hooks/use-role';
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarInset, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { NotificationBell } from '@/components/layout/notification-bell';
+import { getReportsByLecturer } from '@/services/reportsService';
 
 export default function LecturerLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, role } = useRole();
   const [isMounted, setIsMounted] = useState(false);
+  const [pendingReportsCount, setPendingReportsCount] = useState(0);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   useEffect(() => {
+    async function fetchPendingReports() {
+        if (user?.uid) {
+            const reports = await getReportsByLecturer(user.uid, ['Pending']);
+            setPendingReportsCount(reports.length);
+        }
+    }
     if (!loading && isMounted) {
       if (!user) {
         router.push('/login');
       } else if (role !== 'lecturer') {
         router.push('/dashboard');
+      } else {
+        fetchPendingReports();
       }
     }
   }, [user, loading, role, router, isMounted]);
@@ -39,8 +49,8 @@ export default function LecturerLayout({ children }: { children: ReactNode }) {
 
   const navItems = [
     { href: '/lecturer/dashboard', label: 'Dashboard', icon: Home },
-    { href: '/lecturer/reports', label: 'Reports', icon: FileText, badge: '5' },
-    { href: '/lecturer/students', label: 'Students', icon: Users },
+    { href: '/lecturer/students', label: 'My Students', icon: Users },
+    { href: '/lecturer/reports', label: 'Student Reports', icon: FileText, badge: pendingReportsCount > 0 ? String(pendingReportsCount) : undefined },
   ];
 
   if (!isMounted || loading || !user) {

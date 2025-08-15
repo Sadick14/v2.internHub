@@ -213,6 +213,21 @@ export async function getInternsBySupervisor(supervisorAuthId: string): Promise<
     return enrichedInterns;
 }
 
+export async function getStudentsByLecturer(lecturerAuthId: string): Promise<UserProfile[]> {
+    if (!lecturerAuthId) return [];
+
+    const usersCol = collection(db, 'users');
+    const q = query(usersCol, where('lecturerId', '==', lecturerAuthId), where('role', '==', 'student'));
+    const studentsSnapshot = await getDocs(q);
+
+    if (studentsSnapshot.empty) {
+        return [];
+    }
+
+    const enrichedStudents = await Promise.all(studentsSnapshot.docs.map(enrichUser));
+    return enrichedStudents;
+}
+
 export async function getStudentDetails(studentId: string): Promise<StudentDetails | null> {
     const student = await getUserById(studentId);
     if (!student) {

@@ -1,0 +1,110 @@
+
+'use client';
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge";
+import { getStudentsByLecturer, type UserProfile } from '@/services/userService';
+import { Skeleton } from '@/components/ui/skeleton';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { useRole } from '@/hooks/use-role';
+
+export default function LecturerStudentsPage() {
+    const { user } = useRole();
+    const [students, setStudents] = useState<UserProfile[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchStudents() {
+            if (!user?.uid) return;
+            setIsLoading(true);
+            const studentData = await getStudentsByLecturer(user.uid);
+            setStudents(studentData);
+            setIsLoading(false);
+        }
+        fetchStudents();
+    }, [user]);
+
+     const getStatusVariant = (status?: string) => {
+        switch (status?.toLowerCase()) {
+            case 'active':
+                return 'default';
+            case 'inactive':
+                return 'secondary';
+            case 'pending':
+                return 'outline';
+            default:
+                return 'destructive';
+        }
+    }
+
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="font-headline">My Students</CardTitle>
+                <CardDescription>A list of all students assigned to you for supervision.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Department</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {isLoading ? (
+                            Array.from({ length: 5 }).map((_, i) => (
+                                <TableRow key={i}>
+                                    <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                                    <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                    <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                                    <TableCell className="text-right"><Skeleton className="h-9 w-20" /></TableCell>
+                                </TableRow>
+                            ))
+                        ) : students.length > 0 ? (
+                            students.map((student) => (
+                                <TableRow key={student.uid}>
+                                    <TableCell className="font-medium">
+                                        <Link href={`/lecturer/students/${student.uid}`} className="hover:underline text-primary">
+                                            {student.fullName}
+                                        </Link>
+                                         <div className="text-sm text-muted-foreground">{student.email}</div>
+                                    </TableCell>
+                                    <TableCell>{student.departmentName || 'N/A'}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={getStatusVariant(student.status)}>{student.status || 'inactive'}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Button asChild variant="outline" size="sm">
+                                            <Link href={`/lecturer/students/${student.uid}`}>
+                                                View Details
+                                            </Link>
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                             <TableRow>
+                                <TableCell colSpan={4} className="text-center h-24 text-muted-foreground">
+                                    No students are currently assigned to you.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    )
+}
