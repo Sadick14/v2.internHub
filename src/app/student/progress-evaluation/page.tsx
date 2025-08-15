@@ -6,20 +6,19 @@ import { useRole } from '@/hooks/use-role';
 import { getInternshipProfileByStudentId, type InternshipProfile } from '@/services/internshipProfileService';
 import { getCheckInsByStudentId, type CheckIn } from '@/services/checkInService';
 import { getReportsByStudentId, type Report } from '@/services/reportsService';
-import { getTasksByDate } from '@/services/tasksService';
 import { getEvaluationsForStudent, type Evaluation, type EvaluationMetrics } from '@/services/evaluationsService';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { differenceInBusinessDays, isSameDay } from 'date-fns';
+import { differenceInBusinessDays } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
-import { Award, Briefcase, UserCheck, MessageSquare, Star, CheckCircle, ClipboardList, CalendarCheck } from 'lucide-react';
+import { Award, Briefcase, UserCheck, MessageSquare, CheckCircle, ClipboardList, CalendarCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const MetricDisplay = ({ label, value }: { label: string; value: number }) => (
     <div className="flex justify-between items-center">
         <p className="text-sm text-muted-foreground">{label}</p>
         <div className="flex items-center gap-2">
-            <Progress value={value} className="w-32 h-2" />
+            <Progress value={value * 10} className="w-32 h-2" />
             <span className="font-semibold text-sm">{value.toFixed(1)}/10</span>
         </div>
     </div>
@@ -27,6 +26,8 @@ const MetricDisplay = ({ label, value }: { label: string; value: number }) => (
 
 const EvaluationCard = ({ title, icon: Icon, evaluation }: { title: string, icon: React.ElementType, evaluation: Evaluation }) => {
     const { metrics, comments, evaluatorName } = evaluation;
+    const overallScore = (metrics.overall * 2).toFixed(1);
+    
     return (
         <Card>
             <CardHeader>
@@ -53,7 +54,7 @@ const EvaluationCard = ({ title, icon: Icon, evaluation }: { title: string, icon
                 <Separator />
                 <div className="flex justify-end items-center gap-3">
                      <p className="font-bold text-lg">Overall Score:</p>
-                    <Badge variant="default" className="text-lg px-4 py-1">{ (metrics.overall * 2).toFixed(1) } / 10</Badge>
+                    <Badge variant="default" className="text-lg px-4 py-1">{overallScore} / 10</Badge>
                 </div>
             </CardContent>
         </Card>
@@ -97,19 +98,32 @@ export default function ProgressEvaluationPage() {
     }, [user]);
     
     if (isLoading) {
-        return <Skeleton className="h-96 w-full" />
+        return (
+             <div className="space-y-6">
+                <Skeleton className="h-24 w-full" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Skeleton className="h-32 w-full" />
+                    <Skeleton className="h-32 w-full" />
+                    <Skeleton className="h-32 w-full" />
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Skeleton className="h-96 w-full" />
+                    <Skeleton className="h-96 w-full" />
+                </div>
+            </div>
+        );
     }
     
     if (!profile) {
         return (
             <Card>
                 <CardHeader><CardTitle>Profile Not Found</CardTitle></CardHeader>
-                <CardContent><p>Your internship profile could not be loaded.</p></CardContent>
+                <CardContent><p>Your internship profile could not be loaded. Please complete it on the 'Internship Profile' page.</p></CardContent>
             </Card>
         )
     }
 
-    const totalDays = differenceInBusinessDays(profile.endDate, profile.startDate);
+    const totalDays = differenceInBusinessDays(new Date(profile.endDate), new Date(profile.startDate));
     const attendanceScore = totalDays > 0 ? (checkIns.length / totalDays) * 100 : 0;
     const reportsScore = totalDays > 0 ? (reports.length / totalDays) * 100 : 0;
     

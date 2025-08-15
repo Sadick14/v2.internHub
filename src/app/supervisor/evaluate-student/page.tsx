@@ -42,7 +42,6 @@ export default function EvaluateStudentPage() {
             if (!user?.uid) return;
             setIsLoading(true);
             try {
-                // This service function needs to be created
                 const internsData = await getInternsBySupervisor(user.uid);
                 setInterns(internsData);
             } catch (error) {
@@ -69,14 +68,17 @@ export default function EvaluateStudentPage() {
         },
     });
     
-    const calculateOverall = (metrics: EvaluationMetrics): number => {
+    const calculateOverall = (metrics: Omit<EvaluationMetrics, 'overall'>): number => {
         const values = Object.values(metrics);
         const sum = values.reduce((acc, val) => acc + val, 0);
         return sum / values.length;
     };
 
     async function onSubmit(data: EvaluationFormValues) {
-        if (!user) return;
+        if (!user?.uid || !user.role || !user.name) {
+            toast({ title: 'Error', description: 'Could not identify evaluator. Please log in again.', variant: 'destructive' });
+            return;
+        }
         setIsSubmitting(true);
         try {
             const overallScore = calculateOverall(data.metrics);
@@ -100,7 +102,7 @@ export default function EvaluateStudentPage() {
         }
     }
 
-    const MetricSlider = ({ name, label }: { name: `metrics.${keyof EvaluationMetrics}`, label: string }) => (
+    const MetricSlider = ({ name, label }: { name: `metrics.${keyof Omit<EvaluationMetrics, 'overall'>}`, label: string }) => (
         <FormField
             control={form.control}
             name={name}
@@ -136,16 +138,16 @@ export default function EvaluateStudentPage() {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Select Intern</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoading}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder={isLoading ? 'Loading interns...' : 'Select an intern to evaluate'} />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {interns.map((intern) => (
+                                            {interns.length > 0 ? interns.map((intern) => (
                                                 <SelectItem key={intern.uid} value={intern.uid}>{intern.fullName}</SelectItem>
-                                            ))}
+                                            )) : <div className="p-4 text-center text-sm text-muted-foreground">No interns found.</div>}
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />
@@ -179,7 +181,7 @@ export default function EvaluateStudentPage() {
                             )}
                         />
 
-                        <Button type="submit" disabled={isSubmitting}>
+                        <Button type="submit" disabled={isSubmitting || isLoading}>
                             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Submit Evaluation
                         </Button>

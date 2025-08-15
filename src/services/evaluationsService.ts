@@ -2,11 +2,9 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, Timestamp, serverTimestamp, addDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, Timestamp, serverTimestamp, addDoc } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
 import { createAuditLog } from './auditLogService';
-import { auth } from '@/lib/firebase';
-import type { UserProfile } from './userService';
 
 export interface EvaluationMetrics {
     technicalSkills: number;
@@ -45,21 +43,22 @@ export async function createEvaluation(evaluationData: NewEvaluation): Promise<v
         createdAt: serverTimestamp(),
     });
 
-    const currentUser = auth.currentUser;
-     if (currentUser) {
+    try {
         await createAuditLog({
-            userId: currentUser.uid,
-            userName: currentUser.displayName || 'Evaluator',
-            userEmail: currentUser.email || 'N/A',
+            userId: evaluationData.evaluatorId,
+            userName: evaluationData.evaluatorName,
+            userEmail: 'N/A', // Email not readily available, can be improved if needed
             action: 'Submit Evaluation',
             details: `Submitted a ${evaluationData.evaluatorRole} evaluation for student ID ${evaluationData.studentId}.`,
         });
+    } catch(e) {
+        console.error("Failed to create audit log for evaluation submission:", e);
     }
 }
 
 
 export async function getEvaluationsForStudent(studentId: string): Promise<Evaluation[]> {
-    const q = query(evaluationsCollectionRef, where('studentId', '==', studentId));
+    const q = query(evaluationsCollectionRef, where('studentId', '==', studentId), orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
 
     return snapshot.docs.map(doc => {
