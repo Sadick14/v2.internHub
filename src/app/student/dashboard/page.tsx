@@ -215,17 +215,6 @@ export default function StudentDashboardPage() {
           <p className="text-gray-600">Here's what's happening with your internship today.</p>
       </div>
 
-       <Alert variant="destructive" className="bg-destructive/10 border-destructive/50 text-destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle className="font-bold text-destructive">Confidential Reporting</AlertTitle>
-          <AlertDescription>
-            <div className="flex justify-between items-center">
-                <p>Your safety is important. If you experience any form of abuse or harassment, please report it immediately.</p>
-                <ReportAbuseDialog />
-            </div>
-          </AlertDescription>
-        </Alert>
-
        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             <StatCard icon={CalendarDays} label="Days Completed" value={`${daysCompleted} / ${internshipDurationDays}`} color="blue-500" />
             <StatCard icon={ListChecks} label="Reports Submitted" value={`${submittedReportsCount}`} color="green-500" />
@@ -303,6 +292,17 @@ export default function StudentDashboardPage() {
           </Table>
         </CardContent>
       </Card>
+      
+       <Alert variant="destructive" className="bg-destructive/10 border-destructive/50 text-destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle className="font-bold text-destructive">Confidential Reporting</AlertTitle>
+          <AlertDescription>
+            <div className="flex justify-between items-center">
+                <p>Your safety is important. If you experience any form of abuse or harassment, please report it immediately.</p>
+                <ReportAbuseDialog />
+            </div>
+          </AlertDescription>
+        </Alert>
     </div>
   )
 }
