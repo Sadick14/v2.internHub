@@ -21,6 +21,7 @@ interface SupervisorInfo {
 
 const SupervisorInfoCard = ({ title, description, user, companyName }: { title: string, description: string, user: SupervisorInfo | null, companyName?: string }) => {
     if (!user) {
+        const isLecturer = title.toLowerCase().includes('lecturer');
         return (
             <Card>
                 <CardHeader>
@@ -28,7 +29,12 @@ const SupervisorInfoCard = ({ title, description, user, companyName }: { title: 
                     <CardDescription>{description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground">Information not available. Please ensure your profile is fully set up and a supervisor has been assigned.</p>
+                    <p className="text-muted-foreground">
+                         {isLecturer
+                            ? "Your supervising lecturer has not been assigned yet. The university will assign one to you shortly."
+                            : "Information not available. Please ensure your internship profile is fully set up."
+                        }
+                    </p>
                 </CardContent>
             </Card>
         );
@@ -87,17 +93,15 @@ export default function SupervisorsPage() {
             const profileData = await getInternshipProfileByStudentId(user.uid);
             setProfile(profileData);
 
+            // Use the details directly from the profile for the industrial supervisor
             if (profileData?.supervisorName && profileData.supervisorEmail) {
-                 // Use the details directly from the profile for the industrial supervisor
-                const supervisorInfo: SupervisorInfo = {
+                setIndustrialSupervisor({
                     name: profileData.supervisorName,
                     email: profileData.supervisorEmail,
-                    // Phone number for industrial supervisor isn't stored, can be added later
-                };
-                setIndustrialSupervisor(supervisorInfo);
+                });
             }
 
-            // Fetch assigned lecturer details
+            // Fetch assigned lecturer details from the user object
             if (user.lecturerId) {
                 const lecturerData = await getUserById(user.lecturerId);
                 if (lecturerData) {
