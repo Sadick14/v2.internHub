@@ -38,25 +38,7 @@ const HowItWorksStep = ({ number, title, description }: { number: string, title:
     </div>
 );
 
-const Testimonial = ({ name, role, text, img }: { name: string, role: string, text: string, img: string }) => (
-    <div className="testimonial-card bg-white rounded-2xl shadow-lg p-8">
-        <div className="flex items-center">
-            <div className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden">
-                <Image src={img} alt={name} width={64} height={64} className="w-full h-full object-cover" />
-            </div>
-            <div className="ml-4">
-                <h4 className="font-bold text-gray-900">{name}</h4>
-                <p className="text-gray-600">{role}</p>
-            </div>
-        </div>
-        <p className="mt-6 text-gray-600 italic">
-            {text}
-        </p>
-        <div className="mt-6 flex text-yellow-400">
-            <StarIcon /> <StarIcon /> <StarIcon /> <StarIcon /> <StarIcon />
-        </div>
-    </div>
-);
+
 
 const StarIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 fill-current" viewBox="0 0 20 20">
@@ -108,7 +90,6 @@ export default function WelcomePage() {
                 <Link href="#home" className="text-primary border-b-2 border-primary px-1 pt-1 text-sm font-medium">Home</Link>
                 <Link href="#features" className="text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300 border-b-2 px-1 pt-1 text-sm font-medium">Features</Link>
                 <Link href="#how-it-works" className="text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300 border-b-2 px-1 pt-1 text-sm font-medium">How It Works</Link>
-                <Link href="#testimonials" className="text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300 border-b-2 px-1 pt-1 text-sm font-medium">Testimonials</Link>
               </div>
             </div>
             <div className="flex items-center">
@@ -163,17 +144,7 @@ export default function WelcomePage() {
                   Watch Demo
                 </Link>
               </div>
-              <div className="mt-10 flex items-center">
-                <div className="flex -space-x-2">
-                  <Image className="w-10 h-10 rounded-full border-2 border-white" src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" width={40} height={40}/>
-                  <Image className="w-10 h-10 rounded-full border-2 border-white" src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" width={40} height={40}/>
-                  <Image className="w-10 h-10 rounded-full border-2 border-white" src="https://randomuser.me/api/portraits/women/68.jpg" alt="User" width={40} height={40}/>
-                  <Image className="w-10 h-10 rounded-full border-2 border-white" src="https://randomuser.me/api/portraits/men/12.jpg" alt="User" width={40} height={40}/>
-                </div>
-                <p className="ml-4 text-gray-600">
-                  <span className="font-semibold">200+</span> universities trust InternHub
-                </p>
-              </div>
+              
             </div>
             <div className="mt-12 md:mt-0 md:w-1/2 flex justify-center">
               <div className="relative">
@@ -227,7 +198,6 @@ export default function WelcomePage() {
       <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <Stat value="500+" label="Universities" />
             <Stat value="50K+" label="Students" />
             <Stat value="5K+" label="Companies" />
             <Stat value="98%" label="Success Rate" />
@@ -245,10 +215,9 @@ export default function WelcomePage() {
             </p>
           </div>
           <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            <Feature icon={<Search className="text-primary text-xl" />} title="Smart Matching" description="AI-powered matching connects students with companies based on skills, interests, and career goals." />
+            <Feature icon={<Search className="text-primary text-xl" />} title="Smart Matching" description="connects students with companies based on skills, interests, and career goals." />
             <Feature icon={<ChartBar className="text-primary text-xl" />} title="Progress Tracking" description="Real-time tracking of student progress with milestone completion and performance metrics." />
             <Feature icon={<Building className="text-primary text-xl" />} title="Company Partnerships" description="Manage relationships with industry partners and track internship opportunities." />
-            <Feature icon={<MessageSquare className="text-primary text-xl" />} title="Communication Hub" description="Integrated messaging system for seamless communication between students, mentors, and coordinators." />
             <Feature icon={<Calendar className="text-primary text-xl" />} title="Automated Reporting" description="Generate comprehensive reports on student performance and program success." />
             <Feature icon={<Shield className="text-primary text-xl" />} title="Secure & Compliant" description="Ensure data privacy and compliance with university and industry regulations." />
           </div>
@@ -271,31 +240,15 @@ export default function WelcomePage() {
               <div className="mt-16">
                   <div className="flex flex-col md:flex-row justify-between items-center relative">
                       <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gray-200 -translate-y-1/2"></div>
-                      <HowItWorksStep number="1" title="Setup & Integration" description="Universities integrate with Intern Hub and configure their internship programs." />
-                      <HowItWorksStep number="2" title="Student & Company Onboarding" description="Students apply for internships and companies post opportunities through our platform." />
+                      <HowItWorksStep number="1" title="Setup & Integration" description="Intern Hub configures your internship programs." />
+                      <HowItWorksStep number="2" title="Student Onboarding" description="Students verify their account and apply for internships through our platform." />
                       <HowItWorksStep number="3" title="Management & Tracking" description="Monitor progress, evaluate performance, and manage all aspects of internships in one place." />
                   </div>
               </div>
           </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-                <h2 className="text-base font-semibold text-primary uppercase tracking-wide">Testimonials</h2>
-                <h3 className="mt-2 text-3xl font-bold text-gray-900 sm:text-4xl">
-                    What Our Users Say
-                </h3>
-            </div>
-            <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <Testimonial name="Dr. Emily Carter" role="Dean of Engineering" text="InternHub has transformed our internship program. The efficiency and insights we've gained are remarkable." img="https://randomuser.me/api/portraits/women/65.jpg" />
-                <Testimonial name="Johnathan Lee" role="Final Year Student" text="Finding an internship that matched my skills was so easy. The platform guided me through the entire process." img="https://randomuser.me/api/portraits/men/31.jpg" />
-                <Testimonial name="Maria Rodriguez" role="HR Manager, TechCorp" text="We've found exceptional talent through InternHub. It's our go-to platform for recruiting top-tier interns." img="https://randomuser.me/api/portraits/women/31.jpg" />
-            </div>
-        </div>
-      </section>
-
+     
       {/* CTA Section */}
       <section className="py-20 bg-primary">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -304,7 +257,7 @@ export default function WelcomePage() {
                       Ready to Transform Your Internship Program?
                   </h2>
                   <p className="mt-4 max-w-2xl mx-auto text-xl text-blue-100">
-                      Join hundreds of universities and companies using Intern Hub to streamline internship management.
+                      Join universities using Intern Hub to streamline internship management.
                   </p>
                   <div className="mt-10">
                       <Link href="/dashboard" className="px-8 py-4 bg-white text-primary font-bold rounded-lg shadow-lg hover:bg-gray-100 transition duration-300 inline-block">
@@ -315,60 +268,7 @@ export default function WelcomePage() {
           </div>
       </section>
 
-      {/* Footer */}
-      <footer id="contact" className="bg-dark text-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-                  <div>
-                      <div className="flex items-center">
-                           <div className="bg-primary w-10 h-10 rounded-lg flex items-center justify-center">
-                               <GraduationCap className="text-white text-xl" />
-                           </div>
-                           <span className="ml-3 text-2xl font-bold text-white">Intern<span className="text-primary">Hub</span></span>
-                      </div>
-                      <p className="mt-4 text-gray-400">
-                        The all-in-one platform for universities to manage, track, and optimize student internship experiences.
-                      </p>
-                  </div>
-
-                  <div>
-                      <h3 className="text-lg font-bold">Product</h3>
-                      <ul className="mt-4 space-y-3">
-                          <li><Link href="#" className="text-gray-400 hover:text-white">Features</Link></li>
-                          <li><Link href="#" className="text-gray-400 hover:text-white">Pricing</Link></li>
-                          <li><Link href="#" className="text-gray-400 hover:text-white">Integrations</Link></li>
-                      </ul>
-                  </div>
-
-                  <div>
-                      <h3 className="text-lg font-bold">Resources</h3>
-                      <ul className="mt-4 space-y-3">
-                          <li><Link href="#" className="text-gray-400 hover:text-white">Blog</Link></li>
-                          <li><Link href="#" className="text-gray-400 hover:text-white">Support</Link></li>
-                      </ul>
-                  </div>
-
-                  <div>
-                      <h3 className="text-lg font-bold">Contact Us</h3>
-                      <ul className="mt-4 space-y-3">
-                          <li className="flex items-start">
-                              <span className="text-gray-400">123 University Avenue, Tech City, TC 10001</span>
-                          </li>
-                          <li className="flex items-center">
-                              <span className="text-gray-400">(123) 456-7890</span>
-                          </li>
-                          <li className="flex items-center">
-                              <span className="text-gray-400">info@internhub.edu</span>
-                          </li>
-                      </ul>
-                  </div>
-              </div>
-
-              <div className="mt-16 pt-8 border-t border-gray-800 text-center text-gray-400">
-                  <p>&copy; 2024 Intern Hub. All rights reserved.</p>
-              </div>
-          </div>
-      </footer>
+     
     </div>
   );
 }
