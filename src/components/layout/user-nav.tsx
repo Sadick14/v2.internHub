@@ -59,13 +59,11 @@ export function UserNav() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                Profile
-                <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+              <DropdownMenuItem asChild>
+                <Link href="/account/profile">Profile</Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 Settings
-                <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
@@ -109,13 +107,11 @@ export function UserNav() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem>
-              Profile
-              <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+            <DropdownMenuItem asChild>
+              <Link href="/account/profile">Profile</Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
               Settings
-              <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
