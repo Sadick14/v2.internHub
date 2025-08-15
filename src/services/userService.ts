@@ -149,7 +149,6 @@ export async function assignLecturerToStudent(studentFirestoreId: string, lectur
 
 
 export async function getInternsBySupervisor(supervisorAuthId: string): Promise<UserProfile[]> {
-    // The supervisorId passed here is the AUTH UID. We need to find the Firestore DOC ID.
     const supervisorProfile = await getUserById(supervisorAuthId);
     if (!supervisorProfile || !supervisorProfile.firestoreId) {
         console.error("Could not find supervisor profile for auth UID:", supervisorAuthId);
@@ -158,7 +157,6 @@ export async function getInternsBySupervisor(supervisorAuthId: string): Promise<
     const supervisorFirestoreId = supervisorProfile.firestoreId;
     
     const profilesCol = collection(db, 'internship_profiles');
-    // Now query using the correct Firestore document ID.
     const profileQuery = query(profilesCol, where('supervisorId', '==', supervisorFirestoreId));
     const profileSnapshot = await getDocs(profileQuery);
 
@@ -174,12 +172,20 @@ export async function getInternsBySupervisor(supervisorAuthId: string): Promise<
     const studentsQuery = query(usersCol, where('uid', 'in', studentIds));
     const studentsSnapshot = await getDocs(studentsQuery);
 
-    return studentsSnapshot.docs.map(doc => {
-         const data = doc.data();
-         return {
-            ...(data as Omit<UserProfile, 'uid' | 'firestoreId'>),
-            uid: data.uid,
-            firestoreId: doc.id
-         }
-    });
+     const enrichedInterns = await Promise.all(studentsSnapshot.docs.map(async (doc) => {
+        const internData = doc.data();
+        let departmentName = 'N/A';
+        if (internData.departmentId) {
+            const department = await getDepartmentById(internData.departmentId);
+            departmentName = department?.name || 'N/A';
+        }
+        return {
+            ...(internData as Omit<UserProfile, 'uid' | 'firestoreId'>),
+            uid: internData.uid,
+            firestoreId: doc.id,
+            departmentName: departmentName
+        } as UserProfile;
+    }));
+
+    return enrichedInterns;
 }
