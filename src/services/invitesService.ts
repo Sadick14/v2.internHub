@@ -91,7 +91,7 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
             userId: pendingUserRef.id,
             type: 'NEW_INVITE',
             title: "You're Invited!",
-            message: `You have been invited to join InternshipTrack as a ${role}. Please check your email for instructions.`,
+            message: `You have been invited to join Intern Hub as a ${role}. Please check your email for instructions.`,
             href: "/verify"
         });
 
@@ -141,7 +141,7 @@ export async function sendVerificationEmail(email: string): Promise<{ success: b
     try {
         await sendMail({
             to: email,
-            subject: 'Verify Your InternshipTrack Account',
+            subject: 'Verify Your Intern Hub Account',
             text: `Your verification code is ${verificationCode}`,
             html: `<p>Your verification code is <strong>${verificationCode}</strong></p>`,
         });

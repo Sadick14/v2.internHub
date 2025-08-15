@@ -63,7 +63,7 @@ export default function LoginPage() {
                   <path d="m9 12 2 2 4-4"></path>
                 </svg>
               </Link>
-              <h1 className="text-3xl font-bold font-headline mt-2">InternshipTrack</h1>
+              <h1 className="text-3xl font-bold font-headline mt-2">Intern Hub</h1>
               <p className="text-muted-foreground">Student Monitoring & Engagement Platform</p>
             </div>
             <CardTitle className="text-2xl font-headline">Login</CardTitle>

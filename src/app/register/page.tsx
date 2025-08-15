@@ -143,7 +143,7 @@ function RegisterForm() {
           <CardHeader>
             <CardTitle className="text-2xl font-headline">Welcome, {inviteDetails.firstName}!</CardTitle>
             <CardDescription>
-              Create a password to activate your InternshipTrack account.
+              Create a password to activate your Intern Hub account.
             </CardDescription>
           </CardHeader>
           <CardContent>

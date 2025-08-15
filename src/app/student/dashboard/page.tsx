@@ -84,7 +84,7 @@ export default function StudentDashboardPage() {
     return (
       <Card className="text-center">
         <CardHeader>
-          <CardTitle className="font-headline">Welcome to InternshipTrack!</CardTitle>
+          <CardTitle className="font-headline">Welcome to Intern Hub!</CardTitle>
           <CardDescription>Let's get your internship profile set up so you can start logging your progress.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">

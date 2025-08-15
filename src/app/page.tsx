@@ -37,7 +37,7 @@ export default function WelcomePage() {
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
               <path d="m9 12 2 2 4-4"></path>
             </svg>
-            <span className="font-headline text-lg">InternshipTrack</span>
+            <span className="font-headline text-lg">Intern Hub</span>
           </Link>
           <div className="flex items-center gap-4">
             <Button asChild variant="ghost">
@@ -72,7 +72,7 @@ export default function WelcomePage() {
 
         <section id="features" className="container py-12 md:py-24">
           <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">Why Choose InternshipTrack?</h2>
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">Why Choose Intern Hub?</h2>
             <p className="mt-3 max-w-2xl mx-auto text-muted-foreground md:text-lg">
               Our platform is built to solve the real-world challenges of managing internship programs.
             </p>
@@ -125,7 +125,7 @@ export default function WelcomePage() {
       <footer className="bg-card border-t">
         <div className="container flex flex-col items-center justify-between gap-4 py-10 md:h-24 md:flex-row md:py-0">
           <p className="text-sm text-muted-foreground">
-            © 2024 InternshipTrack. All rights reserved.
+            © 2024 Intern Hub. All rights reserved.
           </p>
           <nav className="flex gap-4 sm:gap-6">
             <Link href="#" className="text-sm hover:underline underline-offset-4">
