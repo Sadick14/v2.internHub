@@ -19,6 +19,7 @@ import { signOut } from "firebase/auth"
 import { useRouter } from "next/navigation"
 import { Skeleton } from "../ui/skeleton"
 import { useSidebar } from "../ui/sidebar"
+import { ChevronsUpDown } from "lucide-react"
 
 export function UserNav() {
   const { user, loading } = useRole()
@@ -79,18 +80,20 @@ export function UserNav() {
   return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-           <Button variant="ghost" className="w-full h-auto justify-start flex items-center gap-2 p-1 rounded-lg hover:bg-primary/80">
-              <Avatar className="h-9 w-9">
-                  <AvatarImage src={`https://placehold.co/40x40.png`} alt={user.name} data-ai-hint="person portrait" />
-                  <AvatarFallback>{user.initials}</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col space-y-1 items-start flex-1">
-                  <p className="text-sm font-medium leading-none">{user.name}</p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {user.email}
-                  </p>
+           <Button variant="ghost" className="w-full h-auto justify-between flex items-center gap-2 p-2 rounded-lg hover:bg-primary/80">
+              <div className="flex items-center gap-2">
+                <Avatar className="h-9 w-9">
+                    <AvatarImage src={`https://placehold.co/40x40.png`} alt={user.name} data-ai-hint="person portrait" />
+                    <AvatarFallback>{user.initials}</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col space-y-1 items-start">
+                    <p className="text-sm font-medium leading-none">{user.name}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user.email}
+                    </p>
+                </div>
               </div>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+              <ChevronsUpDown className="h-4 w-4 text-muted-foreground"/>
            </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="end" forceMount>

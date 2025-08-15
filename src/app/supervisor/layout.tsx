@@ -77,10 +77,13 @@ export default function SupervisorLayout({ children }: { children: ReactNode }) 
     <SidebarProvider>
       <Sidebar collapsible="icon">
         <SidebarHeader>
-           <Link href='/supervisor/dashboard' className="flex items-center gap-2 font-bold text-2xl text-primary bg-white p-2 rounded-lg justify-center group-data-[collapsible=icon]:p-1 group-data-[collapsible=icon]:w-10 group-data-[collapsible=icon]:h-10">
-                <GraduationCap className="h-8 w-8 text-primary group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6" />
-                <span className="font-headline group-data-[collapsible=icon]:hidden">InternshipTrack</span>
-            </Link>
+           <Link href='/supervisor/dashboard' className="flex items-center gap-2 font-semibold text-primary-foreground">
+             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <path d="m9 12 2 2 4-4"></path>
+            </svg>
+            <span className="font-headline group-data-[collapsible=icon]:hidden">InternshipTrack</span>
+          </Link>
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
