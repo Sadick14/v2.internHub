@@ -15,6 +15,8 @@ export interface UserProfile {
     email: string;
     role: Role;
     status: 'active' | 'inactive' | 'pending';
+    phoneNumber?: string;
+    bio?: string;
     indexNumber?: string;
     programOfStudy?: string;
     facultyId?: string;

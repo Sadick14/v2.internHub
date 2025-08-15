@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -15,10 +15,13 @@ import { useState } from 'react';
 import { sendPasswordResetEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 
 const profileSchema = z.object({
     fullName: z.string().min(1, "Full name is required."),
     email: z.string().email(),
+    phoneNumber: z.string().optional(),
+    bio: z.string().max(200, "Bio cannot be longer than 200 characters.").optional(),
 });
 
 const passwordSchema = z.object({
@@ -40,7 +43,9 @@ export default function ProfilePage() {
         resolver: zodResolver(profileSchema),
         values: {
             fullName: user?.name || '',
-            email: user?.email || ''
+            email: user?.email || '',
+            phoneNumber: user?.phoneNumber || '',
+            bio: user?.bio || '',
         }
     });
 
@@ -57,7 +62,11 @@ export default function ProfilePage() {
         if (!user) return;
         setIsSubmitting(true);
         try {
-            await updateUser(user.firestoreId, { fullName: data.fullName });
+            await updateUser(user.firestoreId, { 
+                fullName: data.fullName,
+                phoneNumber: data.phoneNumber,
+                bio: data.bio
+            });
             toast({ title: "Success", description: "Your profile has been updated." });
         } catch (error: any) {
             toast({ title: "Error", description: `Failed to update profile: ${error.message}`, variant: 'destructive' });
@@ -112,25 +121,50 @@ export default function ProfilePage() {
                 <CardContent>
                     <Form {...profileForm}>
                         <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField
+                                    control={profileForm.control}
+                                    name="fullName"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Full Name</FormLabel>
+                                            <FormControl><Input {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                 <FormField
+                                    control={profileForm.control}
+                                    name="email"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Email</FormLabel>
+                                            <FormControl><Input {...field} disabled /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={profileForm.control}
+                                    name="phoneNumber"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Phone Number</FormLabel>
+                                            <FormControl><Input placeholder="e.g. +1234567890" {...field} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
                             <FormField
                                 control={profileForm.control}
-                                name="fullName"
+                                name="bio"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Full Name</FormLabel>
-                                        <FormControl><Input {...field} /></FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={profileForm.control}
-                                name="email"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Email</FormLabel>
-                                        <FormControl><Input {...field} disabled /></FormControl>
-                                        <FormDescription>Your email address cannot be changed.</FormDescription>
+                                        <FormLabel>Short Bio</FormLabel>
+                                        <FormControl>
+                                            <Textarea placeholder="Tell us a little about yourself" className="resize-none" {...field} />
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}

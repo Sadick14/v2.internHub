@@ -16,6 +16,8 @@ export type AppUser = {
   email: string
   initials: string
   role: Role,
+  phoneNumber?: string;
+  bio?: string;
   internshipId?: string
   lecturerId?: string
 }
@@ -52,6 +54,8 @@ onAuthStateChanged(auth, async (user) => {
             email: userData.email || "",
             initials: name.split(' ').map((n: string) => n[0]).join(''),
             role: userRole,
+            phoneNumber: userData.phoneNumber,
+            bio: userData.bio,
             internshipId: userData.internshipId,
             lecturerId: userData.lecturerId,
         });
