@@ -23,6 +23,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { sendEvaluationReminders, sendTermEndingReminders } from '@/services/remindersService';
+import { useRole } from '@/hooks/use-role';
 
 const termSchema = z.object({
   name: z.string().min(1, "A name is required."),
@@ -49,6 +50,7 @@ type SettingsFormValues = z.infer<typeof settingsSchema>;
 
 
 export default function InternshipTermsPage() {
+    const { user } = useRole();
     const { toast } = useToast();
     const [terms, setTerms] = useState<InternshipTerm[]>([]);
     const [isLoadingTerms, setIsLoadingTerms] = useState(true);
@@ -184,9 +186,17 @@ export default function InternshipTermsPage() {
     };
 
     const handleSendEvalReminders = async () => {
+        if (!user) {
+            toast({ title: 'Error', description: 'You must be logged in to perform this action.', variant: 'destructive'});
+            return;
+        }
         setIsSendingEvalReminders(true);
         try {
-            const result = await sendEvaluationReminders();
+            const result = await sendEvaluationReminders({
+                uid: user.uid,
+                displayName: user.name,
+                email: user.email
+            });
             if (result.success) {
                 toast({
                     title: 'Reminders Sent',
@@ -211,9 +221,17 @@ export default function InternshipTermsPage() {
     }
 
      const handleSendTermReminders = async () => {
+        if (!user) {
+            toast({ title: 'Error', description: 'You must be logged in to perform this action.', variant: 'destructive'});
+            return;
+        }
         setIsSendingTermReminders(true);
         try {
-            const result = await sendTermEndingReminders();
+            const result = await sendTermEndingReminders({
+                uid: user.uid,
+                displayName: user.name,
+                email: user.email
+            });
             if (result.success) {
                 toast({
                     title: 'Reminders Sent',
@@ -506,3 +524,5 @@ export default function InternshipTermsPage() {
         </div>
     );
 }
+
+    

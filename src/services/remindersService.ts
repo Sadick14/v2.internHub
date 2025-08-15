@@ -5,7 +5,6 @@ import { db } from '@/lib/firebase';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
 import { createNotification } from './notificationsService';
 import { createAuditLog } from './auditLogService';
-import { auth } from '@/lib/firebase';
 import type { InternshipTerm } from './internshipTermsService';
 import type { InternshipProfile } from './internshipProfileService';
 import type { Evaluation } from './evaluationsService';
@@ -13,9 +12,14 @@ import { getAllUsers, updateUserStatus, type UserProfile } from './userService';
 
 // This is a server-only file for handling system-wide reminders and triggers.
 
-export async function sendEvaluationReminders(): Promise<{ success: boolean; message: string; remindersSent: number }> {
-    const adminUser = auth.currentUser;
-    if (!adminUser) {
+interface AdminActor {
+    uid: string;
+    displayName: string;
+    email: string;
+}
+
+export async function sendEvaluationReminders(actor: AdminActor): Promise<{ success: boolean; message: string; remindersSent: number }> {
+    if (!actor.uid) {
         return { success: false, message: 'Authentication required. Only admins can perform this action.', remindersSent: 0 };
     }
 
@@ -75,9 +79,9 @@ export async function sendEvaluationReminders(): Promise<{ success: boolean; mes
 
         // 6. Create an audit log
         await createAuditLog({
-            userId: adminUser.uid,
-            userName: adminUser.displayName || 'Admin',
-            userEmail: adminUser.email || 'N/A',
+            userId: actor.uid,
+            userName: actor.displayName,
+            userEmail: actor.email,
             action: 'Send Evaluation Reminders',
             details: `Sent ${remindersSent} evaluation reminders to supervisors for the active term "${activeTerm.name}".`
         });
@@ -91,9 +95,8 @@ export async function sendEvaluationReminders(): Promise<{ success: boolean; mes
 }
 
 
-export async function sendTermEndingReminders(): Promise<{ success: boolean, message: string, notificationsSent: number}> {
-    const adminUser = auth.currentUser;
-     if (!adminUser) {
+export async function sendTermEndingReminders(actor: AdminActor): Promise<{ success: boolean, message: string, notificationsSent: number}> {
+     if (!actor.uid) {
         return { success: false, message: 'Authentication required. Only admins can perform this action.', notificationsSent: 0 };
     }
 
@@ -122,9 +125,9 @@ export async function sendTermEndingReminders(): Promise<{ success: boolean, mes
         }
         
          await createAuditLog({
-            userId: adminUser.uid,
-            userName: adminUser.displayName || 'Admin',
-            userEmail: adminUser.email || 'N/A',
+            userId: actor.uid,
+            userName: actor.displayName,
+            userEmail: actor.email,
             action: 'Send End-of-Term Reminders',
             details: `Sent ${notificationsSent} end-of-term reminders for the active term "${activeTerm.name}".`
         });
@@ -136,3 +139,5 @@ export async function sendTermEndingReminders(): Promise<{ success: boolean, mes
         return { success: false, message: `An unexpected error occurred: ${error.message}`, notificationsSent: 0 };
     }
 }
+
+    
