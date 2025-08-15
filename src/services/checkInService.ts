@@ -122,3 +122,49 @@ export async function getCheckInsByStudentId(studentId: string): Promise<CheckIn
         } as CheckIn;
     });
 }
+
+export async function getTodayCheckInsForInterns(internIds: string[]): Promise<CheckIn[]> {
+    if (internIds.length === 0) {
+        return [];
+    }
+
+    const now = new Date();
+    const startOfToday = startOfDay(now);
+
+    const q = query(
+        checkInCollectionRef,
+        where('studentId', 'in', internIds),
+        where('timestamp', '>=', startOfToday)
+    );
+    
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            timestamp: (data.timestamp as Timestamp).toDate(),
+        } as CheckIn;
+    });
+}
+
+export async function getCheckInsForInterns(internIds: string[]): Promise<CheckIn[]> {
+    if (internIds.length === 0) {
+        return [];
+    }
+    
+    const q = query(checkInCollectionRef, where('studentId', 'in', internIds));
+    const snapshot = await getDocs(q);
+
+    const checkIns = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            timestamp: (data.timestamp as Timestamp).toDate(),
+        } as CheckIn;
+    });
+
+    return checkIns.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+}

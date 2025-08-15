@@ -4,6 +4,7 @@ import {
   Activity,
   Users,
   ListChecks,
+  LogIn,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -28,11 +29,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
 import { getInternsBySupervisor, type UserProfile } from '@/services/userService';
 import { getTasksBySupervisor, type DailyTask } from '@/services/tasksService';
+import { getTodayCheckInsForInterns, type CheckIn } from '@/services/checkInService';
 
 export default function SupervisorDashboardPage() {
   const { user, loading } = useRole();
   const [interns, setInterns] = useState<UserProfile[]>([]);
   const [pendingTasks, setPendingTasks] = useState<DailyTask[]>([]);
+  const [todayCheckIns, setTodayCheckIns] = useState<CheckIn[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
@@ -40,15 +43,22 @@ export default function SupervisorDashboardPage() {
       if (!user || !user.uid) return;
       setDataLoading(true);
       
-      const [internsData, tasksData] = await Promise.all([
-        getInternsBySupervisor(user.uid),
-        // A student marks a task as 'Completed' to submit it for review.
-        getTasksBySupervisor(user.uid, ['Completed']),
-      ]);
-      
+      const internsData = await getInternsBySupervisor(user.uid);
       setInterns(internsData);
-      setPendingTasks(tasksData);
 
+      if (internsData.length > 0) {
+        const internIds = internsData.map(i => i.uid);
+        const [tasksData, checkInsData] = await Promise.all([
+          getTasksBySupervisor(user.uid, ['Completed']),
+          getTodayCheckInsForInterns(internIds),
+        ]);
+        setPendingTasks(tasksData);
+        setTodayCheckIns(checkInsData);
+      } else {
+        setPendingTasks([]);
+        setTodayCheckIns([]);
+      }
+      
       setDataLoading(false);
     }
     fetchData();
@@ -58,8 +68,7 @@ export default function SupervisorDashboardPage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-24 w-full" />
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-            <Skeleton className="h-28 w-full" />
+        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
             <Skeleton className="h-28 w-full" />
             <Skeleton className="h-28 w-full" />
             <Skeleton className="h-28 w-full" />
@@ -126,15 +135,17 @@ export default function SupervisorDashboardPage() {
           </CardContent>
         </Card>
          <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Activity</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">High</div>
-            <p className="text-xs text-muted-foreground">based on recent submissions</p>
-          </CardContent>
-        </Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Today's Check-ins</CardTitle>
+              <LogIn className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{todayCheckIns.length} / {interns.length}</div>
+              <Link href="/supervisor/check-ins" className="text-xs text-muted-foreground hover:underline">
+                View check-in history
+              </Link>
+            </CardContent>
+          </Card>
       </div>
        <Card>
         <CardHeader>
