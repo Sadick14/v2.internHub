@@ -213,15 +213,9 @@ export async function getReportsByStudentId(studentId: string): Promise<Report[]
     return reportList.sort((a, b) => b.reportDate.getTime() - a.reportDate.getTime());
 }
 
-export async function getAllReports(filter: 'all' | 'unassigned' = 'all'): Promise<Report[]> {
+export async function getAllReports(): Promise<Report[]> {
     const reportsCol = collection(db, 'reports');
-    let q;
-
-    if (filter === 'unassigned') {
-        q = query(reportsCol, where('lecturerId', '==', ''), orderBy('reportDate', 'desc'));
-    } else {
-        q = query(reportsCol, orderBy('reportDate', 'desc'));
-    }
+    let q = query(reportsCol, orderBy('createdAt', 'desc'));
     
     const reportSnapshot = await getDocs(q);
 

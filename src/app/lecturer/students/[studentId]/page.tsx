@@ -6,7 +6,7 @@ import { getStudentDetails, type StudentDetails } from '@/services/userService';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Briefcase, Calendar, Mail, Phone, User as UserIcon, Building2, Clock, FileText, Bot, MessageSquare, CheckCircle, ListTodo, CalendarCheck, Award, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ArrowLeft, Briefcase, Calendar, Mail, Phone, User as UserIcon, Building2, Clock, FileText, Bot, MessageSquare, CheckCircle, ListTodo, CalendarCheck, Award, ThumbsUp, ThumbsDown, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -25,7 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRole } from '@/hooks/use-role';
 import { createEvaluation, type EvaluationMetrics } from '@/services/evaluationsService';
 import { Loader2 } from 'lucide-react';
-import type { Report } from '@/services/reportsService';
+import { approveReport, rejectReport, type Report } from '@/services/reportsService';
 import type { DailyTask } from '@/services/tasksService';
 import type { CheckIn } from '@/services/checkInService';
 import type { Evaluation } from '@/services/evaluationsService';
@@ -141,38 +141,87 @@ const ProfileTab = ({ student, profile }: { student: StudentDetails['student'], 
     </div>
 )
 
-const ReportsTab = ({ reports }: { reports: Report[] }) => (
-    <Card>
-        <CardHeader><CardTitle className="font-headline">Daily Reports</CardTitle><CardDescription>A complete log of all submitted daily reports.</CardDescription></CardHeader>
-        <CardContent>
-            {reports.length > 0 ? (
-                <Accordion type="multiple" className="space-y-4">
-                    {reports.map(report => (
-                         <AccordionItem key={report.id} value={report.id} className="border rounded-lg px-4 bg-muted/20">
-                            <AccordionTrigger className="hover:no-underline">
-                                <div className="flex justify-between w-full items-center pr-4">
-                                    <div>
-                                        <p className="font-semibold">Report for {format(report.reportDate, 'PPP')}</p>
-                                        <p className="text-sm text-muted-foreground">Submitted on {format(report.createdAt, 'PPP')}</p>
+const ReportsTab = ({ reports, onReportUpdate }: { reports: Report[], onReportUpdate: () => void }) => {
+    const { toast } = useToast();
+    const [feedback, setFeedback] = useState<{ [key: string]: string }>({});
+
+    const handleFeedbackChange = (reportId: string, value: string) => {
+        setFeedback(prev => ({ ...prev, [reportId]: value }));
+    };
+
+     const handleApproval = async (reportId: string, action: 'approve' | 'reject') => {
+        const comment = feedback[reportId] || (action === 'approve' ? 'Great work!' : 'Please review and resubmit.');
+        
+        try {
+            if (action === 'approve') {
+                await approveReport(reportId, comment);
+                toast({ title: 'Report Approved', description: 'The student will be notified.' });
+            } else {
+                await rejectReport(reportId, comment);
+                toast({ title: 'Report Rejected', description: 'Feedback has been sent to the student.' });
+            }
+            onReportUpdate(); // Refresh list after action
+        } catch (error: any) {
+            toast({ title: 'Error', description: `Failed to ${action} report: ${error.message}`, variant: 'destructive' });
+        }
+    };
+    
+    return (
+        <Card>
+            <CardHeader><CardTitle className="font-headline">Daily Reports</CardTitle><CardDescription>A complete log of all submitted daily reports.</CardDescription></CardHeader>
+            <CardContent>
+                {reports.length > 0 ? (
+                    <Accordion type="multiple" className="space-y-4">
+                        {reports.map(report => (
+                            <AccordionItem key={report.id} value={report.id} className="border rounded-lg px-4 bg-muted/20">
+                                <AccordionTrigger className="hover:no-underline">
+                                    <div className="flex justify-between w-full items-center pr-4">
+                                        <div>
+                                            <p className="font-semibold">Report for {format(report.reportDate, 'PPP')}</p>
+                                            <p className="text-sm text-muted-foreground">Submitted on {format(report.createdAt, 'PPP')}</p>
+                                        </div>
+                                        <Badge variant={getStatusVariant(report.status)}>{report.status}</Badge>
                                     </div>
-                                    <Badge variant={getStatusVariant(report.status)}>{report.status}</Badge>
-                                </div>
-                            </AccordionTrigger>
-                            <AccordionContent className="space-y-4 pt-2">
-                                <Separator />
-                                <div className="space-y-3"><h4 className="font-semibold flex items-center"><FileText className="mr-2 h-4 w-4" />Work Accomplished</h4><p className="text-sm text-muted-foreground whitespace-pre-wrap">{report.declaredTasks}</p></div>
-                                <div className="space-y-3"><h4 className="font-semibold flex items-center"><FileText className="mr-2 h-4 w-4" />Detailed Report</h4><p className="text-sm text-muted-foreground whitespace-pre-wrap">{report.fullReport}</p></div>
-                                {report.summary && <div className="space-y-3"><h4 className="font-semibold flex items-center"><Bot className="mr-2 h-4 w-4 text-primary"/>AI Summary</h4><p className="text-sm text-muted-foreground italic">{report.summary}</p></div>}
-                                {report.supervisorComment && <div className="space-y-3"><h4 className="font-semibold flex items-center"><MessageSquare className="mr-2 h-4 w-4"/>Supervisor Feedback</h4><p className="text-sm text-muted-foreground italic">"{report.supervisorComment}"</p></div>}
-                                {report.lecturerComment && <div className="space-y-3"><h4 className="font-semibold flex items-center"><MessageSquare className="mr-2 h-4 w-4"/>Lecturer Feedback</h4><p className="text-sm text-muted-foreground italic">"{report.lecturerComment}"</p></div>}
-                            </AccordionContent>
-                        </AccordionItem>
-                    ))}
-                </Accordion>
-            ) : <p className="text-center text-muted-foreground py-10">This student has not submitted any reports yet.</p>}
-        </CardContent>
-    </Card>
-);
+                                </AccordionTrigger>
+                                <AccordionContent className="space-y-4 pt-2">
+                                    <Separator />
+                                    <div className="space-y-3"><h4 className="font-semibold flex items-center"><FileText className="mr-2 h-4 w-4" />Work Accomplished</h4><p className="text-sm text-muted-foreground whitespace-pre-wrap">{report.declaredTasks}</p></div>
+                                    <div className="space-y-3"><h4 className="font-semibold flex items-center"><FileText className="mr-2 h-4 w-4" />Detailed Report</h4><p className="text-sm text-muted-foreground whitespace-pre-wrap">{report.fullReport}</p></div>
+                                    {report.summary && <div className="space-y-3"><h4 className="font-semibold flex items-center"><Bot className="mr-2 h-4 w-4 text-primary"/>AI Summary</h4><p className="text-sm text-muted-foreground italic">{report.summary}</p></div>}
+                                    {report.supervisorComment && <div className="space-y-3"><h4 className="font-semibold flex items-center"><MessageSquare className="mr-2 h-4 w-4"/>Supervisor Feedback</h4><p className="text-sm text-muted-foreground italic">"{report.supervisorComment}"</p></div>}
+                                    {report.lecturerComment && <div className="space-y-3"><h4 className="font-semibold flex items-center"><MessageSquare className="mr-2 h-4 w-4"/>Lecturer Feedback</h4><p className="text-sm text-muted-foreground italic">"{report.lecturerComment}"</p></div>}
+                                    
+                                    {report.status === 'Pending' && (
+                                        <>
+                                            <Separator />
+                                            <div className="space-y-2 pt-2">
+                                                <label htmlFor={`feedback-${report.id}`} className="font-semibold text-sm">Your Feedback:</label>
+                                                <Textarea
+                                                    id={`feedback-${report.id}`}
+                                                    placeholder="Provide constructive feedback..."
+                                                    value={feedback[report.id] || ''}
+                                                    onChange={(e) => handleFeedbackChange(report.id, e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="flex justify-end gap-2">
+                                                <Button variant="outline" size="sm" onClick={() => handleApproval(report.id, 'reject')}>
+                                                    <X className="mr-2 h-4 w-4" /> Reject
+                                                </Button>
+                                                <Button size="sm" onClick={() => handleApproval(report.id, 'approve')}>
+                                                    <Check className="mr-2 h-4 w-4" /> Approve
+                                                </Button>
+                                            </div>
+                                        </>
+                                    )}
+                                </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
+                ) : <p className="text-center text-muted-foreground py-10">This student has not submitted any reports yet.</p>}
+            </CardContent>
+        </Card>
+    );
+};
 
 const TasksTab = ({ tasks }: { tasks: DailyTask[] }) => (
     <Card>
@@ -397,7 +446,7 @@ export default function LecturerStudentDetailPage({ params }: { params: { studen
                     <TabsTrigger value="evaluations">Evaluations</TabsTrigger>
                 </TabsList>
                 <TabsContent value="profile" className="mt-6"><ProfileTab student={student} profile={profile} /></TabsContent>
-                <TabsContent value="reports" className="mt-6"><ReportsTab reports={reports} /></TabsContent>
+                <TabsContent value="reports" className="mt-6"><ReportsTab reports={reports} onReportUpdate={fetchAllData} /></TabsContent>
                 <TabsContent value="tasks" className="mt-6"><TasksTab tasks={tasks} /></TabsContent>
                 <TabsContent value="attendance" className="mt-6"><AttendanceTab checkIns={checkIns} /></TabsContent>
                 <TabsContent value="evaluations" className="mt-6"><EvaluationsTab evaluations={evaluations} studentId={student.uid} refreshData={fetchAllData} /></TabsContent>
