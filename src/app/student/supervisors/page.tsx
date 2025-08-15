@@ -3,16 +3,23 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useRole, type AppUser } from '@/hooks/use-role';
+import { useRole } from '@/hooks/use-role';
 import { getInternshipProfileByStudentId, type InternshipProfile } from '@/services/internshipProfileService';
 import { getUserById, type UserProfile } from '@/services/userService';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Mail, Phone, Building2, User, University } from 'lucide-react';
+import { Mail, Phone, Building2, University } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
-const SupervisorInfoCard = ({ title, description, user, companyName }: { title: string, description: string, user: UserProfile | AppUser | null, companyName?: string }) => {
+interface SupervisorInfo {
+    name: string;
+    email: string;
+    phoneNumber?: string;
+    departmentName?: string;
+}
+
+const SupervisorInfoCard = ({ title, description, user, companyName }: { title: string, description: string, user: SupervisorInfo | null, companyName?: string }) => {
     if (!user) {
         return (
             <Card>
@@ -44,7 +51,7 @@ const SupervisorInfoCard = ({ title, description, user, companyName }: { title: 
                          {companyName ? (
                             <p className="text-muted-foreground flex items-center gap-2"><Building2 className="w-4 h-4" />{companyName}</p>
                          ) : (
-                            <p className="text-muted-foreground flex items-center gap-2"><University className="w-4 h-4" />{ (user as UserProfile).departmentName || 'University Staff'}</p>
+                            <p className="text-muted-foreground flex items-center gap-2"><University className="w-4 h-4" />{user.departmentName || 'University Staff'}</p>
                          )}
                     </div>
                 </div>
@@ -67,8 +74,8 @@ const SupervisorInfoCard = ({ title, description, user, companyName }: { title: 
 export default function SupervisorsPage() {
     const { user } = useRole();
     const [profile, setProfile] = useState<InternshipProfile | null>(null);
-    const [lecturer, setLecturer] = useState<UserProfile | null>(null);
-    const [industrialSupervisor, setIndustrialSupervisor] = useState<UserProfile | null>(null);
+    const [lecturer, setLecturer] = useState<SupervisorInfo | null>(null);
+    const [industrialSupervisor, setIndustrialSupervisor] = useState<SupervisorInfo | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -80,15 +87,28 @@ export default function SupervisorsPage() {
             const profileData = await getInternshipProfileByStudentId(user.uid);
             setProfile(profileData);
 
-            if (profileData?.supervisorId) {
-                const supervisorData = await getUserById(profileData.supervisorId);
-                setIndustrialSupervisor(supervisorData);
+            if (profileData?.supervisorName && profileData.supervisorEmail) {
+                 // Use the details directly from the profile for the industrial supervisor
+                const supervisorInfo: SupervisorInfo = {
+                    name: profileData.supervisorName,
+                    email: profileData.supervisorEmail,
+                    // Phone number for industrial supervisor isn't stored, can be added later
+                };
+                setIndustrialSupervisor(supervisorInfo);
             }
 
             // Fetch assigned lecturer details
             if (user.lecturerId) {
                 const lecturerData = await getUserById(user.lecturerId);
-                setLecturer(lecturerData);
+                if (lecturerData) {
+                    const lecturerInfo: SupervisorInfo = {
+                        name: lecturerData.fullName,
+                        email: lecturerData.email,
+                        phoneNumber: lecturerData.phoneNumber,
+                        departmentName: lecturerData.departmentName,
+                    };
+                    setLecturer(lecturerInfo);
+                }
             }
             
             setIsLoading(false);
@@ -99,7 +119,7 @@ export default function SupervisorsPage() {
      if (isLoading) {
         return (
             <div className="space-y-4">
-                <Skeleton className="h-10 w-48" />
+                <Skeleton className="h-10 w-full max-w-sm" />
                 <Skeleton className="h-64 w-full" />
             </div>
         )
