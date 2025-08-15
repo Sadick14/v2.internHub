@@ -29,32 +29,47 @@ export interface UserProfile {
     assignedLecturerName?: string;
 }
 
+const enrichUser = async (userDoc: any): Promise<UserProfile> => {
+    const user = { firestoreId: userDoc.id, ...userDoc.data() } as Omit<UserProfile, 'facultyName' | 'departmentName' | 'assignedLecturerName' | 'createdAt'> & { createdAt: Timestamp };
+    
+    let facultyName = '';
+    let departmentName = '';
+    if (user.facultyId) {
+        const faculty = await getFacultyById(user.facultyId);
+        facultyName = faculty?.name || '';
+    }
+    if (user.departmentId) {
+        const department = await getDepartmentById(user.departmentId);
+        departmentName = department?.name || '';
+    }
+    
+    let assignedLecturerName = '';
+    if (user.role === 'student' && user.lecturerId) {
+        // This is a bit inefficient, but avoids circular dependencies.
+        // In a larger app, we'd cache users.
+        const lecturersCol = collection(db, 'users');
+        const q = query(lecturersCol, where('uid', '==', user.lecturerId));
+        const lecturerSnapshot = await getDocs(q);
+        if (!lecturerSnapshot.empty) {
+            assignedLecturerName = lecturerSnapshot.docs[0].data().fullName;
+        }
+    }
+
+    return { 
+        ...user, 
+        uid: user.uid!,
+        createdAt: user.createdAt?.toDate(), 
+        facultyName, 
+        departmentName, 
+        assignedLecturerName 
+    };
+};
+
 export async function getAllUsers(): Promise<UserProfile[]> {
     const usersCol = collection(db, 'users');
     const userSnapshot = await getDocs(usersCol);
-    const lecturers = userSnapshot.docs.filter(doc => doc.data().role === 'lecturer').map(doc => ({ id: doc.id, ...doc.data() }));
 
-    const enrichedUsers = await Promise.all(userSnapshot.docs.map(async (doc) => {
-        const user = { firestoreId: doc.id, ...doc.data() } as Omit<UserProfile, 'facultyName' | 'departmentName' | 'assignedLecturerName'>;
-        let facultyName = '';
-        let departmentName = '';
-        if (user.facultyId) {
-            const faculty = await getFacultyById(user.facultyId);
-            facultyName = faculty?.name || '';
-        }
-        if (user.departmentId) {
-            const department = await getDepartmentById(user.departmentId);
-            departmentName = department?.name || '';
-        }
-        
-        let assignedLecturerName = '';
-        if (user.role === 'student' && user.lecturerId) {
-            const assignedLecturer = lecturers.find(l => l.uid === user.lecturerId);
-            assignedLecturerName = assignedLecturer?.fullName || 'N/A';
-        }
-
-        return { ...user, uid: user.uid!, facultyName, departmentName, assignedLecturerName } as UserProfile;
-    }));
+    const enrichedUsers = await Promise.all(userSnapshot.docs.map(enrichUser));
 
     return enrichedUsers;
 }
@@ -62,21 +77,15 @@ export async function getAllUsers(): Promise<UserProfile[]> {
 
 export async function getUserById(uid: string): Promise<UserProfile | null> {
     const usersRef = collection(db, "users");
-    const q = query(usersRef, where("uid", "==", uid));
-    const querySnapshot = await getDocs(q);
+    let q = query(usersRef, where("uid", "==", uid));
+    let querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-        // If not found by auth uid, try treating the uid as a firestore document id
         try {
             const docRef = doc(db, 'users', uid);
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
-                const userData = docSnap.data();
-                 return {
-                    ...(docSnap.data() as Omit<UserProfile, 'uid' | 'firestoreId'>),
-                    uid: userData.uid, // the auth uid
-                    firestoreId: docSnap.id, // the document id
-                };
+                return await enrichUser(docSnap);
             }
         } catch (e) {
              console.error("Error fetching user by doc ID:", e);
@@ -86,13 +95,7 @@ export async function getUserById(uid: string): Promise<UserProfile | null> {
     }
 
     const userDoc = querySnapshot.docs[0];
-    const userData = userDoc.data();
-
-    return {
-        ...(userDoc.data() as Omit<UserProfile, 'uid' | 'firestoreId'>),
-        uid: userData.uid, // the auth uid
-        firestoreId: userDoc.id, // the document id
-    };
+    return await enrichUser(userDoc);
 }
 
 
@@ -106,13 +109,7 @@ export async function getUserByEmail(email: string): Promise<UserProfile | null>
     }
 
     const userDoc = querySnapshot.docs[0];
-    const userData = userDoc.data();
-    
-    return {
-        ...(userDoc.data() as Omit<UserProfile, 'uid' | 'firestoreId'>),
-        uid: userData.uid, // the auth uid
-        firestoreId: userDoc.id, // the document id
-    }
+    return await enrichUser(userDoc);
 }
 
 
@@ -173,18 +170,8 @@ export async function getInternsBySupervisor(supervisorAuthId: string): Promise<
     const studentsSnapshot = await getDocs(studentsQuery);
 
      const enrichedInterns = await Promise.all(studentsSnapshot.docs.map(async (doc) => {
-        const internData = doc.data();
-        let departmentName = 'N/A';
-        if (internData.departmentId) {
-            const department = await getDepartmentById(internData.departmentId);
-            departmentName = department?.name || 'N/A';
-        }
-        return {
-            ...(internData as Omit<UserProfile, 'uid' | 'firestoreId'>),
-            uid: internData.uid,
-            firestoreId: doc.id,
-            departmentName: departmentName
-        } as UserProfile;
+        const internData = await enrichUser(doc);
+        return internData;
     }));
 
     return enrichedInterns;
