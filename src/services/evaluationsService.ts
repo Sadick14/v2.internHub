@@ -2,7 +2,7 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, Timestamp, serverTimestamp, addDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, Timestamp, serverTimestamp, addDoc, orderBy } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
 import { createAuditLog } from './auditLogService';
 
