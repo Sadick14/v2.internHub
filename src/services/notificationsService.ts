@@ -34,12 +34,11 @@ export async function createNotification(notificationData: NewAppNotification): 
 export async function getNotifications(userId: string): Promise<AppNotification[]> {
     const q = query(
         notificationsCollectionRef, 
-        where('userId', '==', userId), 
-        orderBy('createdAt', 'desc')
+        where('userId', '==', userId)
     );
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map(doc => {
+    const notifications = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
             id: doc.id,
@@ -47,6 +46,9 @@ export async function getNotifications(userId: string): Promise<AppNotification[
             createdAt: (data.createdAt as Timestamp).toDate(),
         } as AppNotification;
     });
+
+    // Sort in code to avoid composite index
+    return notifications.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
 
 export async function markNotificationAsRead(notificationId: string): Promise<void> {
