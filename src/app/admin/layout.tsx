@@ -75,10 +75,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       <Sidebar>
         <SidebarHeader>
           <Link href='/admin/dashboard' className="flex items-center">
-            <div className="bg-primary p-2 rounded-lg">
+            <div className="bg-white/20 p-2 rounded-lg">
                 <GraduationCap className="text-white text-2xl logo-icon"/>
             </div>
-            <h1 className="text-xl font-bold ml-3 text-gray-800 logo-text">Intern Hub</h1>
+            <h1 className="text-xl font-bold ml-3 text-white logo-text">Intern Hub</h1>
           </Link>
         </SidebarHeader>
         <SidebarContent>

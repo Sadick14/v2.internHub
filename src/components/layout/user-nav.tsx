@@ -52,12 +52,11 @@ export function UserNav() {
            <Button variant="ghost" className="w-full h-auto justify-start p-0 rounded-lg hover:bg-transparent">
               <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
-                      <AvatarImage src={`https://i.pravatar.cc/150?u=${user.email}`} alt={user.name} />
                       <AvatarFallback>{user.initials}</AvatarFallback>
                   </Avatar>
                   <div className={cn("flex flex-col items-start text-left", sidebarState === 'collapsed' && 'hidden')}>
-                      <p className="text-sm font-medium text-gray-800 leading-tight">{user.name}</p>
-                      <p className="text-xs text-gray-500 leading-tight capitalize">{user.role}</p>
+                      <p className="text-sm font-medium text-primary-foreground leading-tight">{user.name}</p>
+                      <p className="text-xs text-primary-foreground/80 leading-tight capitalize">{user.role}</p>
                   </div>
               </div>
            </Button>

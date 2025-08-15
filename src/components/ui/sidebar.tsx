@@ -170,7 +170,7 @@ const Sidebar = React.forwardRef<
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
-            className="w-[var(--sidebar-width)] bg-card p-0 [&>button]:hidden"
+            className="w-[var(--sidebar-width)] bg-primary p-0 [&>button]:hidden text-primary-foreground"
             style={
               {
                 "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
@@ -188,7 +188,7 @@ const Sidebar = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-            "group hidden h-full md:flex flex-col bg-white transition-all duration-300 ease-in-out z-40",
+            "group hidden h-full md:flex flex-col bg-primary text-primary-foreground transition-all duration-300 ease-in-out z-40",
             state === 'collapsed' ? 'w-[--sidebar-width-icon]' : 'w-[--sidebar-width]',
             className
         )}
@@ -257,7 +257,7 @@ const SidebarHeader = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="header"
-      className={cn("p-5 border-b border-gray-200", state === 'collapsed' ? 'p-3' : 'p-5', className)}
+      className={cn("p-5 border-b border-primary-foreground/20", state === 'collapsed' ? 'p-3' : 'p-5', className)}
       {...props}
     />
   )
@@ -272,7 +272,7 @@ const SidebarFooter = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="footer"
-      className={cn("p-4 border-t border-gray-200", className)}
+      className={cn("p-4 border-t border-primary-foreground/20", className)}
       {...props}
     />
   )
@@ -365,8 +365,8 @@ const SidebarMenuButton = React.forwardRef<
         data-sidebar="menu-button"
         data-active={isActive}
         className={cn(
-            "flex items-center p-3 text-gray-700 rounded-lg hover:bg-gray-100 w-full text-left",
-            isActive && "bg-primary/10 text-primary font-semibold",
+            "flex items-center p-3 text-primary-foreground/80 rounded-lg hover:bg-white/10 hover:text-primary-foreground w-full text-left",
+            isActive && "bg-white/20 text-white font-semibold",
             state === 'collapsed' && "justify-center",
             className
         )}
