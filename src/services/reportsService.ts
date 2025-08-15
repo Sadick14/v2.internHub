@@ -77,11 +77,7 @@ export async function createReport(reportData: NewReportData): Promise<Report> {
 export async function getReportsByLecturer(lecturerId: string, statuses: Report['status'][]): Promise<Report[]> {
     const reportsCol = collection(db, 'reports');
     // lecturerId is the Auth UID
-    const q = query(
-        reportsCol, 
-        where('lecturerId', '==', lecturerId), 
-        where('status', 'in', statuses)
-    );
+    const q = query(reportsCol, where('lecturerId', '==', lecturerId));
     const reportSnapshot = await getDocs(q);
 
     const reportsWithStudentNames = await Promise.all(reportSnapshot.docs.map(async (doc) => {
@@ -96,8 +92,10 @@ export async function getReportsByLecturer(lecturerId: string, statuses: Report[
         } as Report & { studentName: string };
     }));
     
-    // Sort in code to avoid needing a composite index
-    return reportsWithStudentNames.sort((a, b) => b.reportDate.getTime() - a.reportDate.getTime());
+    // Filter by status in code and sort
+    return reportsWithStudentNames
+        .filter(report => statuses.includes(report.status))
+        .sort((a, b) => b.reportDate.getTime() - a.reportDate.getTime());
 }
 
 export async function getReportsBySupervisor(supervisorId: string, statuses?: Report['status'][]): Promise<Report[]> {
