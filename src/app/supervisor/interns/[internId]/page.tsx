@@ -178,7 +178,7 @@ export default function InternDetailPage({ params }: { params: { internId: strin
     const [isLoading, setIsLoading] = useState(true);
     
     useEffect(() => {
-        const internId = params.internId;
+        const { internId } = params;
         async function fetchData() {
             if (!internId) {
                 setIsLoading(false);
@@ -190,7 +190,7 @@ export default function InternDetailPage({ params }: { params: { internId: strin
             setIsLoading(false);
         }
         fetchData();
-    }, [params.internId]);
+    }, [params]);
 
     if (isLoading) {
         return (
