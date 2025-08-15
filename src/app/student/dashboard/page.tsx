@@ -11,10 +11,10 @@ import {
   FileText,
   CalendarDays,
   ListChecks,
-  ListTodo,
   AlertTriangle,
   Shield,
-  Loader2
+  Loader2,
+  CheckCircle
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -158,16 +158,32 @@ export default function StudentDashboardPage() {
 
   if (loading || dataLoading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-24 w-full" />
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-            <Skeleton className="h-28 w-full" />
-            <Skeleton className="h-28 w-full" />
-            <Skeleton className="h-28 w-full" />
-            <Skeleton className="h-28 w-full" />
-        </div>
-        <Skeleton className="h-64 w-full" />
-      </div>
+       <main className="flex-1 overflow-y-auto p-4 md:p-6">
+           <div className="flex items-center justify-center h-full">
+            <div className="flex flex-col items-center gap-4">
+              <GraduationCap className="h-10 w-10 text-primary animate-spin"/>
+              <p className="text-muted-foreground">Loading Student Dashboard...</p>
+              <svg width="200" height="40" viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg" className="text-primary/20">
+                    <circle cx="25" cy="20" r="4" >
+                        <animate attributeName="r" from="4" to="8" dur="0.8s" begin="0s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" from="1" to="0.5" dur="0.8s" begin="0s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="75" cy="20" r="4">
+                        <animate attributeName="r" from="4" to="8" dur="0.8s" begin="0.2s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" from="1" to="0.5" dur="0.8s" begin="0.2s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="125" cy="20" r="4">
+                        <animate attributeName="r" from="4" to="8" dur="0.8s" begin="0.4s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" from="1" to="0.5" dur="0.8s" begin="0.4s" repeatCount="indefinite" />
+                    </circle>
+                    <circle cx="175" cy="20" r="4">
+                        <animate attributeName="r" from="4" to="8" dur="0.8s" begin="0.6s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" from="1" to="0.5" dur="0.8s" begin="0.6s" repeatCount="indefinite" />
+                    </circle>
+                </svg>
+            </div>
+          </div>
+        </main>
     );
   }
 
@@ -215,6 +231,39 @@ export default function StudentDashboardPage() {
           <p className="text-gray-600">Here's what's happening with your internship today.</p>
       </div>
 
+       {!checkIn ? (
+        <Alert className="bg-blue-50 border-blue-200 text-blue-800">
+             <MapPin className="h-4 w-4 !text-blue-600" />
+            <AlertTitle className="font-bold text-blue-900">Good Morning!</AlertTitle>
+            <AlertDescription>
+                 <div className="flex justify-between items-center">
+                    <p>Your first step today is to check in at your internship location.</p>
+                    <Button asChild>
+                        <Link href="/student/daily-check-in">
+                            <MapPin className="mr-2 h-4 w-4" /> Go to Daily Check-in
+                        </Link>
+                    </Button>
+                </div>
+            </AlertDescription>
+        </Alert>
+       ) : (
+        <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
+            <CheckCircle className="h-4 w-4 !text-green-600" />
+            <AlertTitle className="font-bold text-green-900">Checked In Successfully!</AlertTitle>
+            <AlertDescription>
+                <div className="flex justify-between items-center">
+                    <p>Great work! Your next step is to submit your daily report.</p>
+                     <Button asChild variant="secondary" className="bg-green-600 hover:bg-green-700 text-white">
+                        <Link href="/student/submit-report">
+                            <FileText className="mr-2 h-4 w-4" /> Submit Daily Report
+                        </Link>
+                    </Button>
+                </div>
+            </AlertDescription>
+        </Alert>
+       )}
+
+
        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             <StatCard icon={CalendarDays} label="Days Completed" value={`${daysCompleted} / ${internshipDurationDays}`} color="blue-500" />
             <StatCard icon={ListChecks} label="Reports Submitted" value={`${submittedReportsCount}`} color="green-500" />
@@ -239,9 +288,8 @@ export default function StudentDashboardPage() {
           <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-6">Quick Actions</h3>
               <div className="space-y-3">
-                  <Button asChild className="w-full justify-start"><Link href="/student/daily-check-in"><MapPin className="mr-2"/> Daily Check-in</Link></Button>
-                  <Button asChild className="w-full justify-start"><Link href="/student/daily-tasks"><ListTodo className="mr-2"/> Declare Tasks</Link></Button>
-                  <Button asChild className="w-full justify-start"><Link href="/student/submit-report"><FileText className="mr-2"/> Submit Report</Link></Button>
+                  <Button asChild className="w-full justify-start"><Link href="/student/daily-tasks"><ListChecks className="mr-2"/> Declare Tasks</Link></Button>
+                  <Button asChild className="w-full justify-start"><Link href="/student/reports"><FileText className="mr-2"/> View Report History</Link></Button>
               </div>
           </div>
       </div>
