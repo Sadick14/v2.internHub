@@ -21,7 +21,6 @@ export default function LecturerLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, role } = useRole();
-  const [pendingReportsCount, setPendingReportsCount] = useState(0);
 
   useEffect(() => {
     if (loading) {
@@ -36,23 +35,9 @@ export default function LecturerLayout({ children }: { children: ReactNode }) {
     }
   }, [user, loading, role, router]);
 
-  useEffect(() => {
-    async function fetchPendingReports() {
-        if (user?.uid) {
-            const reports = await getReportsByLecturer(user.uid, ['Pending']);
-            setPendingReportsCount(reports.length);
-        }
-    }
-    if (role === 'lecturer') {
-        fetchPendingReports();
-    }
-  }, [user, role]);
-
-
   const navItems = [
     { href: '/lecturer/dashboard', label: 'Dashboard', icon: Home },
     { href: '/lecturer/students', label: 'My Students', icon: Users },
-    { href: '/lecturer/reports', label: 'Student Reports', icon: FileText, badge: pendingReportsCount > 0 ? String(pendingReportsCount) : undefined },
   ];
 
   if (loading || !user || role !== 'lecturer') {
@@ -90,7 +75,6 @@ export default function LecturerLayout({ children }: { children: ReactNode }) {
                   <Link href={item.href}>
                     <item.icon />
                     <span>{item.label}</span>
-                    {item.badge && <Badge className="ml-auto bg-background text-primary hover:bg-background/90">{item.badge}</Badge>}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
