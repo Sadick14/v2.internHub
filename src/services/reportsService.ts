@@ -6,6 +6,7 @@ import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, Timestamp, serverTimestamp, doc, updateDoc, orderBy } from 'firebase/firestore';
 import { createAuditLog } from './auditLogService';
 import { getUserById } from './userService';
+import { createNotification } from './notificationsService';
 
 export interface Report {
     id: string;
@@ -52,6 +53,15 @@ export async function createReport(reportData: NewReportData): Promise<Report> {
             action: 'Submit Report',
             details: `Student ${student.fullName} submitted a daily report.`,
         });
+
+        if (reportData.lecturerId) {
+             await createNotification({
+                userId: reportData.lecturerId,
+                title: 'New Report Submitted',
+                message: `${student.fullName} has submitted a new daily report for your review.`,
+                href: '/lecturer/reports'
+            });
+        }
     }
 
     return {
@@ -138,19 +148,43 @@ export async function getReportsBySupervisor(supervisorId: string, statuses?: Re
 
 export async function approveReport(reportId: string, lecturerComment: string): Promise<void> {
     const reportRef = doc(db, 'reports', reportId);
+    const reportSnap = await getDoc(reportRef);
+    if (!reportSnap.exists()) throw new Error("Report not found");
+    
+    const reportData = reportSnap.data() as Report;
+
     await updateDoc(reportRef, {
         status: 'Approved',
         lecturerComment,
         updatedAt: serverTimestamp(),
     });
+
+     await createNotification({
+        userId: reportData.studentId,
+        title: 'Report Approved',
+        message: 'Your daily report has been approved by your lecturer.',
+        href: `/student/reports/${reportId}`
+    });
 }
 
 export async function rejectReport(reportId: string, lecturerComment: string): Promise<void> {
     const reportRef = doc(db, 'reports', reportId);
+    const reportSnap = await getDoc(reportRef);
+    if (!reportSnap.exists()) throw new Error("Report not found");
+    
+    const reportData = reportSnap.data() as Report;
+
     await updateDoc(reportRef, {
         status: 'Rejected',
         lecturerComment,
         updatedAt: serverTimestamp(),
+    });
+
+     await createNotification({
+        userId: reportData.studentId,
+        title: 'Report Needs Review',
+        message: 'Your lecturer has requested changes to your daily report.',
+        href: `/student/reports/${reportId}`
     });
 }
 

@@ -8,6 +8,7 @@ import type { Role } from '@/hooks/use-role';
 import { createAuditLog } from './auditLogService';
 import { sendMail } from '@/lib/email';
 import type { UserProfile } from './userService';
+import { createNotification } from './notificationsService';
 
 export interface Invite {
     id?: string;
@@ -98,6 +99,13 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
             // We log the error but do not throw, so the user can be created.
             // In a production app, you might add this to a retry queue.
         }
+
+        await createNotification({
+            userId: pendingUserRef.id, // The new user gets the notification
+            title: "You're Invited!",
+            message: `You have been invited to join InternshipTrack as a ${role}.`,
+            href: "/verify"
+        })
 
 
         // 3. Create an audit log

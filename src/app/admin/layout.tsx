@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import {
-  Bell,
   Home,
   Users,
   Building,
@@ -16,10 +15,10 @@ import {
   User,
 } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import { UserNav } from '@/components/layout/user-nav';
 import { useRole } from '@/hooks/use-role';
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarInset, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
+import { NotificationBell } from '@/components/layout/notification-bell';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -102,10 +101,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
          <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-card px-4 sm:px-6">
             <SidebarTrigger className="md:hidden" />
              <div className="flex w-full items-center gap-4 justify-end">
-                <Button variant="outline" size="icon">
-                  <Bell className="h-4 w-4" />
-                  <span className="sr-only">Toggle notifications</span>
-                </Button>
+                <NotificationBell />
             </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 md:p-6">

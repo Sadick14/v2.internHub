@@ -6,6 +6,7 @@ import type { Role } from '@/hooks/use-role';
 import { getFacultyById, getDepartmentById } from './universityService';
 import { createAuditLog } from './auditLogService';
 import { auth } from '@/lib/firebase';
+import { createNotification } from './notificationsService';
 
 export interface UserProfile {
     uid: string; // This is the Firebase Auth UID
@@ -130,7 +131,8 @@ export async function assignLecturerToStudent(studentFirestoreId: string, lectur
 
     // Create an audit log
     const currentUser = auth.currentUser;
-    const student = await getUserById(studentFirestoreId);
+    const studentDoc = await getDoc(studentRef);
+    const student = await getUserById(studentDoc.data()?.uid);
     const lecturer = await getUserById(lecturerAuthId);
 
     if (currentUser && student && lecturer) {
@@ -140,6 +142,13 @@ export async function assignLecturerToStudent(studentFirestoreId: string, lectur
             userEmail: currentUser.email || 'N/A',
             action: 'Assign Lecturer',
             details: `Assigned lecturer ${lecturer.fullName} to student ${student.fullName}.`
+        });
+
+         await createNotification({
+            userId: student.uid,
+            title: "Lecturer Assigned",
+            message: `You have been assigned ${lecturer.fullName} as your supervising lecturer.`,
+            href: '/student/dashboard'
         });
     }
 }

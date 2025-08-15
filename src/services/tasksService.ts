@@ -2,9 +2,10 @@
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, where, Timestamp, serverTimestamp, doc, updateDoc, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, Timestamp, serverTimestamp, doc, updateDoc, orderBy, getDoc } from 'firebase/firestore';
 import { startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { getUserById } from './userService';
+import { createNotification } from './notificationsService';
 
 export interface DailyTask {
     id: string;
@@ -36,6 +37,18 @@ export async function createTask(taskData: NewDailyTask): Promise<void> {
         status: 'Pending',
         createdAt: serverTimestamp(),
     });
+    
+    const supervisorProfile = await getUserById(taskData.supervisorId);
+    const studentProfile = await getUserById(taskData.studentId);
+
+    if (supervisorProfile && studentProfile) {
+        await createNotification({
+            userId: supervisorProfile.uid,
+            title: 'New Task Declared',
+            message: `${studentProfile.fullName} has declared a new task for today.`,
+            href: '/supervisor/tasks'
+        });
+    }
 }
 
 export async function getTasksByDate(studentId: string, date: Date): Promise<DailyTask[]> {
@@ -107,4 +120,21 @@ export async function updateTaskStatus(taskId: string, status: 'Completed' | 'Ap
         dataToUpdate.supervisorFeedback = supervisorFeedback;
     }
     await updateDoc(taskRef, dataToUpdate);
+
+    const taskSnap = await getDoc(taskRef);
+    if (!taskSnap.exists()) return;
+
+    const taskData = taskSnap.data() as DailyTask;
+    
+    if (status === 'Approved' || status === 'Rejected') {
+        const student = await getUserById(taskData.studentId);
+        if (student) {
+            await createNotification({
+                userId: student.uid,
+                title: `Task ${status}`,
+                message: `Your supervisor has ${status.toLowerCase()} your task: "${taskData.description.substring(0, 30)}..."`,
+                href: '/student/daily-tasks'
+            });
+        }
+    }
 }
