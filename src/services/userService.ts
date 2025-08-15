@@ -7,6 +7,8 @@ import { getFacultyById, getDepartmentById } from './universityService';
 import { createAuditLog } from './auditLogService';
 import { auth } from '@/lib/firebase';
 import { createNotification } from './notificationsService';
+import { getInternshipProfileByStudentId, type InternshipProfile } from './internshipProfileService';
+import { getReportsByStudentId, type Report } from './reportsService';
 
 export interface UserProfile {
     uid: string; // This is the Firebase Auth UID
@@ -186,4 +188,26 @@ export async function getInternsBySupervisor(supervisorAuthId: string): Promise<
     }));
 
     return enrichedInterns;
+}
+
+export async function getStudentDetails(studentId: string): Promise<{
+    student: UserProfile,
+    profile: InternshipProfile | null,
+    reports: Report[]
+} | null> {
+    const student = await getUserById(studentId);
+    if (!student) {
+        return null;
+    }
+
+    const [profile, reports] = await Promise.all([
+        getInternshipProfileByStudentId(student.uid),
+        getReportsByStudentId(student.uid)
+    ]);
+
+    return {
+        student,
+        profile,
+        reports
+    };
 }

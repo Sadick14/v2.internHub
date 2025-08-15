@@ -2,9 +2,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getUserById, type UserProfile } from '@/services/userService';
-import { getReportsByStudentId, type Report } from '@/services/reportsService';
-import { getInternshipProfileByStudentId, type InternshipProfile } from '@/services/internshipProfileService';
+import { getUserById, type UserProfile, getStudentDetails } from '@/services/userService';
+import type { Report } from '@/services/reportsService';
+import type { InternshipProfile } from '@/services/internshipProfileService';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -21,28 +21,79 @@ import {
 } from "@/components/ui/table"
 import { format } from 'date-fns';
 
+type StudentDetails = {
+    student: UserProfile;
+    profile: InternshipProfile | null;
+    reports: Report[];
+};
+
+function StudentDetailSkeleton() {
+    return (
+         <div className="space-y-6">
+             <div className="flex items-center gap-4">
+                 <Skeleton className="h-9 w-9 rounded-full" />
+                 <Skeleton className="h-7 w-48" />
+            </div>
+             <div className="grid gap-6 lg:grid-cols-3">
+                <Card className="lg:col-span-1">
+                    <CardHeader className="items-center text-center">
+                        <Skeleton className="w-24 h-24 rounded-full mb-4" />
+                        <Skeleton className="h-7 w-40 mb-2" />
+                        <Skeleton className="h-5 w-32" />
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <Skeleton className="h-5 w-full" />
+                        <Skeleton className="h-5 w-full" />
+                        <Skeleton className="h-5 w-full" />
+                        <Skeleton className="h-5 w-full" />
+                    </CardContent>
+                </Card>
+                <div className="lg:col-span-2 space-y-6">
+                     <Card>
+                        <CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader>
+                        <CardContent><Skeleton className="h-5 w-3/4" /></CardContent>
+                     </Card>
+                      <Card>
+                        <CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader>
+                        <CardContent><Skeleton className="h-5 w-3/4" /></CardContent>
+                     </Card>
+                </div>
+            </div>
+             <Card>
+                <CardHeader>
+                    <Skeleton className="h-7 w-48" />
+                    <Skeleton className="h-5 w-64" />
+                </CardHeader>
+                <CardContent>
+                     <div className="space-y-4">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    )
+}
+
 export default function StudentDetailPage({ params }: { params: { studentId: string } }) {
-    const [student, setStudent] = useState<UserProfile | null>(null);
-    const [profile, setProfile] = useState<InternshipProfile | null>(null);
-    const [reports, setReports] = useState<Report[]>([]);
+    const [details, setDetails] = useState<StudentDetails | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         async function fetchData() {
             setIsLoading(true);
+            setError(null);
             try {
-                 const studentData = await getUserById(params.studentId);
-                setStudent(studentData);
-                if (studentData) {
-                    const [profileData, reportsData] = await Promise.all([
-                        getInternshipProfileByStudentId(studentData.uid),
-                        getReportsByStudentId(studentData.uid)
-                    ]);
-                    setProfile(profileData);
-                    setReports(reportsData);
+                const studentDetails = await getStudentDetails(params.studentId);
+                if (!studentDetails) {
+                    throw new Error("Student not found.");
                 }
-            } catch (e) {
+                setDetails(studentDetails);
+            } catch (e: any) {
                 console.error("Failed to fetch student details:", e);
+                setError(e.message);
             } finally {
                 setIsLoading(false);
             }
@@ -63,14 +114,14 @@ export default function StudentDetailPage({ params }: { params: { studentId: str
         return <StudentDetailSkeleton />
     }
 
-    if (!student) {
+    if (error || !details) {
         return (
              <Card>
                 <CardHeader>
                     <CardTitle>Student Not Found</CardTitle>
+                    <CardDescription>{error || "The requested student could not be found."}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <p>The requested student could not be found.</p>
                      <Button asChild variant="outline" className="mt-4">
                         <Link href="/admin/students"><ArrowLeft className="mr-2 h-4 w-4" />Back to Students</Link>
                     </Button>
@@ -78,6 +129,8 @@ export default function StudentDetailPage({ params }: { params: { studentId: str
             </Card>
         )
     }
+
+    const { student, profile, reports } = details;
 
     return (
         <div className="space-y-6">
@@ -113,7 +166,7 @@ export default function StudentDetailPage({ params }: { params: { studentId: str
                         </div>
                          <div className="flex items-center gap-3 text-sm">
                             <Calendar className="w-4 h-4 text-muted-foreground" />
-                            <span>Joined on: {student.createdAt?.toLocaleDateString() || 'N/A'}</span>
+                            <span>Joined on: {student.createdAt ? new Date(student.createdAt).toLocaleDateString() : 'N/A'}</span>
                         </div>
                     </CardContent>
                 </Card>
@@ -147,7 +200,7 @@ export default function StudentDetailPage({ params }: { params: { studentId: str
                       <Card>
                         <CardHeader>
                             <CardTitle>Supervising Lecturer</CardTitle>
-                        </Header>
+                        </CardHeader>
                         <CardContent className="text-sm">
                             {student.assignedLecturerName ? (
                                  <div className="flex items-center gap-3">
@@ -204,53 +257,4 @@ export default function StudentDetailPage({ params }: { params: { studentId: str
             </Card>
         </div>
     );
-}
-
-function StudentDetailSkeleton() {
-    return (
-         <div className="space-y-6">
-             <div className="flex items-center gap-4">
-                 <Skeleton className="h-9 w-9" />
-                 <Skeleton className="h-7 w-48" />
-            </div>
-             <div className="grid gap-6 lg:grid-cols-3">
-                <Card className="lg:col-span-1">
-                    <CardHeader className="items-center text-center">
-                        <Skeleton className="w-24 h-24 rounded-full mb-4" />
-                        <Skeleton className="h-7 w-40 mb-2" />
-                        <Skeleton className="h-5 w-32" />
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <Skeleton className="h-5 w-full" />
-                        <Skeleton className="h-5 w-full" />
-                        <Skeleton className="h-5 w-full" />
-                        <Skeleton className="h-5 w-full" />
-                    </CardContent>
-                </Card>
-                <div className="lg:col-span-2 space-y-6">
-                     <Card>
-                        <CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader>
-                        <CardContent><Skeleton className="h-5 w-3/4" /></CardContent>
-                     </Card>
-                      <Card>
-                        <CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader>
-                        <CardContent><Skeleton className="h-5 w-3/4" /></CardContent>
-                     </Card>
-                </div>
-            </div>
-             <Card>
-                <CardHeader>
-                    <Skeleton className="h-7 w-48" />
-                    <Skeleton className="h-5 w-64" />
-                </CardHeader>
-                <CardContent>
-                     <div className="space-y-4">
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                    </div>
-                </CardContent>
-            </Card>
-        </div>
-    )
 }
