@@ -8,6 +8,7 @@ import {
   FileText,
   Home,
   Users,
+  LogIn,
 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +39,7 @@ export default function LecturerLayout({ children }: { children: ReactNode }) {
   const navItems = [
     { href: '/lecturer/dashboard', label: 'Dashboard', icon: Home },
     { href: '/lecturer/students', label: 'My Students', icon: Users },
+    { href: '/lecturer/check-ins', label: 'Check-ins', icon: LogIn },
   ];
 
   if (loading || !user || role !== 'lecturer') {

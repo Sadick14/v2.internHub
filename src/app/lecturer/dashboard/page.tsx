@@ -5,7 +5,8 @@ import {
   ArrowUpRight,
   Briefcase,
   Users,
-  FileText
+  FileText,
+  LogIn
 } from 'lucide-react'
 import Link from 'next/link'
 import {
@@ -19,6 +20,7 @@ import { useRole } from '@/hooks/use-role';
 import { useEffect, useState } from 'react';
 import { getStudentsByLecturer, type UserProfile } from '@/services/userService';
 import { getReportsByLecturer } from '@/services/reportsService';
+import { getTodayCheckInsForInterns, type CheckIn } from '@/services/checkInService';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -28,18 +30,29 @@ export default function LecturerDashboardPage() {
   const { user, loading } = useRole();
   const [students, setStudents] = useState<UserProfile[]>([]);
   const [pendingReportsCount, setPendingReportsCount] = useState(0);
+  const [todayCheckIns, setTodayCheckIns] = useState<CheckIn[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
         if (!user?.uid) return;
         setDataLoading(true);
-        const [studentsData, reportsData] = await Promise.all([
-            getStudentsByLecturer(user.uid),
-            getReportsByLecturer(user.uid, ['Pending'])
-        ]);
+        const studentsData = await getStudentsByLecturer(user.uid);
         setStudents(studentsData);
-        setPendingReportsCount(reportsData.length);
+
+        if (studentsData.length > 0) {
+            const studentIds = studentsData.map(s => s.uid);
+            const [reportsData, checkInsData] = await Promise.all([
+                getReportsByLecturer(user.uid, ['Pending']),
+                getTodayCheckInsForInterns(studentIds)
+            ]);
+            setPendingReportsCount(reportsData.length);
+            setTodayCheckIns(checkInsData);
+        } else {
+            setPendingReportsCount(0);
+            setTodayCheckIns([]);
+        }
+
         setDataLoading(false);
     }
     if (user) {
@@ -93,16 +106,16 @@ export default function LecturerDashboardPage() {
             </Card>
             <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Overall Activity</CardTitle>
-                <Activity className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Today's Check-ins</CardTitle>
+              <LogIn className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold text-primary">Active</div>
-                <p className="text-xs text-muted-foreground">
-                    Students are actively reporting
-                </p>
+              <div className="text-2xl font-bold">{todayCheckIns.length} / {students.length}</div>
+              <Link href="/lecturer/check-ins" className="text-xs text-muted-foreground hover:underline">
+                View check-in history
+              </Link>
             </CardContent>
-            </Card>
+          </Card>
         </div>
         <Card>
             <CardHeader className="flex items-center">
