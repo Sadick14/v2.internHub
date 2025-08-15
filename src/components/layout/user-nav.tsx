@@ -41,7 +41,7 @@ export function UserNav() {
      return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-9 w-9 rounded-full hover:bg-primary/80">
+            <Button variant="ghost" className="relative h-9 w-9 rounded-full hover:bg-muted">
               <Avatar className="h-9 w-9">
                 <AvatarImage src={`https://placehold.co/40x40.png`} alt={user.name} data-ai-hint="person portrait" />
                 <AvatarFallback>{user.initials}</AvatarFallback>
@@ -80,14 +80,14 @@ export function UserNav() {
   return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-           <Button variant="ghost" className="w-full h-auto justify-start p-2 rounded-lg hover:bg-primary/80">
+           <Button variant="ghost" className="w-full h-auto justify-start p-2 rounded-lg bg-background hover:bg-muted text-foreground">
               <div className="flex justify-between items-center w-full">
                 <div className="flex items-center gap-2">
                   <Avatar className="h-9 w-9">
                       <AvatarImage src={`https://placehold.co/40x40.png`} alt={user.name} data-ai-hint="person portrait" />
                       <AvatarFallback>{user.initials}</AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col space-y-1 items-start">
+                  <div className="flex flex-col space-y-1 items-start text-left">
                       <p className="text-sm font-medium leading-none">{user.name}</p>
                       <p className="text-xs leading-none text-muted-foreground truncate max-w-[150px]">
                         {user.email}
