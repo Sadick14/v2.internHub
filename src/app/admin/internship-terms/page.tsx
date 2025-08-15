@@ -43,6 +43,10 @@ const settingsSchema = z.object({
         reportApprovedToStudent: z.boolean(),
         reportRejectedToStudent: z.boolean(),
         newInviteToUser: z.boolean(),
+        taskDeclaredToSupervisor: z.boolean(),
+        taskApprovedToStudent: z.boolean(),
+        taskRejectedToStudent: z.boolean(),
+        lecturerAssignedToStudent: z.boolean(),
     })
 });
 
@@ -77,6 +81,10 @@ export default function InternshipTermsPage() {
                 reportApprovedToStudent: true,
                 reportRejectedToStudent: true,
                 newInviteToUser: true,
+                taskDeclaredToSupervisor: true,
+                taskApprovedToStudent: true,
+                taskRejectedToStudent: true,
+                lecturerAssignedToStudent: true,
             }
         }
     });
@@ -457,6 +465,36 @@ export default function InternshipTermsPage() {
                                 <div className="space-y-6">
                                      <FormField
                                         control={settingsForm.control}
+                                        name="notifications.newInviteToUser"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                                <div className="space-y-0.5">
+                                                    <FormLabel className="text-base">New User Invitations</FormLabel>
+                                                    <FormDescription>Send an email to users when they are invited to join the platform.</FormDescription>
+                                                </div>
+                                                <FormControl>
+                                                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={settingsForm.control}
+                                        name="notifications.lecturerAssignedToStudent"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                                <div className="space-y-0.5">
+                                                    <FormLabel className="text-base">Lecturer Assignment</FormLabel>
+                                                    <FormDescription>Notify students when a supervising lecturer is assigned to them.</FormDescription>
+                                                </div>
+                                                <FormControl>
+                                                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                     <FormField
+                                        control={settingsForm.control}
                                         name="notifications.newReportToLecturer"
                                         render={({ field }) => (
                                             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
@@ -477,7 +515,7 @@ export default function InternshipTermsPage() {
                                             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                                                 <div className="space-y-0.5">
                                                     <FormLabel className="text-base">Report Approvals</FormLabel>
-                                                    <FormDescription>Notify students when their report is approved by their supervisor.</FormDescription>
+                                                    <FormDescription>Notify students when their report is approved by their lecturer.</FormDescription>
                                                 </div>
                                                 <FormControl>
                                                     <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -500,14 +538,44 @@ export default function InternshipTermsPage() {
                                             </FormItem>
                                         )}
                                     />
-                                     <FormField
+                                    <FormField
                                         control={settingsForm.control}
-                                        name="notifications.newInviteToUser"
+                                        name="notifications.taskDeclaredToSupervisor"
                                         render={({ field }) => (
                                             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                                                 <div className="space-y-0.5">
-                                                    <FormLabel className="text-base">New User Invitations</FormLabel>
-                                                    <FormDescription>Send an email to users when they are invited to join the platform.</FormDescription>
+                                                    <FormLabel className="text-base">Task Declaration</FormLabel>
+                                                    <FormDescription>Notify supervisors when an intern declares their daily tasks.</FormDescription>
+                                                </div>
+                                                <FormControl>
+                                                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                     <FormField
+                                        control={settingsForm.control}
+                                        name="notifications.taskApprovedToStudent"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                                <div className="space-y-0.5">
+                                                    <FormLabel className="text-base">Task Approval</FormLabel>
+                                                    <FormDescription>Notify students when their supervisor approves a task.</FormDescription>
+                                                </div>
+                                                <FormControl>
+                                                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                                </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                     <FormField
+                                        control={settingsForm.control}
+                                        name="notifications.taskRejectedToStudent"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                                <div className="space-y-0.5">
+                                                    <FormLabel className="text-base">Task Rejection</FormLabel>
+                                                    <FormDescription>Notify students when their supervisor requests changes to a task.</FormDescription>
                                                 </div>
                                                 <FormControl>
                                                     <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -524,5 +592,3 @@ export default function InternshipTermsPage() {
         </div>
     );
 }
-
-    

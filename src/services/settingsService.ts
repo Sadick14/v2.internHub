@@ -8,6 +8,11 @@ export interface SystemSettings {
         reportApprovedToStudent: boolean;
         reportRejectedToStudent: boolean;
         newInviteToUser: boolean;
+        // New settings
+        taskDeclaredToSupervisor: boolean;
+        taskApprovedToStudent: boolean;
+        taskRejectedToStudent: boolean;
+        lecturerAssignedToStudent: boolean;
     }
 }
 
@@ -19,8 +24,19 @@ export async function getSettings(): Promise<SystemSettings | null> {
     if (docSnap.exists()) {
         return docSnap.data() as SystemSettings;
     } else {
-        // If no settings doc exists, return null or default settings
-        return null; 
+        // If no settings doc exists, return default settings
+        return {
+            notifications: {
+                newReportToLecturer: true,
+                reportApprovedToStudent: true,
+                reportRejectedToStudent: true,
+                newInviteToUser: true,
+                taskDeclaredToSupervisor: true,
+                taskApprovedToStudent: true,
+                taskRejectedToStudent: true,
+                lecturerAssignedToStudent: true,
+            }
+        }; 
     }
 }
 

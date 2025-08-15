@@ -50,8 +50,8 @@ export async function createNotification(notificationData: NewAppNotification): 
         
         let shouldSendEmail = false;
 
-        // For critical alerts like abuse reports, we might want to bypass settings.
-        if (notificationData.type === 'ABUSE_REPORT_SUBMITTED') {
+        // For critical alerts like abuse reports or reminders, we might want to bypass settings.
+        if (notificationData.type === 'ABUSE_REPORT_SUBMITTED' || notificationData.type === 'EVALUATION_REMINDER' || notificationData.type === 'TERM_ENDING_REMINDER') {
             shouldSendEmail = true;
         } else {
             if (!settings) return; // If no settings, no emails for non-critical notifications
@@ -68,7 +68,18 @@ export async function createNotification(notificationData: NewAppNotification): 
                 case 'REPORT_REJECTED':
                     shouldSendEmail = settings.notifications.reportRejectedToStudent;
                     break;
-                // Add other cases here if more email settings are added
+                case 'TASK_DECLARED':
+                    shouldSendEmail = settings.notifications.taskDeclaredToSupervisor;
+                    break;
+                case 'TASK_APPROVED':
+                    shouldSendEmail = settings.notifications.taskApprovedToStudent;
+                    break;
+                case 'TASK_REJECTED':
+                    shouldSendEmail = settings.notifications.taskRejectedToStudent;
+                    break;
+                case 'LECTURER_ASSIGNED':
+                    shouldSendEmail = settings.notifications.lecturerAssignedToStudent;
+                    break;
             }
         }
 
