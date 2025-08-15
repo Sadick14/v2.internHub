@@ -91,8 +91,8 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
               <SidebarMenuItem key={item.label}>
                 <SidebarMenuButton asChild isActive={pathname.startsWith(item.href!)} tooltip={item.label}>
                   <Link href={item.href!}>
-                    <item.icon />
-                    <span>{item.label}</span>
+                    <item.icon className="text-lg" />
+                    <span className="ml-3">{item.label}</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

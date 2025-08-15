@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -280,13 +281,13 @@ const SidebarFooter = React.forwardRef<
 SidebarFooter.displayName = "SidebarFooter"
 
 const SidebarSeparator = React.forwardRef<
-  React.ElementRef<typeof Separator>,
-  React.ComponentProps<typeof Separator>
+  HTMLHRElement,
+  React.ComponentProps<"hr">
 >(({ className, ...props }, ref) => {
   const { state } = useSidebar();
   return (
     <div className={cn('px-3 my-2', state === 'collapsed' ? 'px-1' : 'px-3')}>
-        <div ref={ref} className={cn('w-full h-px bg-border', className)} {...props} />
+        <hr ref={ref} className={cn('w-full h-px bg-border', className)} {...props} />
     </div>
   )
 })
@@ -372,19 +373,7 @@ const SidebarMenuButton = React.forwardRef<
         )}
         {...props}
       >
-        {React.Children.map(children, (child) => {
-             if (React.isValidElement(child) && child.type !== 'span') {
-                return React.cloneElement(child as React.ReactElement<any>, {
-                    className: cn(child.props.className, "text-lg")
-                })
-             }
-             if (React.isValidElement(child) && child.type === 'span') {
-                 return React.cloneElement(child as React.ReactElement<any>, {
-                    className: cn(child.props.className, 'ml-3', state === 'collapsed' && 'hidden')
-                 })
-             }
-             return child;
-        })}
+        {children}
       </Comp>
     )
 
