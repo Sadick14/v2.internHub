@@ -128,7 +128,7 @@ export default function WelcomePage() {
       <section 
         id="home" 
         className="relative h-screen flex items-center justify-center bg-cover bg-center"
-        style={{backgroundImage: "url('/IMG-20250228-WA0051.jpg')"}}
+        style={{backgroundImage: "url('https://placehold.co/1920x1080.png')"}}
         data-ai-hint="university campus"
       >
         <div className="absolute inset-0 bg-black opacity-60"></div>
@@ -145,10 +145,6 @@ export default function WelcomePage() {
                 <Link href="/dashboard" className="bg-primary hover:bg-secondary text-white font-medium py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition duration-300 text-center">
                   Get Started
                 </Link>
-                {/* <Link href="#" className="bg-white hover:bg-gray-50 text-primary font-medium py-3 px-8 rounded-lg shadow border border-gray-200 hover:border-gray-300 transition duration-300 text-center flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
-                  Watch Demo
-                </Link> */}
               </div>
               
             </div>
@@ -243,21 +239,53 @@ export default function WelcomePage() {
                   </p>
               </div>
 
-              <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
-                  <div className="flex flex-col items-center">
-                      <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-white text-2xl font-bold mb-6">1</div>
-                      <h4 className="text-xl font-bold text-gray-900">Setup & Integration</h4>
-                      <p className="mt-2 text-gray-600">Admins configure the university structure and invite students, lecturers, and company supervisors to the platform.</p>
+              <div className="mt-20 space-y-16">
+                  {/* Step 1 */}
+                  <div className="flex flex-col md:flex-row items-center gap-12">
+                      <div className="md:w-1/2">
+                          <Image src="https://placehold.co/600x400.png" data-ai-hint="university administration" alt="Setup" width={600} height={400} className="rounded-lg shadow-xl w-full" />
+                      </div>
+                      <div className="md:w-1/2">
+                          <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xl">1</div>
+                              <h4 className="text-2xl font-bold text-gray-900">Setup & Integration</h4>
+                          </div>
+                          <p className="mt-4 text-gray-600">
+                              Admins kick things off by configuring the university's structure, including faculties and departments. They then invite students, lecturers, and company supervisors to the platform, ensuring everyone is connected from day one.
+                          </p>
+                      </div>
                   </div>
-                   <div className="flex flex-col items-center">
-                      <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-white text-2xl font-bold mb-6">2</div>
-                      <h4 className="text-xl font-bold text-gray-900">Daily Tracking</h4>
-                      <p className="mt-2 text-gray-600">Students check in, declare daily tasks, and submit reports. Supervisors and lecturers monitor progress and provide feedback.</p>
+
+                  {/* Step 2 */}
+                  <div className="flex flex-col md:flex-row-reverse items-center gap-12">
+                      <div className="md:w-1/2">
+                           <Image src="https://placehold.co/600x400.png" data-ai-hint="student working" alt="Tracking" width={600} height={400} className="rounded-lg shadow-xl w-full" />
+                      </div>
+                      <div className="md:w-1/2">
+                          <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xl">2</div>
+                              <h4 className="text-2xl font-bold text-gray-900">Daily Tracking & Engagement</h4>
+                          </div>
+                          <p className="mt-4 text-gray-600">
+                              Students check in daily, declare their tasks, and submit detailed reports. This creates a transparent record of their work. Supervisors and lecturers can monitor this progress in real-time, providing feedback and guidance to keep students on track.
+                          </p>
+                      </div>
                   </div>
-                   <div className="flex flex-col items-center">
-                      <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-white text-2xl font-bold mb-6">3</div>
-                      <h4 className="text-xl font-bold text-gray-900">Evaluation & Reporting</h4>
-                      <p className="mt-2 text-gray-600">All stakeholders evaluate student performance, while the system generates comprehensive reports and analytics for oversight.</p>
+
+                  {/* Step 3 */}
+                   <div className="flex flex-col md:flex-row items-center gap-12">
+                      <div className="md:w-1/2">
+                           <Image src="https://placehold.co/600x400.png" data-ai-hint="analytics dashboard" alt="Evaluation" width={600} height={400} className="rounded-lg shadow-xl w-full" />
+                      </div>
+                      <div className="md:w-1/2">
+                          <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xl">3</div>
+                              <h4 className="text-2xl font-bold text-gray-900">Evaluation & Reporting</h4>
+                          </div>
+                          <p className="mt-4 text-gray-600">
+                             At the end of the term, all stakeholders evaluate student performance based on the data collected. The system consolidates this feedback, generating comprehensive reports and analytics for university oversight and continuous program improvement.
+                          </p>
+                      </div>
                   </div>
               </div>
           </div>
