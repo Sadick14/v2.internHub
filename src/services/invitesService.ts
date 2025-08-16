@@ -86,15 +86,8 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
 
         await addDoc(invitesCol, newInvite);
         
-        // Let the notification service handle sending the email based on system settings
-        await createNotification({
-            userId: pendingUserRef.id,
-            type: 'NEW_INVITE',
-            title: "You're Invited!",
-            message: `You have been invited to join Intern Hub as a ${role}. Please check your email for instructions.`,
-            href: "/verify"
-        });
-
+        // Directly send the verification email. This is a critical path.
+        await sendVerificationEmail(email);
 
         // 3. Create an audit log
         if (invitedBy) {

@@ -128,7 +128,7 @@ export default function WelcomePage() {
       <section 
         id="home" 
         className="relative h-screen flex items-center justify-center bg-cover bg-center"
-        style={{backgroundImage: "url('https://placehold.co/1920x1080.png')"}}
+        style={{backgroundImage: "url('/IMG-20250228-WA0051.jpg')"}}
         data-ai-hint="university campus"
       >
         <div className="absolute inset-0 bg-black opacity-60"></div>
@@ -139,7 +139,7 @@ export default function WelcomePage() {
                 Streamline Your <span className="text-success">Internship</span> Management
               </h1>
               <p className="mt-6 text-lg text-gray-200 max-w-lg">
-                InternHub simplifies internship management for technical universities. Connect students with industry partners, track progress, and ensure successful outcomes.
+                InternHub simplifies internship management for Ho Technical University. Connect students with industry partners, track progress, and ensure successful outcomes.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                 <Link href="/dashboard" className="bg-primary hover:bg-secondary text-white font-medium py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition duration-300 text-center">
@@ -150,8 +150,8 @@ export default function WelcomePage() {
             </div>
             <div className="mt-12 md:mt-0 md:w-1/2 flex justify-center">
               <div className="relative">
-                <div className="bg-primary rounded-2xl w-80 h-80 md:w-96 md:h-96 overflow-hidden shadow-2xl">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary opacity-90"></div>
+                <div className="bg- rounded-2xl w-80 h-80 md:w-96 md:h-96 overflow-hidden shadow-2xl">
+                 
                   <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-white">
                     <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-xl p-6 w-full">
                       <div className="flex justify-between items-center mb-4">
@@ -165,7 +165,7 @@ export default function WelcomePage() {
                       <div className="mt-6 grid grid-cols-3 gap-3">
                         <div className="bg-white bg-opacity-20 rounded-lg p-2 h-20 flex flex-col items-center justify-center">
                           <Briefcase className="text-lg mb-1" />
-                          <span className="text-xs">Applications</span>
+                          <span className="text-xs">Interns</span>
                         </div>
                         <div className="bg-white bg-opacity-20 rounded-lg p-2 h-20 flex flex-col items-center justify-center">
                           <LineChart className="text-lg mb-1" />
@@ -185,7 +185,7 @@ export default function WelcomePage() {
                       <CheckCircle className="text-green-500 text-xl" />
                     </div>
                     <div className="ml-3">
-                      <p className="font-medium">34 Internships Active</p>
+                      <p className="font-medium">94% Active Performance</p>
                       <p className="text-sm text-gray-500">This week</p>
                     </div>
                   </div>
@@ -242,9 +242,7 @@ export default function WelcomePage() {
               <div className="mt-20 space-y-16">
                   {/* Step 1 */}
                   <div className="flex flex-col md:flex-row items-center gap-12">
-                      <div className="md:w-1/2">
-                          <Image src="https://placehold.co/600x400.png" data-ai-hint="university administration" alt="Setup" width={600} height={400} className="rounded-lg shadow-xl w-full" />
-                      </div>
+                     
                       <div className="md:w-1/2">
                           <div className="flex items-center gap-4">
                               <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xl">1</div>
@@ -258,9 +256,7 @@ export default function WelcomePage() {
 
                   {/* Step 2 */}
                   <div className="flex flex-col md:flex-row-reverse items-center gap-12">
-                      <div className="md:w-1/2">
-                           <Image src="https://placehold.co/600x400.png" data-ai-hint="student working" alt="Tracking" width={600} height={400} className="rounded-lg shadow-xl w-full" />
-                      </div>
+                     
                       <div className="md:w-1/2">
                           <div className="flex items-center gap-4">
                               <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xl">2</div>
@@ -274,9 +270,7 @@ export default function WelcomePage() {
 
                   {/* Step 3 */}
                    <div className="flex flex-col md:flex-row items-center gap-12">
-                      <div className="md:w-1/2">
-                           <Image src="https://placehold.co/600x400.png" data-ai-hint="analytics dashboard" alt="Evaluation" width={600} height={400} className="rounded-lg shadow-xl w-full" />
-                      </div>
+                      
                       <div className="md:w-1/2">
                           <div className="flex items-center gap-4">
                               <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xl">3</div>
