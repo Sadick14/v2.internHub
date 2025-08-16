@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { sendVerificationEmail } from '@/services/invitesService';
+import { sendVerificationEmailToExistingInvite } from '@/services/invitesService';
 import { Mail, KeyRound } from 'lucide-react';
 
 export default function VerifyPage() {
@@ -31,7 +31,7 @@ export default function VerifyPage() {
       loadingSetter(true);
 
       try {
-          const { success, error } = await sendVerificationEmail(email);
+          const { success, error } = await sendVerificationEmailToExistingInvite(email);
           if (success) {
               toast({
                   title: "Verification Code Sent",

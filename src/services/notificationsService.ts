@@ -5,8 +5,9 @@
 import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, orderBy, serverTimestamp, Timestamp, updateDoc, doc } from 'firebase/firestore';
 import { getSettings } from './settingsService';
-import { sendMail } from '@/lib/email';
 import { getUserById } from './userService';
+import { sendGenericNotificationEmail } from './emailService';
+
 
 export type NotificationType = 
     | 'NEW_INVITE'
@@ -49,47 +50,47 @@ export async function createNotification(notificationData: NewAppNotification): 
         const settings = await getSettings();
         
         let shouldSendEmail = false;
+
+        // Don't send emails for new invites via this service.
+        // It's handled directly by invitesService now for reliability.
+        if (notificationData.type === 'NEW_INVITE') {
+            return;
+        }
         
         if (!settings) { 
-             console.error("System settings not found. Halting email dispatch for most notifications.");
-             // Only allow critical emails like invites to proceed without settings.
-             if (notificationData.type === 'NEW_INVITE') {
-                 shouldSendEmail = true;
-             }
-        } else {
-             switch(notificationData.type) {
-                case 'NEW_INVITE':
-                    shouldSendEmail = settings.notifications.newInviteToUser;
-                    break;
-                case 'NEW_REPORT_SUBMITTED':
-                    shouldSendEmail = settings.notifications.newReportToLecturer;
-                    break;
-                case 'REPORT_APPROVED':
-                    shouldSendEmail = settings.notifications.reportApprovedToStudent;
-                    break;
-                case 'REPORT_REJECTED':
-                    shouldSendEmail = settings.notifications.reportRejectedToStudent;
-                    break;
-                case 'TASK_DECLARED':
-                    shouldSendEmail = settings.notifications.taskDeclaredToSupervisor;
-                    break;
-                case 'TASK_APPROVED':
-                    shouldSendEmail = settings.notifications.taskApprovedToStudent;
-                    break;
-                case 'TASK_REJECTED':
-                    shouldSendEmail = settings.notifications.taskRejectedToStudent;
-                    break;
-                case 'LECTURER_ASSIGNED':
-                    shouldSendEmail = settings.notifications.lecturerAssignedToStudent;
-                    break;
-                // For reminders and alerts, we assume they should always send if enabled.
-                // The logic to *trigger* these is separate from the notification creation.
-                case 'EVALUATION_REMINDER':
-                case 'TERM_ENDING_REMINDER':
-                case 'ABUSE_REPORT_SUBMITTED':
-                    shouldSendEmail = true;
-                    break;
-            }
+             console.error("System settings not found. Halting email dispatch for notifications.");
+             return;
+        }
+        
+        switch(notificationData.type) {
+            case 'NEW_REPORT_SUBMITTED':
+                shouldSendEmail = settings.notifications.newReportToLecturer;
+                break;
+            case 'REPORT_APPROVED':
+                shouldSendEmail = settings.notifications.reportApprovedToStudent;
+                break;
+            case 'REPORT_REJECTED':
+                shouldSendEmail = settings.notifications.reportRejectedToStudent;
+                break;
+            case 'TASK_DECLARED':
+                shouldSendEmail = settings.notifications.taskDeclaredToSupervisor;
+                break;
+            case 'TASK_APPROVED':
+                shouldSendEmail = settings.notifications.taskApprovedToStudent;
+                break;
+            case 'TASK_REJECTED':
+                shouldSendEmail = settings.notifications.taskRejectedToStudent;
+                break;
+            case 'LECTURER_ASSIGNED':
+                shouldSendEmail = settings.notifications.lecturerAssignedToStudent;
+                break;
+            // For reminders and alerts, we assume they should always send if the service is called.
+            // The logic to *trigger* these is separate from the notification creation itself.
+            case 'EVALUATION_REMINDER':
+            case 'TERM_ENDING_REMINDER':
+            case 'ABUSE_REPORT_SUBMITTED':
+                shouldSendEmail = true;
+                break;
         }
         
 
@@ -97,11 +98,10 @@ export async function createNotification(notificationData: NewAppNotification): 
             const user = await getUserById(notificationData.userId);
             if (user?.email) {
                 try {
-                    await sendMail({
-                        to: user.email,
-                        subject: `Intern Hub: ${notificationData.title}`,
-                        text: notificationData.message,
-                        html: `<p>${notificationData.message}</p><p>You can view this notification in the app: <a href="https://internshiptrack-iru7j.web.app${notificationData.href || '/'}">View Details</a></p>`,
+                    await sendGenericNotificationEmail(user.email, {
+                        title: notificationData.title,
+                        message: notificationData.message,
+                        href: notificationData.href
                     });
                 } catch(emailError) {
                     console.error(`[CRITICAL] Email sending failed for user ${user.email} for notification type ${notificationData.type}:`, emailError);

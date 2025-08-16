@@ -6,9 +6,10 @@ import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, getDocs, query, where, Timestamp, writeBatch, documentId, doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 import type { Role } from '@/hooks/use-role';
 import { createAuditLog } from './auditLogService';
-import { sendMail } from '@/lib/email';
 import type { UserProfile } from './userService';
 import { createNotification } from './notificationsService';
+import { sendVerificationEmail } from './emailService';
+
 
 export interface Invite {
     id?: string;
@@ -86,10 +87,10 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
 
         await addDoc(invitesCol, newInvite);
         
-        // Directly send the verification email. This is a critical path.
-        await sendVerificationEmail(email);
+        // 3. Directly send the verification email using the email service
+        await sendVerificationEmail(email, verificationCode);
 
-        // 3. Create an audit log
+        // 4. Create an audit log
         if (invitedBy) {
             try {
                 await createAuditLog({
@@ -113,7 +114,7 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
 }
 
 
-export async function sendVerificationEmail(email: string): Promise<{ success: boolean; error?: string }> {
+export async function sendVerificationEmailToExistingInvite(email: string): Promise<{ success: boolean; error?: string }> {
     const invitesCol = collection(db, 'invites');
     const q = query(invitesCol, where('email', '==', email), where('status', '==', 'pending'));
     const snapshot = await getDocs(q);
@@ -132,12 +133,7 @@ export async function sendVerificationEmail(email: string): Promise<{ success: b
     }
     
     try {
-        await sendMail({
-            to: email,
-            subject: 'Verify Your Intern Hub Account',
-            text: `Your verification code is ${verificationCode}`,
-            html: `<p>Your verification code is <strong>${verificationCode}</strong></p>`,
-        });
+        await sendVerificationEmail(email, verificationCode);
         return { success: true };
     } catch (error: any) {
         console.error("Failed to send verification email:", error);
