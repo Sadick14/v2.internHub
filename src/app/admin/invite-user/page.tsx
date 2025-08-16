@@ -7,11 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
-import { createInvite, getPendingInvites, type Invite } from '@/services/invitesService';
+import { createInvite, getPendingInvites, resendInvite, type Invite } from '@/services/invitesService';
 import { getFaculties, getDepartments, type Faculty, type Department } from '@/services/universityService';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Upload, FileDown } from 'lucide-react';
+import { Upload, FileDown, Send } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Role } from '@/hooks/use-role';
 
@@ -43,6 +43,7 @@ export default function InviteUserPage() {
     const [pendingInvites, setPendingInvites] = useState<Invite[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isFetchingInvites, setIsFetchingInvites] = useState(true);
+    const [isReinviting, setIsReinviting] = useState<string | null>(null);
 
     async function fetchPageData() {
         setIsFetchingInvites(true);
@@ -118,6 +119,25 @@ export default function InviteUserPage() {
             setIsLoading(false);
         }
     };
+
+    const handleResendInvite = async (inviteId: string) => {
+        setIsReinviting(inviteId);
+        try {
+            await resendInvite(inviteId);
+            toast({
+                title: "Invite Resent",
+                description: "The invitation email has been sent again.",
+            });
+        } catch (error: any) {
+             toast({
+                title: "Error",
+                description: `Failed to resend invite: ${error.message}`,
+                variant: "destructive",
+            });
+        } finally {
+            setIsReinviting(null);
+        }
+    }
 
     const handleDownloadTemplate = () => {
         let headers = "firstName,lastName,email";
@@ -269,8 +289,8 @@ export default function InviteUserPage() {
                                         <TableHead>Email</TableHead>
                                         <TableHead>Name</TableHead>
                                         <TableHead>Role</TableHead>
-                                        <TableHead>Department</TableHead>
                                         <TableHead>Invited On</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -280,8 +300,8 @@ export default function InviteUserPage() {
                                                 <TableCell><Skeleton className="h-5 w-48" /></TableCell>
                                                 <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                                                 <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                                                <TableCell><Skeleton className="h-5 w-40" /></TableCell>
                                                 <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                                <TableCell className="text-right"><Skeleton className="h-9 w-24" /></TableCell>
                                             </TableRow>
                                         ))
                                     ) : pendingInvites.length > 0 ? (
@@ -290,8 +310,18 @@ export default function InviteUserPage() {
                                                 <TableCell className="font-medium">{invite.email}</TableCell>
                                                 <TableCell>{invite.firstName} {invite.lastName}</TableCell>
                                                 <TableCell className="capitalize">{invite.role}</TableCell>
-                                                <TableCell>{departments.find(d => d.id === invite.departmentId)?.name || 'N/A'}</TableCell>
                                                 <TableCell>{invite.createdAt ? new Date(invite.createdAt).toLocaleDateString() : 'N/A'}</TableCell>
+                                                <TableCell className="text-right">
+                                                    <Button 
+                                                        variant="outline"
+                                                        size="sm" 
+                                                        disabled={isReinviting === invite.id}
+                                                        onClick={() => handleResendInvite(invite.id!)}
+                                                    >
+                                                        <Send className="mr-2 h-4 w-4" />
+                                                        {isReinviting === invite.id ? 'Sending...' : 'Re-invite'}
+                                                    </Button>
+                                                </TableCell>
                                             </TableRow>
                                         ))
                                     ) : (

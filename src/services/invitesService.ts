@@ -207,3 +207,22 @@ export async function completeUserRegistration(inviteId: string, authUid: string
     // Commit the batch
     await batch.commit();
 }
+
+
+export async function resendInvite(inviteId: string): Promise<void> {
+    const inviteRef = doc(db, 'invites', inviteId);
+    const inviteSnap = await getDoc(inviteRef);
+
+    if (!inviteSnap.exists()) {
+        throw new Error("Invite not found.");
+    }
+
+    const inviteData = inviteSnap.data() as Invite;
+    
+    if (inviteData.status !== 'pending') {
+        throw new Error("This invite has already been accepted.");
+    }
+
+    // Resend the original invitation email
+    await sendInviteEmail(inviteData.email, inviteData.firstName, inviteData.role as UserType);
+}
