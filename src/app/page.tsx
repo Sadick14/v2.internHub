@@ -127,7 +127,7 @@ export default function WelcomePage() {
         {/* Hero Section */}
         <section 
             id="home" 
-            className="relative h-screen flex items-center justify-center bg-cover bg-center"
+            className="relative h-screen flex items-center justify-center bg-cover bg-center pt-16"
             style={{backgroundImage: "url('/IMG-20250228-WA0051.jpg')"}}
             data-ai-hint="university campus"
         >
