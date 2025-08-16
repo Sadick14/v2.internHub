@@ -29,6 +29,7 @@ import type { Report } from '@/services/reportsService';
 import type { DailyTask } from '@/services/tasksService';
 import type { CheckIn } from '@/services/checkInService';
 import type { Evaluation } from '@/services/evaluationsService';
+import { Progress } from '@/components/ui/progress';
 
 function StudentDetailSkeleton() {
     return (
@@ -414,4 +415,3 @@ export default function StudentDetailPage({ params }: { params: { studentId: str
         </div>
     );
 }
-
