@@ -74,7 +74,7 @@ export default function StudentsPage() {
                             ))
                         ) : students.length > 0 ? (
                             students.map((student) => (
-                                <TableRow key={student.uid}>
+                                <TableRow key={student.firestoreId}>
                                     <TableCell className="font-medium">
                                         <Link href={`/admin/students/${student.uid}`} className="hover:underline text-primary">
                                             {student.fullName}
