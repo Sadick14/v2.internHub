@@ -10,9 +10,9 @@
     --card-foreground: 224 22% 17%;
     --popover: 0 0% 100%;
     --popover-foreground: 224 22% 17%;
-    --primary: 122 39% 49%; /* #4CAF50 */
+    --primary: 221 83% 53%; /* Deep Blue */
     --primary-foreground: 0 0% 100%;
-    --secondary: 211 81% 62%; /* #4895ef - Using accent as secondary for now */
+    --secondary: 122 39% 49%; /* Green */
     --secondary-foreground: 0 0% 100%;
     --muted: 120 4% 92%;
     --muted-foreground: 220 10% 45%;
@@ -22,10 +22,10 @@
     --destructive-foreground: 0 0% 100%;
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 122 39% 49%;
+    --ring: 221 83% 53%;
     --radius: 0.5rem;
-    --chart-1: 122 39% 49%;
-    --chart-2: 212 92% 51%;
+    --chart-1: 221 83% 53%;
+    --chart-2: 122 39% 49%;
     --chart-3: 48 96% 57%;
     --chart-4: 24 93% 59%;
     --chart-5: 0 84% 60%;
@@ -35,9 +35,9 @@
     --foreground: 0 0% 98%;
     --card: 222 47% 11%;
     --card-foreground: 0 0% 98%;
-    --primary: 122 39% 49%;
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 212 92% 51%;
+    --secondary: 122 39% 49%;
     --secondary-foreground: 0 0% 100%;
     --muted: 220 13% 18%;
     --muted-foreground: 220 10% 65%;
@@ -47,9 +47,9 @@
     --destructive-foreground: 0 0% 100%;
     --border: 220 13% 28%;
     --input: 220 13% 28%;
-    --ring: 122 39% 49%;
-    --chart-1: 122 39% 49%;
-    --chart-2: 212 92% 51%;
+    --ring: 221 83% 53%;
+    --chart-1: 221 83% 53%;
+    --chart-2: 122 39% 49%;
     --chart-3: 48 96% 57%;
     --chart-4: 24 93% 59%;
     --chart-5: 0 72% 51%;
