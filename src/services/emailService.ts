@@ -12,7 +12,7 @@ const MAX_WIDTH = '600px';
 const BORDER_RADIUS = '8px';
 const BOX_SHADOW = '0 4px 15px rgba(0,0,0,0.1)';
 const PADDING = '20px';
-const BASE_URL = 'https://internshiptrack-iru7j.web.app';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
 
 export type UserType = 'student' | 'supervisor' | 'lecturer' | 'hod' | 'admin';
 
