@@ -127,8 +127,8 @@ export default function WelcomePage() {
       {/* Hero Section */}
       <section 
         id="home" 
-        className="relative pt-24 pb-16 md:pt-32 md:pb-24 bg-cover bg-center"
-        style={{backgroundImage: "url('https://placehold.co/1920x1080.png')"}}
+        className="relative h-screen flex items-center justify-center bg-cover bg-center"
+        style={{backgroundImage: "url('/IMG-20250228-WA0051.jpg')"}}
         data-ai-hint="university campus"
       >
         <div className="absolute inset-0 bg-black opacity-60"></div>
@@ -145,10 +145,10 @@ export default function WelcomePage() {
                 <Link href="/dashboard" className="bg-primary hover:bg-secondary text-white font-medium py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition duration-300 text-center">
                   Get Started
                 </Link>
-                <Link href="#" className="bg-white hover:bg-gray-50 text-primary font-medium py-3 px-8 rounded-lg shadow border border-gray-200 hover:border-gray-300 transition duration-300 text-center flex items-center justify-center">
+                {/* <Link href="#" className="bg-white hover:bg-gray-50 text-primary font-medium py-3 px-8 rounded-lg shadow border border-gray-200 hover:border-gray-300 transition duration-300 text-center flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
                   Watch Demo
-                </Link>
+                </Link> */}
               </div>
               
             </div>
