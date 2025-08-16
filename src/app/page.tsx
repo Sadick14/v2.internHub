@@ -125,14 +125,20 @@ export default function WelcomePage() {
       </nav>
 
       {/* Hero Section */}
-      <section id="home" className="pt-24 pb-16 md:pt-32 md:pb-24 hero-pattern">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section 
+        id="home" 
+        className="relative pt-24 pb-16 md:pt-32 md:pb-24 bg-cover bg-center"
+        style={{backgroundImage: "url('https://placehold.co/1920x1080.png')"}}
+        data-ai-hint="university campus"
+      >
+        <div className="absolute inset-0 bg-black opacity-60"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
           <div className="flex flex-col md:flex-row items-center">
-            <div className="md:w-1/2 md:pr-12">
+            <div className="md:w-1/2 md:pr-12 text-white">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                Streamline Your <span className="gradient-text">Internship</span> Management
+                Streamline Your <span className="text-success">Internship</span> Management
               </h1>
-              <p className="mt-6 text-lg text-gray-600 max-w-lg">
+              <p className="mt-6 text-lg text-gray-200 max-w-lg">
                 InternHub simplifies internship management for technical universities. Connect students with industry partners, track progress, and ensure successful outcomes.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
@@ -272,4 +278,3 @@ export default function WelcomePage() {
     </div>
   );
 }
-
