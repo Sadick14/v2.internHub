@@ -123,7 +123,7 @@ export default function WelcomePage() {
         </div>
         </div>
     </nav>
-        <div className="bg-light text-dark">
+        <div className="bg-light pt-16 text-dark">
         {/* Hero Section */}
         <section 
             id="home" 
@@ -178,18 +178,7 @@ export default function WelcomePage() {
                         </div>
                         </div>
                     </div>
-                    </div>
-                    <div className="absolute -bottom-6 -right-6 bg-white rounded-2xl shadow-xl p-4 w-64">
-                    <div className="flex items-center">
-                        <div className="bg-green-100 p-2 rounded-lg">
-                        <CheckCircle className="text-green-500 text-xl" />
-                        </div>
-                        <div className="ml-3">
-                        <p className="font-medium">94% Active Performance</p>
-                        <p className="text-sm text-gray-500">This week</p>
-                        </div>
-                    </div>
-                    </div>
+                    </div>            
                 </div>
                 </div>
             </div>

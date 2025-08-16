@@ -8,7 +8,7 @@ import type { Role } from '@/hooks/use-role';
 import { createAuditLog } from './auditLogService';
 import type { UserProfile } from './userService';
 import { createNotification } from './notificationsService';
-import { sendInviteEmail, sendVerificationCodeEmail } from './emailService';
+import { sendInviteEmail, sendVerificationCodeEmail, type UserType } from './emailService';
 
 
 export interface Invite {
@@ -88,7 +88,7 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
         await addDoc(invitesCol, newInvite);
         
         // 3. Directly send the initial invitation email using the email service
-        await sendInviteEmail(email, firstName);
+        await sendInviteEmail(email, firstName, role as UserType);
 
         // 4. Create an audit log
         if (invitedBy) {
