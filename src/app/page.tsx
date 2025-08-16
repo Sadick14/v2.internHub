@@ -236,19 +236,28 @@ export default function WelcomePage() {
               <div className="text-center">
                   <h2 className="text-base font-semibold text-primary uppercase tracking-wide">Process</h2>
                   <h3 className="mt-2 text-3xl font-bold text-gray-900 sm:text-4xl">
-                      How Intern Hub Works
+                      How InternTrack Works
                   </h3>
                   <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
                       A simple three-step process to streamline your internship management.
                   </p>
               </div>
 
-              <div className="mt-16">
-                  <div className="flex flex-col md:flex-row justify-between items-center relative">
-                      <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gray-200 -translate-y-1/2"></div>
-                      <HowItWorksStep number="1" title="Setup & Integration" description="Intern Hub configures your internship programs." />
-                      <HowItWorksStep number="2" title="Student Onboarding" description="Students verify their account and apply for internships through our platform." />
-                      <HowItWorksStep number="3" title="Management & Tracking" description="Monitor progress, evaluate performance, and manage all aspects of internships in one place." />
+              <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+                  <div className="flex flex-col items-center">
+                      <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-white text-2xl font-bold mb-6">1</div>
+                      <h4 className="text-xl font-bold text-gray-900">Setup & Integration</h4>
+                      <p className="mt-2 text-gray-600">Admins configure the university structure and invite students, lecturers, and company supervisors to the platform.</p>
+                  </div>
+                   <div className="flex flex-col items-center">
+                      <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-white text-2xl font-bold mb-6">2</div>
+                      <h4 className="text-xl font-bold text-gray-900">Daily Tracking</h4>
+                      <p className="mt-2 text-gray-600">Students check in, declare daily tasks, and submit reports. Supervisors and lecturers monitor progress and provide feedback.</p>
+                  </div>
+                   <div className="flex flex-col items-center">
+                      <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-white text-2xl font-bold mb-6">3</div>
+                      <h4 className="text-xl font-bold text-gray-900">Evaluation & Reporting</h4>
+                      <p className="mt-2 text-gray-600">All stakeholders evaluate student performance, while the system generates comprehensive reports and analytics for oversight.</p>
                   </div>
               </div>
           </div>
