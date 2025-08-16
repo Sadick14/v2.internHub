@@ -8,7 +8,7 @@ import type { Role } from '@/hooks/use-role';
 import { createAuditLog } from './auditLogService';
 import type { UserProfile } from './userService';
 import { createNotification } from './notificationsService';
-import { sendVerificationEmail } from './emailService';
+import { sendInviteEmail, sendVerificationCodeEmail } from './emailService';
 
 
 export interface Invite {
@@ -87,8 +87,8 @@ export async function createInvite(inviteData: Omit<Invite, 'status' | 'createdA
 
         await addDoc(invitesCol, newInvite);
         
-        // 3. Directly send the verification email using the email service
-        await sendVerificationEmail(email, verificationCode);
+        // 3. Directly send the initial invitation email using the email service
+        await sendInviteEmail(email, firstName);
 
         // 4. Create an audit log
         if (invitedBy) {
@@ -133,7 +133,7 @@ export async function sendVerificationEmailToExistingInvite(email: string): Prom
     }
     
     try {
-        await sendVerificationEmail(email, verificationCode);
+        await sendVerificationCodeEmail(email, verificationCode);
         return { success: true };
     } catch (error: any) {
         console.error("Failed to send verification email:", error);

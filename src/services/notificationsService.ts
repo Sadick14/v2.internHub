@@ -51,7 +51,7 @@ export async function createNotification(notificationData: NewAppNotification): 
         
         let shouldSendEmail = false;
 
-        // Don't send emails for new invites via this service.
+        // Do not send emails for new invites via this service.
         // It's handled directly by invitesService now for reliability.
         if (notificationData.type === 'NEW_INVITE') {
             return;
@@ -119,7 +119,8 @@ export async function createNotification(notificationData: NewAppNotification): 
 export async function getNotifications(userId: string): Promise<AppNotification[]> {
     const q = query(
         notificationsCollectionRef, 
-        where('userId', '==', userId)
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc')
     );
     const snapshot = await getDocs(q);
 
@@ -132,7 +133,7 @@ export async function getNotifications(userId: string): Promise<AppNotification[
         } as AppNotification;
     });
 
-    return notifications.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return notifications;
 }
 
 export async function markNotificationAsRead(notificationId: string): Promise<void> {
