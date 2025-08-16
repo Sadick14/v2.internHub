@@ -6,7 +6,7 @@ import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs, query, where, orderBy, serverTimestamp, Timestamp, updateDoc, doc } from 'firebase/firestore';
 import { getSettings } from './settingsService';
 import { getUserById } from './userService';
-import { sendGenericNotificationEmail } from './emailService';
+import { sendGenericNotificationEmail, sendInviteEmail, sendVerificationCodeEmail } from './emailService';
 
 
 export type NotificationType = 
@@ -51,8 +51,7 @@ export async function createNotification(notificationData: NewAppNotification): 
         
         let shouldSendEmail = false;
 
-        // Do not send emails for new invites via this service.
-        // It's handled directly by invitesService now for reliability.
+        // NEW_INVITE is handled directly by invitesService now.
         if (notificationData.type === 'NEW_INVITE') {
             return;
         }
@@ -85,7 +84,6 @@ export async function createNotification(notificationData: NewAppNotification): 
                 shouldSendEmail = settings.notifications.lecturerAssignedToStudent;
                 break;
             // For reminders and alerts, we assume they should always send if the service is called.
-            // The logic to *trigger* these is separate from the notification creation itself.
             case 'EVALUATION_REMINDER':
             case 'TERM_ENDING_REMINDER':
             case 'ABUSE_REPORT_SUBMITTED':
@@ -119,8 +117,8 @@ export async function createNotification(notificationData: NewAppNotification): 
 export async function getNotifications(userId: string): Promise<AppNotification[]> {
     const q = query(
         notificationsCollectionRef, 
-        where('userId', '==', userId),
-        orderBy('createdAt', 'desc')
+        where('userId', '==', userId)
+        // orderBy('createdAt', 'desc') removed to prevent index error
     );
     const snapshot = await getDocs(q);
 
@@ -133,7 +131,8 @@ export async function getNotifications(userId: string): Promise<AppNotification[
         } as AppNotification;
     });
 
-    return notifications;
+    // Sort in application code instead of in the query
+    return notifications.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
 
 export async function markNotificationAsRead(notificationId: string): Promise<void> {
