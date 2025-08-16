@@ -20,7 +20,8 @@ export type NotificationType =
     | 'LECTURER_ASSIGNED'
     | 'EVALUATION_REMINDER'
     | 'TERM_ENDING_REMINDER'
-    | 'ABUSE_REPORT_SUBMITTED';
+    | 'ABUSE_REPORT_SUBMITTED'
+    | 'ANNOUNCEMENT';
 
 export interface AppNotification {
     id: string;
@@ -52,7 +53,8 @@ export async function createNotification(notificationData: NewAppNotification): 
         let shouldSendEmail = false;
 
         // NEW_INVITE is handled directly by invitesService now.
-        if (notificationData.type === 'NEW_INVITE') {
+        if (notificationData.type === 'NEW_INVITE' || notificationData.type === 'ANNOUNCEMENT') {
+            // Emailing for these types is handled by their respective services (invites, announcements)
             return;
         }
         
@@ -117,8 +119,8 @@ export async function createNotification(notificationData: NewAppNotification): 
 export async function getNotifications(userId: string): Promise<AppNotification[]> {
     const q = query(
         notificationsCollectionRef, 
-        where('userId', '==', userId)
-        // orderBy('createdAt', 'desc') removed to prevent index error
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc')
     );
     const snapshot = await getDocs(q);
 
@@ -131,8 +133,7 @@ export async function getNotifications(userId: string): Promise<AppNotification[
         } as AppNotification;
     });
 
-    // Sort in application code instead of in the query
-    return notifications.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return notifications;
 }
 
 export async function markNotificationAsRead(notificationId: string): Promise<void> {

@@ -14,7 +14,8 @@ import {
   UserCheck,
   User,
   FileText,
-  GraduationCap
+  GraduationCap,
+  Megaphone
 } from 'lucide-react';
 
 import { UserNav } from '@/components/layout/user-nav';
@@ -48,6 +49,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     { href: '/admin/users', label: 'User Management', icon: Users },
     { href: '/admin/students', label: 'Students', icon: User },
     { href: '/admin/reports', label: 'Reports', icon: FileText },
+    { href: '/admin/announcements', label: 'Announcements', icon: Megaphone },
     { href: '/admin/invite-user', label: 'Invite User', icon: Send },
     { href: '/admin/assign-lecturers', label: 'Assign Lecturers', icon: UserCheck },
     { href: '/admin/university-structure', label: 'University Structure', icon: Building },

@@ -100,7 +100,7 @@ export async function sendInviteEmail(
   to: string,
   name: string,
   userType: UserType,
-  verificationLink: string = 'https://internshiphub.up.railway.app/verify'
+  verificationLink: string = 'https://internshiptrack-iru7j.web.app/verify'
 ): Promise<void> {
   const { subject, greeting, intro, purpose, buttonText } = getUserInviteDetails(userType, name);
 
@@ -164,15 +164,46 @@ export async function sendVerificationCodeEmail(to: string, code: string): Promi
 export async function sendGenericNotificationEmail(to: string, notification: Pick<AppNotification, 'title' | 'message' | 'href'>): Promise<void> {
     const { title, message, href } = notification;
     const subject = `InternHub Notification: ${title}`;
-    const text = `${message}\n\nYou can view this notification in the InternHub app (HTU): https://internshiphub.up.railway.app${href || '/'}`;
+    const text = `${message}\n\nYou can view this notification in the InternHub app (HTU): https://internshiptrack-iru7j.web.app${href || '/'}`;
     const content = `
        <div style="padding: 30px;">
         <h2 style="color: #333333; font-size: 20px;">${title}</h2>
         <p style="color: #555555; line-height: 1.6;">${message}</p>
-        ${href ? emailButton('View Details in App', `https://internshiphub.up.railway.app${href}`, BRAND_COLOR_SECONDARY) : ''}
+        ${href ? emailButton('View Details in App', `https://internshiptrack-iru7j.web.app${href}`, BRAND_COLOR_SECONDARY) : ''}
       </div>
     `;
     const footer = `<p style="font-size: 12px; color: #888888; margin: 0;">You are receiving this email because of activity related to your account on the InternHub platform for HTU. You can manage your notification preferences in your account settings.</p><p style="font-size: 12px; color: #888888; margin: 5px 0 0 0;">&copy; ${new Date().getFullYear()} InternHub Team (HTU)</p>`;
 
     await sendMail({ to, subject, text, html: baseEmailTemplate(content, { headerColor: BRAND_COLOR_SECONDARY, headerText: 'InternHub Notification (HTU)', customFooter: footer}) });
+}
+
+
+/**
+ * Sends an announcement email to a user.
+ * @param to Recipient's email address.
+ * @param name Recipient's name.
+ * @param title The announcement title/subject.
+ * @param message The announcement message body (can contain HTML).
+ */
+export async function sendAnnouncementEmail(to: string, name: string, title: string, message: string): Promise<void> {
+    const subject = `InternHub Announcement: ${title}`;
+    const text = `Hello ${name},\n\nAn announcement has been posted on the InternHub platform:\n\nTitle: ${title}\n\n${message.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, '')}\n\n---\nInternHub Team (HTU)`;
+    
+    // Sanitize message for HTML email by replacing newlines with <br>
+    const htmlMessage = message.replace(/\n/g, '<br />');
+
+    const content = `
+       <div style="padding: 30px;">
+        <h2 style="color: #333333; font-size: 20px;">Hello ${name},</h2>
+        <p style="color: #555555; line-height: 1.6;">A new announcement has been posted on the InternHub platform:</p>
+        <div style="padding: 20px; border-left: 4px solid ${BRAND_COLOR_SECONDARY}; background-color: #f8f9fa; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #333;">${title}</h3>
+            <p style="color: #555555; line-height: 1.6;">${htmlMessage}</p>
+        </div>
+        ${emailButton('Go to Dashboard', `https://internshiptrack-iru7j.web.app/dashboard`, BRAND_COLOR_SECONDARY)}
+      </div>
+    `;
+     const footer = `<p style="font-size: 12px; color: #888888; margin: 0;">You are receiving this email as a member of the InternHub platform for HTU. This is an official announcement from the administration.</p><p style="font-size: 12px; color: #888888; margin: 5px 0 0 0;">&copy; ${new Date().getFullYear()} InternHub Team (HTU)</p>`;
+
+    await sendMail({ to, subject, text, html: baseEmailTemplate(content, { headerColor: BRAND_COLOR_PRIMARY, headerText: 'Official Announcement (HTU)', customFooter: footer}) });
 }
