@@ -9,9 +9,44 @@ import { getCheckInsForInterns, type CheckIn } from '@/services/checkInService';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRole } from '@/hooks/use-role';
 import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Map } from 'lucide-react';
 
 interface CheckInWithStudentName extends CheckIn {
     studentName: string;
+}
+
+const MapDialog = ({ checkIn }: { checkIn: CheckIn }) => {
+    if (!checkIn.isGpsVerified || !checkIn.latitude || !checkIn.longitude) {
+        return null;
+    }
+    
+    const { latitude, longitude } = checkIn;
+    const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${longitude - 0.005}%2C${latitude - 0.005}%2C${longitude + 0.005}%2C${latitude + 0.005}&layer=mapnik&marker=${latitude}%2C${longitude}`;
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="outline" size="sm"><Map className="mr-2 h-4 w-4"/>View Map</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[625px]">
+                <DialogHeader>
+                    <DialogTitle>Check-in Location</DialogTitle>
+                    <DialogDescription>{checkIn.address_resolved}</DialogDescription>
+                </DialogHeader>
+                <div className="aspect-video w-full rounded-md overflow-hidden border">
+                    <iframe
+                        width="100%"
+                        height="100%"
+                        frameBorder="0"
+                        scrolling="no"
+                        src={mapSrc}
+                    ></iframe>
+                </div>
+            </DialogContent>
+        </Dialog>
+    )
 }
 
 export default function LecturerCheckInsPage() {
@@ -59,10 +94,10 @@ export default function LecturerCheckInsPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Intern Name</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Time</TableHead>
+                            <TableHead>Date & Time</TableHead>
                             <TableHead>Method</TableHead>
                             <TableHead>Details</TableHead>
+                            <TableHead className="text-right">Map</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -70,18 +105,20 @@ export default function LecturerCheckInsPage() {
                             Array.from({ length: 5 }).map((_, i) => (
                                 <TableRow key={i}>
                                     <TableCell><Skeleton className="h-5 w-40" /></TableCell>
-                                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                                    <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                                    <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                                     <TableCell><Skeleton className="h-6 w-24" /></TableCell>
                                     <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                    <TableCell className="text-right"><Skeleton className="h-9 w-24" /></TableCell>
                                 </TableRow>
                             ))
                         ) : checkIns.length > 0 ? (
                             checkIns.map((checkIn) => (
                                 <TableRow key={checkIn.id}>
                                     <TableCell className="font-medium">{checkIn.studentName}</TableCell>
-                                    <TableCell>{format(checkIn.timestamp, 'PPP')}</TableCell>
-                                    <TableCell>{format(checkIn.timestamp, 'p')}</TableCell>
+                                    <TableCell>
+                                        <div>{format(checkIn.timestamp, 'PPP')}</div>
+                                        <div className="text-xs text-muted-foreground">{format(checkIn.timestamp, 'p')}</div>
+                                    </TableCell>
                                     <TableCell>
                                         <Badge variant={checkIn.isGpsVerified ? 'default' : 'secondary'}>
                                             {checkIn.isGpsVerified ? 'GPS Verified' : 'Manual'}
@@ -89,6 +126,9 @@ export default function LecturerCheckInsPage() {
                                     </TableCell>
                                     <TableCell className="text-muted-foreground">
                                         {checkIn.isGpsVerified ? checkIn.address_resolved : checkIn.manualReason}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        {checkIn.isGpsVerified && <MapDialog checkIn={checkIn} />}
                                     </TableCell>
                                 </TableRow>
                             ))

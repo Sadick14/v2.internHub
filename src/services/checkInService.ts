@@ -74,17 +74,21 @@ export async function createCheckIn(checkInData: NewCheckIn): Promise<CheckIn> {
     }
 
     const dataToSave: any = {
-        ...checkInData,
+        studentId: checkInData.studentId,
+        isGpsVerified: checkInData.isGpsVerified,
         timestamp: serverTimestamp(),
     };
 
     if (checkInData.isGpsVerified && checkInData.latitude && checkInData.longitude) {
         // Reverse geocode the coordinates to get a human-readable address.
+        dataToSave.latitude = checkInData.latitude;
+        dataToSave.longitude = checkInData.longitude;
         dataToSave.address_resolved = await reverseGeocodeNominatim(checkInData.latitude, checkInData.longitude);
+    } else {
+        dataToSave.manualReason = checkInData.manualReason;
     }
     
-    const newDocRef = doc(checkInCollectionRef);
-    await addDoc(checkInCollectionRef, dataToSave);
+    const newDocRef = await addDoc(checkInCollectionRef, dataToSave);
 
     const student = await getUserById(checkInData.studentId);
      if (student) {
@@ -99,9 +103,8 @@ export async function createCheckIn(checkInData: NewCheckIn): Promise<CheckIn> {
 
     return {
         id: newDocRef.id,
-        ...checkInData,
+        ...dataToSave,
         timestamp: new Date(), // return current time as placeholder until fetched
-        address_resolved: dataToSave.address_resolved
     } as CheckIn;
 }
 
