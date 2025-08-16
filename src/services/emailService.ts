@@ -22,7 +22,9 @@ export async function sendInviteEmail(to: string, name: string): Promise<void> {
         <a href="https://internshiptrack-iru7j.web.app/verify" style="background-color: #221C4A; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Verify Your Account</a>
       </p>
       <p>If you did not expect this invitation, you can safely ignore this email.</p>
-      <p>Best,<br/>The InternHub Team (HTU)</p>
+      <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+      <p style="font-size: 12px; color: #888;">You received this email because an administrator or your supervisor invited you to the InternHub platform for HTU.</p>
+      <p style="font-size: 12px; color: #888;">&copy; InternHub Team (HTU)</p>
     </div>
   `;
 
@@ -45,6 +47,9 @@ export async function sendVerificationCodeEmail(to: string, code: string): Promi
       <p style="font-size: 24px; font-weight: bold; letter-spacing: 2px; background-color: #f0f2f0; padding: 10px 20px; display: inline-block; border-radius: 5px;">${code}</p>
       <p>Please use this code to complete your registration on the InternHub platform for HTU.</p>
       <p>If you did not request this, please ignore this email.</p>
+      <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+      <p style="font-size: 12px; color: #888;">You received this email because you requested a verification code for the InternHub platform for HTU.</p>
+      <p style="font-size: 12px; color: #888;">&copy; InternHub Team (HTU)</p>
     </div>
   `;
 
@@ -66,7 +71,10 @@ export async function sendGenericNotificationEmail(to: string, notification: Pic
             <h1 style="color: #221C4A;">InternHub Notification (HTU)</h1>
             <h2 style="color: #4A90E2;">${title}</h2>
             <p>${message}</p>
-            ${href ? `<p><a href="https://internshiptrack-iru7j.web.app${href}" style="background-color: #4A90E2; color: white; padding: 10px 15px; text-decoration: none; border-radius: 5px;">View Details in App</a></p>` : ''}
+            ${href ? `<p style="margin: 25px 0;"><a href="https://internshiptrack-iru7j.web.app${href}" style="background-color: #4A90E2; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Details in App</a></p>` : ''}
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+            <p style="font-size: 12px; color: #888;">You are receiving this email because of activity related to your account on the InternHub platform for HTU. You can manage your notification preferences in your account settings.</p>
+            <p style="font-size: 12px; color: #888;">&copy; InternHub Team (HTU)</p>
         </div>
     `;
 
