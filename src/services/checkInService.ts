@@ -30,6 +30,41 @@ export interface NewCheckIn {
 
 const checkInCollectionRef = collection(db, 'check_ins');
 
+async function reverseGeocodeNominatim(lat: number, lng: number): Promise<string | null> {
+  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+  
+  try {
+    const response = await fetch(url, {
+        headers: {
+            'User-Agent': 'InternTrackApp/1.0 (internship.management.app)'
+        }
+    });
+    const data = await response.json();
+    
+    if (data && data.address) {
+      // Construct a concise address from available components
+      const addressParts = [
+        data.address.road || data.address.pedestrian,
+        data.address.suburb,
+        data.address.city || data.address.town || data.address.village,
+        data.address.state,
+        data.address.country
+      ];
+      const address = addressParts.filter(Boolean).join(', ');
+      
+      return address || data.display_name;
+    } else {
+      console.error('Geocoding failed, no address found in response:', data);
+      return `Location at ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    }
+  } catch (error) {
+    console.error('Error fetching geocoding data:', error);
+    // Fallback to coordinates on error
+    return `Location at ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  }
+}
+
+
 export async function createCheckIn(checkInData: NewCheckIn): Promise<CheckIn> {
     
     // Check if user already checked in today
@@ -44,9 +79,8 @@ export async function createCheckIn(checkInData: NewCheckIn): Promise<CheckIn> {
     };
 
     if (checkInData.isGpsVerified && checkInData.latitude && checkInData.longitude) {
-        // In a real app, you would call a reverse geocoding API here.
-        // For now, we'll use a placeholder.
-        dataToSave.address_resolved = `Location at ${checkInData.latitude.toFixed(4)}, ${checkInData.longitude.toFixed(4)}`;
+        // Reverse geocode the coordinates to get a human-readable address.
+        dataToSave.address_resolved = await reverseGeocodeNominatim(checkInData.latitude, checkInData.longitude);
     }
     
     const newDocRef = doc(checkInCollectionRef);

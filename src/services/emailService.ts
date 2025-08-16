@@ -100,7 +100,7 @@ export async function sendInviteEmail(
   to: string,
   name: string,
   userType: UserType,
-  verificationLink: string = 'https://internshiptrack-iru7j.web.app/verify'
+  verificationLink: string = 'https://internshiphub.up.railway.app/verify'
 ): Promise<void> {
   const { subject, greeting, intro, purpose, buttonText } = getUserInviteDetails(userType, name);
 
@@ -164,12 +164,12 @@ export async function sendVerificationCodeEmail(to: string, code: string): Promi
 export async function sendGenericNotificationEmail(to: string, notification: Pick<AppNotification, 'title' | 'message' | 'href'>): Promise<void> {
     const { title, message, href } = notification;
     const subject = `InternHub Notification: ${title}`;
-    const text = `${message}\n\nYou can view this notification in the InternHub app (HTU): https://internshiptrack-iru7j.web.app${href || '/'}`;
+    const text = `${message}\n\nYou can view this notification in the InternHub app (HTU): https://internshiphub.up.railway.app${href || '/'}`;
     const content = `
        <div style="padding: 30px;">
         <h2 style="color: #333333; font-size: 20px;">${title}</h2>
         <p style="color: #555555; line-height: 1.6;">${message}</p>
-        ${href ? emailButton('View Details in App', `https://internshiptrack-iru7j.web.app${href}`, BRAND_COLOR_SECONDARY) : ''}
+        ${href ? emailButton('View Details in App', `https://internshiphub.up.railway.app${href}`, BRAND_COLOR_SECONDARY) : ''}
       </div>
     `;
     const footer = `<p style="font-size: 12px; color: #888888; margin: 0;">You are receiving this email because of activity related to your account on the InternHub platform for HTU. You can manage your notification preferences in your account settings.</p><p style="font-size: 12px; color: #888888; margin: 5px 0 0 0;">&copy; ${new Date().getFullYear()} InternHub Team (HTU)</p>`;
