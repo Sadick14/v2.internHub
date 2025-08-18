@@ -145,12 +145,12 @@ export default function HistoryPage() {
     return (
         <Card>
             <CardHeader>
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                      <div>
                         <CardTitle className="font-headline">My History</CardTitle>
                         <CardDescription>A log of all your submitted reports and declared tasks.</CardDescription>
                      </div>
-                     <Button variant="outline" onClick={handleDownload} disabled={isLoading}>
+                     <Button variant="outline" onClick={handleDownload} disabled={isLoading} className="w-full sm:w-auto">
                         <Download className="mr-2 h-4 w-4" />
                         Download All Data
                     </Button>
