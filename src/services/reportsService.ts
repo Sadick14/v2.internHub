@@ -139,6 +139,7 @@ export async function getReportsBySupervisor(supervisorId: string, statuses?: Re
             ...data,
             reportDate: (data.reportDate as Timestamp).toDate(),
             createdAt: (data.createdAt as Timestamp).toDate(),
+            updatedAt: (data.updatedAt as Timestamp)?.toDate(),
         } as Report;
     });
 }
