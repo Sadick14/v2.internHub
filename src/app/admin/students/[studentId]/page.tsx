@@ -6,7 +6,7 @@ import { getStudentDetails, type StudentDetails } from '@/services/userService';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Briefcase, Calendar, Mail, Phone, User as UserIcon, Building2, Clock, FileText, Bot, MessageSquare, CheckCircle, ListTodo, CalendarCheck, Award, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ArrowLeft, Briefcase, Calendar, Mail, Phone, User as UserIcon, Building2, Clock, FileText, Bot, MessageSquare, CheckCircle, ListTodo, CalendarCheck, Award, ThumbsUp, ThumbsDown, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -203,12 +203,44 @@ const TasksTab = ({ tasks }: { tasks: DailyTask[] }) => (
     </Card>
 );
 
+const MapDialog = ({ checkIn }: { checkIn: CheckIn }) => {
+    if (!checkIn.isGpsVerified || !checkIn.latitude || !checkIn.longitude) {
+        return null;
+    }
+    
+    const { latitude, longitude } = checkIn;
+    const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${longitude - 0.005}%2C${latitude - 0.005}%2C${longitude + 0.005}%2C${latitude + 0.005}&layer=mapnik&marker=${latitude}%2C${longitude}`;
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="outline" size="sm"><Map className="mr-2 h-4 w-4"/>View Map</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[625px]">
+                <DialogHeader>
+                    <DialogTitle>Check-in Location</DialogTitle>
+                    <DialogDescription>{checkIn.address_resolved}</DialogDescription>
+                </DialogHeader>
+                <div className="aspect-video w-full rounded-md overflow-hidden border">
+                    <iframe
+                        width="100%"
+                        height="100%"
+                        frameBorder="0"
+                        scrolling="no"
+                        src={mapSrc}
+                    ></iframe>
+                </div>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 const AttendanceTab = ({ checkIns }: { checkIns: CheckIn[] }) => (
     <Card>
         <CardHeader><CardTitle className="font-headline">Attendance History</CardTitle><CardDescription>A log of all daily check-ins.</CardDescription></CardHeader>
         <CardContent>
             <Table>
-                <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Time</TableHead><TableHead>Method</TableHead><TableHead>Details</TableHead></TableRow></TableHeader>
+                <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Time</TableHead><TableHead>Method</TableHead><TableHead>Details</TableHead><TableHead className="text-right">Map</TableHead></TableRow></TableHeader>
                 <TableBody>
                     {checkIns.length > 0 ? (
                         checkIns.map(checkIn => (
@@ -217,9 +249,12 @@ const AttendanceTab = ({ checkIns }: { checkIns: CheckIn[] }) => (
                                 <TableCell>{format(checkIn.timestamp, 'p')}</TableCell>
                                 <TableCell><Badge variant={checkIn.isGpsVerified ? 'default' : 'secondary'}>{checkIn.isGpsVerified ? 'GPS Verified' : 'Manual'}</Badge></TableCell>
                                 <TableCell className="text-muted-foreground">{checkIn.isGpsVerified ? checkIn.address_resolved : checkIn.manualReason}</TableCell>
+                                <TableCell className="text-right">
+                                    {checkIn.isGpsVerified && <MapDialog checkIn={checkIn} />}
+                                </TableCell>
                             </TableRow>
                         ))
-                    ) : <TableRow><TableCell colSpan={4} className="text-center h-24 text-muted-foreground">No check-ins have been recorded.</TableCell></TableRow>}
+                    ) : <TableRow><TableCell colSpan={5} className="text-center h-24 text-muted-foreground">No check-ins have been recorded.</TableCell></TableRow>}
                 </TableBody>
             </Table>
         </CardContent>

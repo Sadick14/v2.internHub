@@ -8,6 +8,42 @@ import { getCheckInsByStudentId, type CheckIn } from '@/services/checkInService'
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { isSameDay } from 'date-fns';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Map } from 'lucide-react';
+
+
+const MapDialog = ({ checkIn }: { checkIn: CheckIn }) => {
+    if (!checkIn.isGpsVerified || !checkIn.latitude || !checkIn.longitude) {
+        return null;
+    }
+    
+    const { latitude, longitude } = checkIn;
+    const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${longitude - 0.005}%2C${latitude - 0.005}%2C${longitude + 0.005}%2C${latitude + 0.005}&layer=mapnik&marker=${latitude}%2C${longitude}`;
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="mt-2"><Map className="mr-2 h-4 w-4"/>View Map</Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[625px]">
+                <DialogHeader>
+                    <DialogTitle>Check-in Location</DialogTitle>
+                    <DialogDescription>{checkIn.address_resolved}</DialogDescription>
+                </DialogHeader>
+                <div className="aspect-video w-full rounded-md overflow-hidden border">
+                    <iframe
+                        width="100%"
+                        height="100%"
+                        frameBorder="0"
+                        scrolling="no"
+                        src={mapSrc}
+                    ></iframe>
+                </div>
+            </DialogContent>
+        </Dialog>
+    )
+}
 
 export default function AttendancePage() {
     const { user } = useRole();
@@ -85,6 +121,7 @@ export default function AttendancePage() {
                                     {selectedDayCheckIn.isGpsVerified ? selectedDayCheckIn.address_resolved : selectedDayCheckIn.manualReason}
                                 </span>
                             </p>
+                            {selectedDayCheckIn.isGpsVerified && <MapDialog checkIn={selectedDayCheckIn} />}
                         </div>
                     ) : (
                         <div className="text-center text-muted-foreground py-10">
