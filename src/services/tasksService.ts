@@ -29,6 +29,8 @@ export interface NewDailyTask {
     learningObjectives: string;
 }
 
+const tasksCollectionRef = collection(db, 'daily_tasks');
+
 export async function createTask(taskData: NewDailyTask): Promise<void> {
     const studentProfile = await getUserById(taskData.studentId);
     if (!studentProfile) throw new Error("Student not found.");
