@@ -251,7 +251,7 @@ export default function InternDetailPage({ params }: { params: { internId: strin
             setIsLoading(false);
         }
         fetchData();
-    }, [params]);
+    }, [params.internId]);
 
     if (isLoading) {
         return (
@@ -302,3 +302,5 @@ export default function InternDetailPage({ params }: { params: { internId: strin
         </div>
     )
 }
+
+    
