@@ -83,6 +83,32 @@ export default function LecturerCheckInsPage() {
         fetchData();
     }, [user]);
 
+    const CheckInCard = ({ checkIn }: { checkIn: CheckInWithStudentName }) => (
+         <Card>
+            <CardContent className="pt-6">
+                 <div className="flex justify-between items-start">
+                    <div>
+                        <div className="font-medium">{checkIn.studentName}</div>
+                        <div className="text-sm text-muted-foreground">
+                            {format(checkIn.timestamp, 'PPP')} at {format(checkIn.timestamp, 'p')}
+                        </div>
+                    </div>
+                     <Badge variant={checkIn.isGpsVerified ? 'default' : 'secondary'}>
+                        {checkIn.isGpsVerified ? 'GPS Verified' : 'Manual'}
+                    </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                    {checkIn.isGpsVerified ? checkIn.address_resolved : checkIn.manualReason}
+                </p>
+                {checkIn.isGpsVerified &&
+                    <div className="mt-4">
+                        <MapDialog checkIn={checkIn} />
+                    </div>
+                }
+            </CardContent>
+        </Card>
+    );
+
     return (
         <Card>
             <CardHeader>
@@ -90,57 +116,70 @@ export default function LecturerCheckInsPage() {
                 <CardDescription>A log of all daily check-ins from your assigned interns.</CardDescription>
             </CardHeader>
             <CardContent>
-                 <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Intern Name</TableHead>
-                            <TableHead>Date & Time</TableHead>
-                            <TableHead>Method</TableHead>
-                            <TableHead>Details</TableHead>
-                            <TableHead className="text-right">Map</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                            Array.from({ length: 5 }).map((_, i) => (
-                                <TableRow key={i}>
-                                    <TableCell><Skeleton className="h-5 w-40" /></TableCell>
-                                    <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                                    <TableCell><Skeleton className="h-6 w-24" /></TableCell>
-                                    <TableCell><Skeleton className="h-5 w-48" /></TableCell>
-                                    <TableCell className="text-right"><Skeleton className="h-9 w-24" /></TableCell>
-                                </TableRow>
-                            ))
-                        ) : checkIns.length > 0 ? (
-                            checkIns.map((checkIn) => (
-                                <TableRow key={checkIn.id}>
-                                    <TableCell className="font-medium">{checkIn.studentName}</TableCell>
-                                    <TableCell>
-                                        <div>{format(checkIn.timestamp, 'PPP')}</div>
-                                        <div className="text-xs text-muted-foreground">{format(checkIn.timestamp, 'p')}</div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant={checkIn.isGpsVerified ? 'default' : 'secondary'}>
-                                            {checkIn.isGpsVerified ? 'GPS Verified' : 'Manual'}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-muted-foreground">
-                                        {checkIn.isGpsVerified ? checkIn.address_resolved : checkIn.manualReason}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        {checkIn.isGpsVerified && <MapDialog checkIn={checkIn} />}
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
-                             <TableRow>
-                                <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                                    No check-ins have been recorded yet.
-                                </TableCell>
+                {/* Mobile View */}
+                <div className="md:hidden space-y-4">
+                    {isLoading ? (
+                        Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)
+                    ) : checkIns.length > 0 ? (
+                        checkIns.map((checkIn) => <CheckInCard key={checkIn.id} checkIn={checkIn} />)
+                    ) : (
+                        <p className="text-center text-muted-foreground py-10">No check-ins have been recorded yet.</p>
+                    )}
+                </div>
+                {/* Desktop View */}
+                 <div className="hidden md:block">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Intern Name</TableHead>
+                                <TableHead>Date & Time</TableHead>
+                                <TableHead>Method</TableHead>
+                                <TableHead>Details</TableHead>
+                                <TableHead className="text-right">Map</TableHead>
                             </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading ? (
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-6 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                        <TableCell className="text-right"><Skeleton className="h-9 w-24" /></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : checkIns.length > 0 ? (
+                                checkIns.map((checkIn) => (
+                                    <TableRow key={checkIn.id}>
+                                        <TableCell className="font-medium">{checkIn.studentName}</TableCell>
+                                        <TableCell>
+                                            <div>{format(checkIn.timestamp, 'PPP')}</div>
+                                            <div className="text-xs text-muted-foreground">{format(checkIn.timestamp, 'p')}</div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant={checkIn.isGpsVerified ? 'default' : 'secondary'}>
+                                                {checkIn.isGpsVerified ? 'GPS Verified' : 'Manual'}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-muted-foreground">
+                                            {checkIn.isGpsVerified ? checkIn.address_resolved : checkIn.manualReason}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            {checkIn.isGpsVerified && <MapDialog checkIn={checkIn} />}
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                                        No check-ins have been recorded yet.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                 </div>
             </CardContent>
         </Card>
     )

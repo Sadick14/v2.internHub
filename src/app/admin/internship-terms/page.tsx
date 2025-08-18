@@ -262,6 +262,39 @@ export default function InternshipTermsPage() {
             setIsSendingTermReminders(false);
         }
     }
+    
+    const TermCard = ({term}: {term: InternshipTerm}) => (
+        <Card>
+            <CardContent className="pt-6">
+                 <div className="flex justify-between items-start">
+                    <div>
+                        <div className="font-medium">{term.name}</div>
+                        <div className="text-sm text-muted-foreground">{format(term.startDate, 'PPP')} - {format(term.endDate, 'PPP')}</div>
+                    </div>
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => handleSetStatus(term.id, 'Active')} disabled={term.status === 'Active'}>
+                                <CheckCircle className="mr-2 h-4 w-4" /> Set as Active
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSetStatus(term.id, 'Archived')} disabled={term.status === 'Archived'}>
+                                <Archive className="mr-2 h-4 w-4" /> Archive Term
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleDownloadArchive(term.id)}>
+                                <Download className="mr-2 h-4 w-4" /> Download Archive
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+                <div className="mt-4">
+                    <Badge variant={getStatusVariant(term.status)}>{term.status}</Badge>
+                </div>
+            </CardContent>
+        </Card>
+    );
 
     return (
         <div className="space-y-6">
@@ -361,46 +394,55 @@ export default function InternshipTermsPage() {
                             <Skeleton className="h-12 w-full" />
                         </div>
                     ) : (
-                         <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Term Name</TableHead>
-                                    <TableHead>Start Date</TableHead>
-                                    <TableHead>End Date</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                               {terms.map((term) => (
-                                <TableRow key={term.id}>
-                                    <TableCell className="font-medium">{term.name}</TableCell>
-                                    <TableCell>{format(term.startDate, 'PPP')}</TableCell>
-                                    <TableCell>{format(term.endDate, 'PPP')}</TableCell>
-                                    <TableCell><Badge variant={getStatusVariant(term.status)}>{term.status}</Badge></TableCell>
-                                    <TableCell className="text-right">
-                                         <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent>
-                                                <DropdownMenuItem onClick={() => handleSetStatus(term.id, 'Active')} disabled={term.status === 'Active'}>
-                                                    <CheckCircle className="mr-2 h-4 w-4" /> Set as Active
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleSetStatus(term.id, 'Archived')} disabled={term.status === 'Archived'}>
-                                                    <Archive className="mr-2 h-4 w-4" /> Archive Term
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem onClick={() => handleDownloadArchive(term.id)}>
-                                                    <Download className="mr-2 h-4 w-4" /> Download Archive
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                               ))}
-                            </TableBody>
-                        </Table>
+                        <>
+                        {/* Mobile View */}
+                         <div className="md:hidden space-y-4">
+                            {terms.map((term) => <TermCard key={term.id} term={term} />)}
+                         </div>
+                         {/* Desktop View */}
+                         <div className="hidden md:block">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Term Name</TableHead>
+                                        <TableHead>Start Date</TableHead>
+                                        <TableHead>End Date</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                {terms.map((term) => (
+                                    <TableRow key={term.id}>
+                                        <TableCell className="font-medium">{term.name}</TableCell>
+                                        <TableCell>{format(term.startDate, 'PPP')}</TableCell>
+                                        <TableCell>{format(term.endDate, 'PPP')}</TableCell>
+                                        <TableCell><Badge variant={getStatusVariant(term.status)}>{term.status}</Badge></TableCell>
+                                        <TableCell className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent>
+                                                    <DropdownMenuItem onClick={() => handleSetStatus(term.id, 'Active')} disabled={term.status === 'Active'}>
+                                                        <CheckCircle className="mr-2 h-4 w-4" /> Set as Active
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleSetStatus(term.id, 'Archived')} disabled={term.status === 'Archived'}>
+                                                        <Archive className="mr-2 h-4 w-4" /> Archive Term
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem onClick={() => handleDownloadArchive(term.id)}>
+                                                        <Download className="mr-2 h-4 w-4" /> Download Archive
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                </TableBody>
+                            </Table>
+                         </div>
+                        </>
                     )}
                 </CardContent>
             </Card>

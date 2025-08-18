@@ -91,6 +91,21 @@ export default function SupervisorDashboardPage() {
     }
 }
 
+ const InternCard = ({ intern }: { intern: UserProfile }) => (
+    <Card>
+        <CardContent className="pt-6">
+            <div className="font-medium">{intern.fullName}</div>
+            <div className="text-sm text-muted-foreground">{intern.email}</div>
+            <div className="text-sm text-muted-foreground mt-2">
+                <p><strong>Department:</strong> {intern.departmentName || 'N/A'}</p>
+            </div>
+            <div className="mt-4">
+                <Badge variant={getStatusVariant(intern.status)}>{intern.status}</Badge>
+            </div>
+        </CardContent>
+    </Card>
+);
+
   return (
      <div className="flex flex-col gap-4 lg:gap-6">
        <Card className="bg-gradient-to-r from-primary/80 to-primary rounded-xl p-6 text-primary-foreground shadow-lg">
@@ -153,38 +168,49 @@ export default function SupervisorDashboardPage() {
            <CardDescription>A list of all students currently under your supervision.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>University Department</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {interns.length > 0 ? (
-                interns.map((intern) => (
-                  <TableRow key={intern.uid}>
-                    <TableCell>
-                      <div className="font-medium">{intern.fullName}</div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{intern.email}</TableCell>
-                    <TableCell className="text-muted-foreground">{intern.departmentName || 'N/A'}</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusVariant(intern.status)}>{intern.status}</Badge>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                 <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center">
-                        You have not been assigned any interns yet.
-                    </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+            {/* Mobile View */}
+            <div className="md:hidden space-y-4">
+                 {interns.length > 0 ? (
+                    interns.map((intern) => <InternCard key={intern.uid} intern={intern} />)
+                 ) : (
+                    <p className="text-center text-muted-foreground py-10">You have not been assigned any interns yet.</p>
+                 )}
+            </div>
+             {/* Desktop View */}
+             <div className="hidden md:block">
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>University Department</TableHead>
+                        <TableHead>Status</TableHead>
+                    </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    {interns.length > 0 ? (
+                        interns.map((intern) => (
+                        <TableRow key={intern.uid}>
+                            <TableCell>
+                            <div className="font-medium">{intern.fullName}</div>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">{intern.email}</TableCell>
+                            <TableCell className="text-muted-foreground">{intern.departmentName || 'N/A'}</TableCell>
+                            <TableCell>
+                            <Badge variant={getStatusVariant(intern.status)}>{intern.status}</Badge>
+                            </TableCell>
+                        </TableRow>
+                        ))
+                    ) : (
+                        <TableRow>
+                            <TableCell colSpan={4} className="h-24 text-center">
+                                You have not been assigned any interns yet.
+                            </TableCell>
+                        </TableRow>
+                    )}
+                    </TableBody>
+                </Table>
+             </div>
         </CardContent>
       </Card>
     </div>

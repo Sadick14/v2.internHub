@@ -29,6 +29,26 @@ export default function AuditLogsPage() {
         return 'outline';
     }
 
+    const LogCard = ({ log }: { log: AuditLog }) => (
+        <Card>
+            <CardContent className="pt-6">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <div className="font-medium">{log.userName}</div>
+                        <div className="text-xs text-muted-foreground">{log.userEmail}</div>
+                    </div>
+                    <Badge variant={getActionVariant(log.action.toLowerCase())} className="capitalize">
+                        {log.action}
+                    </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">{log.details}</p>
+                <p className="text-xs text-muted-foreground mt-2 text-right">
+                    {format(log.timestamp, 'yyyy-MM-dd HH:mm:ss')}
+                </p>
+            </CardContent>
+        </Card>
+    );
+
     return (
         <Card>
             <CardHeader>
@@ -36,52 +56,71 @@ export default function AuditLogsPage() {
                 <CardDescription>Review a log of all significant actions taken within the system.</CardDescription>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Timestamp</TableHead>
-                            <TableHead>User</TableHead>
-                            <TableHead>Action</TableHead>
-                            <TableHead>Details</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                             Array.from({ length: 5 }).map((_, i) => (
-                                <TableRow key={i}>
-                                    <TableCell><Skeleton className="h-5 w-36" /></TableCell>
-                                    <TableCell><Skeleton className="h-5 w-48" /></TableCell>
-                                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                                    <TableCell><Skeleton className="h-5 w-full" /></TableCell>
-                                </TableRow>
-                            ))
-                        ) : logs.length > 0 ? (
-                            logs.map((log) => (
-                                <TableRow key={log.id}>
-                                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                                        {format(log.timestamp, 'yyyy-MM-dd HH:mm:ss')}
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="font-medium">{log.userName}</div>
-                                        <div className="text-xs text-muted-foreground">{log.userEmail}</div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant={getActionVariant(log.action.toLowerCase())} className="capitalize">
-                                            {log.action}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-sm text-muted-foreground">{log.details}</TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
+                 {/* Mobile View */}
+                 <div className="md:hidden">
+                    {isLoading ? (
+                        <div className="space-y-4">
+                            <Skeleton className="h-24 w-full" />
+                            <Skeleton className="h-24 w-full" />
+                            <Skeleton className="h-24 w-full" />
+                        </div>
+                    ) : logs.length > 0 ? (
+                        <div className="space-y-4">
+                            {logs.map(log => <LogCard key={log.id} log={log} />)}
+                        </div>
+                    ) : (
+                        <p className="text-center text-muted-foreground py-10">No audit logs found.</p>
+                    )}
+                 </div>
+                 {/* Desktop View */}
+                 <div className="hidden md:block">
+                    <Table>
+                        <TableHeader>
                             <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center">
-                                    No audit logs found.
-                                </TableCell>
+                                <TableHead>Timestamp</TableHead>
+                                <TableHead>User</TableHead>
+                                <TableHead>Action</TableHead>
+                                <TableHead>Details</TableHead>
                             </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading ? (
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-36" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : logs.length > 0 ? (
+                                logs.map((log) => (
+                                    <TableRow key={log.id}>
+                                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                                            {format(log.timestamp, 'yyyy-MM-dd HH:mm:ss')}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="font-medium">{log.userName}</div>
+                                            <div className="text-xs text-muted-foreground">{log.userEmail}</div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant={getActionVariant(log.action.toLowerCase())} className="capitalize">
+                                                {log.action}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-sm text-muted-foreground">{log.details}</TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="h-24 text-center">
+                                        No audit logs found.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                 </div>
             </CardContent>
         </Card>
     )

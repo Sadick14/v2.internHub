@@ -17,7 +17,7 @@ import {
 import { getAllUsers } from '@/services/userService';
 import { getPendingInvites } from '@/services/invitesService';
 import { getFaculties } from '@/services/universityService';
-import { getAuditLogs } from '@/services/auditLogService';
+import { getAuditLogs, type AuditLog } from '@/services/auditLogService';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -38,6 +38,26 @@ export default async function AdminDashboardPage() {
       if (action.includes('delete') || action.includes('remove') || action.includes('deactivate')) return 'destructive';
       return 'outline';
   }
+
+  const LogCard = ({ log }: { log: AuditLog }) => (
+        <Card>
+            <CardContent className="pt-6">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <div className="font-medium">{log.userName}</div>
+                        <div className="text-xs text-muted-foreground">{log.userEmail}</div>
+                    </div>
+                    <Badge variant={getActionVariant(log.action.toLowerCase())} className="capitalize">
+                        {log.action}
+                    </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">{log.details}</p>
+                <p className="text-xs text-muted-foreground mt-2 text-right">
+                    {format(log.timestamp, 'Pp')}
+                </p>
+            </CardContent>
+        </Card>
+    );
 
   return (
     <div className="flex flex-col gap-4 lg:gap-6">
@@ -104,35 +124,42 @@ export default async function AdminDashboardPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Details</TableHead>
-                  <TableHead>Timestamp</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {auditLogs.slice(0, 5).map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell>
-                      <div className="font-medium">{log.userName}</div>
-                      <div className="text-xs text-muted-foreground">{log.userEmail}</div>
-                  </TableCell>
-                  <TableCell>
-                      <Badge variant={getActionVariant(log.action.toLowerCase())} className="capitalize">
-                          {log.action}
-                      </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground truncate max-w-sm">{log.details}</TableCell>
-                   <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                      {format(log.timestamp, 'Pp')}
-                  </TableCell>
+          {/* Mobile View */}
+          <div className="md:hidden space-y-4">
+            {auditLogs.slice(0, 5).map((log) => <LogCard key={log.id} log={log}/>)}
+          </div>
+          {/* Desktop View */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                    <TableHead>User</TableHead>
+                    <TableHead>Action</TableHead>
+                    <TableHead>Details</TableHead>
+                    <TableHead>Timestamp</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {auditLogs.slice(0, 5).map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell>
+                        <div className="font-medium">{log.userName}</div>
+                        <div className="text-xs text-muted-foreground">{log.userEmail}</div>
+                    </TableCell>
+                    <TableCell>
+                        <Badge variant={getActionVariant(log.action.toLowerCase())} className="capitalize">
+                            {log.action}
+                        </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground truncate max-w-sm">{log.details}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                        {format(log.timestamp, 'Pp')}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

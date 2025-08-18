@@ -74,41 +74,68 @@ function TasksTab({ internId }: { internId: string }) {
             default: return 'outline';
         }
     };
+    
+    const TaskCard = ({ task }: { task: DailyTask }) => (
+        <Card>
+            <CardContent className="pt-6">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <div className="font-medium">{task.description}</div>
+                        <div className="text-sm text-muted-foreground">{format(task.date, 'PPP')}</div>
+                    </div>
+                    <Badge variant={getStatusVariant(task.status)}>{task.status}</Badge>
+                </div>
+            </CardContent>
+        </Card>
+    );
 
     return (
         <Card>
             <CardHeader><CardTitle>Declared Tasks</CardTitle></CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Task</TableHead>
-                            <TableHead>Status</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                             Array.from({ length: 3 }).map((_, i) => (
-                                <TableRow key={i}>
-                                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                                    <TableCell><Skeleton className="h-5 w-full" /></TableCell>
-                                    <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                                </TableRow>
-                            ))
-                        ) : tasks.length > 0 ? (
-                            tasks.map(task => (
-                                <TableRow key={task.id}>
-                                    <TableCell>{format(task.date, 'PPP')}</TableCell>
-                                    <TableCell>{task.description}</TableCell>
-                                    <TableCell><Badge variant={getStatusVariant(task.status)}>{task.status}</Badge></TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow><TableCell colSpan={3} className="text-center h-24">No tasks found.</TableCell></TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                {/* Mobile View */}
+                <div className="md:hidden space-y-4">
+                    {isLoading ? (
+                        Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)
+                    ) : tasks.length > 0 ? (
+                        tasks.map((task) => <TaskCard key={task.id} task={task} />)
+                    ) : (
+                        <p className="text-center text-muted-foreground py-10">No tasks found.</p>
+                    )}
+                </div>
+                {/* Desktop View */}
+                <div className="hidden md:block">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Task</TableHead>
+                                <TableHead>Status</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading ? (
+                                Array.from({ length: 3 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                                        <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : tasks.length > 0 ? (
+                                tasks.map(task => (
+                                    <TableRow key={task.id}>
+                                        <TableCell>{format(task.date, 'PPP')}</TableCell>
+                                        <TableCell>{task.description}</TableCell>
+                                        <TableCell><Badge variant={getStatusVariant(task.status)}>{task.status}</Badge></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow><TableCell colSpan={3} className="text-center h-24">No tasks found.</TableCell></TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
             </CardContent>
         </Card>
     );
@@ -126,48 +153,82 @@ function AttendanceTab({ internId }: { internId: string }) {
         }
         fetchCheckIns();
     }, [internId]);
+
+    const CheckInCard = ({ checkIn }: { checkIn: CheckIn }) => (
+         <Card>
+            <CardContent className="pt-6">
+                 <div className="flex justify-between items-start">
+                    <div>
+                        <div className="font-medium">{format(checkIn.timestamp, 'PPP')}</div>
+                        <div className="text-sm text-muted-foreground">
+                            {format(checkIn.timestamp, 'p')}
+                        </div>
+                    </div>
+                     <Badge variant={checkIn.isGpsVerified ? 'default' : 'secondary'}>
+                        {checkIn.isGpsVerified ? 'GPS' : 'Manual'}
+                    </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                     {checkIn.isGpsVerified ? checkIn.address_resolved : checkIn.manualReason}
+                </p>
+            </CardContent>
+        </Card>
+    );
     
     return (
         <Card>
             <CardHeader><CardTitle>Attendance History</CardTitle></CardHeader>
             <CardContent>
-                 <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Time</TableHead>
-                            <TableHead>Method</TableHead>
-                            <TableHead>Details</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                         {isLoading ? (
-                            Array.from({ length: 3 }).map((_, i) => (
-                                <TableRow key={i}>
-                                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                                    <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                                    <TableCell><Skeleton className="h-6 w-24" /></TableCell>
-                                    <TableCell><Skeleton className="h-5 w-full" /></TableCell>
-                                </TableRow>
-                            ))
-                        ) : checkIns.length > 0 ? (
-                            checkIns.map(checkIn => (
-                                <TableRow key={checkIn.id}>
-                                    <TableCell>{format(checkIn.timestamp, 'PPP')}</TableCell>
-                                    <TableCell>{format(checkIn.timestamp, 'p')}</TableCell>
-                                    <TableCell>
-                                        <Badge variant={checkIn.isGpsVerified ? 'default' : 'secondary'}>
-                                            {checkIn.isGpsVerified ? 'GPS' : 'Manual'}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>{checkIn.isGpsVerified ? checkIn.address_resolved : checkIn.manualReason}</TableCell>
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow><TableCell colSpan={4} className="text-center h-24">No check-ins found.</TableCell></TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                 {/* Mobile View */}
+                <div className="md:hidden space-y-4">
+                     {isLoading ? (
+                        Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)
+                    ) : checkIns.length > 0 ? (
+                        checkIns.map((checkIn) => <CheckInCard key={checkIn.id} checkIn={checkIn} />)
+                    ) : (
+                        <p className="text-center text-muted-foreground py-10">No check-ins found.</p>
+                    )}
+                </div>
+                 {/* Desktop View */}
+                 <div className="hidden md:block">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Time</TableHead>
+                                <TableHead>Method</TableHead>
+                                <TableHead>Details</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading ? (
+                                Array.from({ length: 3 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                                        <TableCell><Skeleton className="h-6 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+                                    </TableRow>
+                                ))
+                            ) : checkIns.length > 0 ? (
+                                checkIns.map(checkIn => (
+                                    <TableRow key={checkIn.id}>
+                                        <TableCell>{format(checkIn.timestamp, 'PPP')}</TableCell>
+                                        <TableCell>{format(checkIn.timestamp, 'p')}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={checkIn.isGpsVerified ? 'default' : 'secondary'}>
+                                                {checkIn.isGpsVerified ? 'GPS' : 'Manual'}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>{checkIn.isGpsVerified ? checkIn.address_resolved : checkIn.manualReason}</TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow><TableCell colSpan={4} className="text-center h-24">No check-ins found.</TableCell></TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                 </div>
             </CardContent>
         </Card>
     )

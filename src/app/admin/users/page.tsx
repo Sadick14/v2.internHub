@@ -129,6 +129,69 @@ export default function UserManagementPage() {
         }
     }
 
+    const UserCard = ({ user }: { user: UserProfile }) => (
+        <Card>
+            <CardContent className="pt-6">
+                <div className="flex justify-between">
+                    <div>
+                        <div className="font-medium">
+                             {user.role === 'student' && user.uid ? (
+                                <Link href={`/admin/students/${user.uid}`} className="hover:underline text-primary">
+                                    {user.fullName}
+                                </Link>
+                            ) : (
+                                user.fullName
+                            )}
+                        </div>
+                        <div className="text-sm text-muted-foreground">{user.email}</div>
+                    </div>
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost" disabled={!user.uid}>
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Toggle menu</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            {user.role === 'student' && user.uid && <DropdownMenuItem asChild><Link href={`/admin/students/${user.uid}`}>View Profile</Link></DropdownMenuItem>}
+                            <DropdownMenuItem onClick={() => openEditDialog(user)} disabled={user.status === 'pending'}>Edit User</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleResetPassword(user.email)} disabled={user.status === 'pending'}>Reset Password</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <div className={`relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 ${user.status === 'active' ? 'text-destructive' : ''}`}>
+                                        {user.status === 'active' ? 'Deactivate' : 'Activate'}
+                                    </div>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This will {user.status === 'active' ? 'deactivate' : 'activate'} the user account. They will {user.status === 'active' ? 'lose' : 'gain'} access to the system.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleToggleUserStatus(user)}>{user.status === 'active' ? 'Deactivate' : 'Activate'}</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+                 <div className="text-sm text-muted-foreground mt-2">
+                    <p><strong>Role:</strong> <span className="capitalize">{user.role}</span></p>
+                    <p><strong>Department:</strong> {user.departmentName || 'N/A'}</p>
+                    <p><strong>Assigned Lecturer:</strong> {user.assignedLecturerName || 'N/A'}</p>
+                </div>
+                 <div className="mt-4">
+                    <Badge variant={getStatusVariant(user.status)}>{user.status || 'inactive'}</Badge>
+                </div>
+            </CardContent>
+        </Card>
+    );
+
     return (
         <>
             <Card>
@@ -147,90 +210,111 @@ export default function UserManagementPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Department</TableHead>
-                                <TableHead>Assigned Lecturer</TableHead>
-                                <TableHead><span className="sr-only">Actions</span></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {isLoading ? (
-                                Array.from({ length: 5 }).map((_, i) => (
-                                    <TableRow key={i}>
-                                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                                        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                                        <TableCell><Skeleton className="h-5 w-16" /></TableCell>
-                                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                                        <TableCell><Skeleton className="h-5 w-8" /></TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                users.map((user) => (
-                                    <TableRow key={user.uid}>
-                                        <TableCell className="font-medium">
-                                            {user.role === 'student' && user.uid ? (
-                                                <Link href={`/admin/students/${user.uid}`} className="hover:underline text-primary">
-                                                    {user.fullName}
-                                                </Link>
-                                            ) : (
-                                                user.fullName
-                                            )}
-                                           
-                                            <div className="text-sm text-muted-foreground">{user.email}</div>
-                                        </TableCell>
-                                        <TableCell className="capitalize">{user.role}</TableCell>
-                                        <TableCell>
-                                            <Badge variant={getStatusVariant(user.status)}>{user.status || 'inactive'}</Badge>
-                                        </TableCell>
-                                        <TableCell>{user.departmentName || 'N/A'}</TableCell>
-                                        <TableCell>{user.assignedLecturerName || 'N/A'}</TableCell>
-                                        <TableCell>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button aria-haspopup="true" size="icon" variant="ghost" disabled={!user.uid}>
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                        <span className="sr-only">Toggle menu</span>
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                     {user.role === 'student' && user.uid && <DropdownMenuItem asChild><Link href={`/admin/students/${user.uid}`}>View Profile</Link></DropdownMenuItem>}
-                                                    <DropdownMenuItem onClick={() => openEditDialog(user)} disabled={user.status === 'pending'}>Edit User</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => handleResetPassword(user.email)} disabled={user.status === 'pending'}>Reset Password</DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <div className={`relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 ${user.status === 'active' ? 'text-destructive' : ''}`}>
-                                                                {user.status === 'active' ? 'Deactivate' : 'Activate'}
-                                                            </div>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                                <AlertDialogDescription>
-                                                                    This will {user.status === 'active' ? 'deactivate' : 'activate'} the user account. They will {user.status === 'active' ? 'lose' : 'gain'} access to the system.
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                <AlertDialogAction onClick={() => handleToggleUserStatus(user)}>{user.status === 'active' ? 'Deactivate' : 'Activate'}</AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
+                    {/* Mobile View */}
+                    <div className="md:hidden">
+                        {isLoading ? (
+                            <div className="space-y-4">
+                                <Skeleton className="h-24 w-full" />
+                                <Skeleton className="h-24 w-full" />
+                                <Skeleton className="h-24 w-full" />
+                            </div>
+                        ) : users.length > 0 ? (
+                            <div className="space-y-4">
+                                {users.map((user) => (
+                                    <UserCard key={user.uid} user={user} />
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-center text-muted-foreground py-10">No users found.</p>
+                        )}
+                    </div>
+                     {/* Desktop View */}
+                    <div className="hidden md:block">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Role</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Department</TableHead>
+                                    <TableHead>Assigned Lecturer</TableHead>
+                                    <TableHead><span className="sr-only">Actions</span></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {isLoading ? (
+                                    Array.from({ length: 5 }).map((_, i) => (
+                                        <TableRow key={i}>
+                                            <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-8" /></TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    users.map((user) => (
+                                        <TableRow key={user.uid}>
+                                            <TableCell className="font-medium">
+                                                {user.role === 'student' && user.uid ? (
+                                                    <Link href={`/admin/students/${user.uid}`} className="hover:underline text-primary">
+                                                        {user.fullName}
+                                                    </Link>
+                                                ) : (
+                                                    user.fullName
+                                                )}
+                                            
+                                                <div className="text-sm text-muted-foreground">{user.email}</div>
+                                            </TableCell>
+                                            <TableCell className="capitalize">{user.role}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={getStatusVariant(user.status)}>{user.status || 'inactive'}</Badge>
+                                            </TableCell>
+                                            <TableCell>{user.departmentName || 'N/A'}</TableCell>
+                                            <TableCell>{user.assignedLecturerName || 'N/A'}</TableCell>
+                                            <TableCell>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button aria-haspopup="true" size="icon" variant="ghost" disabled={!user.uid}>
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                            <span className="sr-only">Toggle menu</span>
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                        {user.role === 'student' && user.uid && <DropdownMenuItem asChild><Link href={`/admin/students/${user.uid}`}>View Profile</Link></DropdownMenuItem>}
+                                                        <DropdownMenuItem onClick={() => openEditDialog(user)} disabled={user.status === 'pending'}>Edit User</DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={() => handleResetPassword(user.email)} disabled={user.status === 'pending'}>Reset Password</DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <div className={`relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 ${user.status === 'active' ? 'text-destructive' : ''}`}>
+                                                                    {user.status === 'active' ? 'Deactivate' : 'Activate'}
+                                                                </div>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                                    <AlertDialogDescription>
+                                                                        This will {user.status === 'active' ? 'deactivate' : 'activate'} the user account. They will {user.status === 'active' ? 'lose' : 'gain'} access to the system.
+                                                                    </AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                    <AlertDialogAction onClick={() => handleToggleUserStatus(user)}>{user.status === 'active' ? 'Deactivate' : 'Activate'}</AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </CardContent>
             </Card>
 

@@ -141,6 +141,49 @@ export default function HistoryPage() {
             default: return 'outline';
         }
     };
+    
+    const ReportCard = ({ report }: { report: Report }) => (
+        <Card>
+            <CardContent className="pt-6">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <div className="font-medium">{format(report.reportDate, 'PPP')}</div>
+                        <p className="text-sm text-muted-foreground truncate max-w-[200px]">{report.declaredTasks}</p>
+                    </div>
+                     <Button asChild variant="outline" size="sm">
+                        <Link href={`/student/reports/${report.id}`}>
+                            View
+                        </Link>
+                    </Button>
+                </div>
+                <div className="mt-4">
+                    <Badge variant={getReportStatusVariant(report.status)}>{report.status}</Badge>
+                </div>
+            </CardContent>
+        </Card>
+    );
+
+    const TaskCard = ({ task }: { task: DailyTask }) => (
+        <Card>
+             <CardContent className="pt-6">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <div className="font-medium">{format(task.date, 'PPP')}</div>
+                        <p className="text-sm text-muted-foreground truncate max-w-[200px]">{task.description}</p>
+                    </div>
+                     {task.status === 'Pending' && (
+                        <Button size="sm" variant="outline" onClick={() => handleMarkAsComplete(task.id)}>
+                            <Check className="mr-2 h-4 w-4" />
+                            Complete
+                        </Button>
+                    )}
+                </div>
+                 <div className="mt-4">
+                    <Badge variant={getTaskStatusVariant(task.status)}>{task.status}</Badge>
+                </div>
+            </CardContent>
+        </Card>
+    );
 
     return (
         <Card>
@@ -163,95 +206,121 @@ export default function HistoryPage() {
                         <TabsTrigger value="tasks">Task History</TabsTrigger>
                     </TabsList>
                     <TabsContent value="reports" className="mt-4">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Work Accomplished</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {isLoading ? (
-                                    Array.from({ length: 5 }).map((_, i) => (
-                                        <TableRow key={i}>
-                                            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                                            <TableCell><Skeleton className="h-5 w-48" /></TableCell>
-                                            <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                                            <TableCell className="text-right"><Skeleton className="h-8 w-16" /></TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : reports.length > 0 ? (
-                                    reports.map((report) => (
-                                        <TableRow key={report.id}>
-                                            <TableCell className="font-medium">{format(report.reportDate, 'PPP')}</TableCell>
-                                            <TableCell className="text-muted-foreground truncate max-w-xs">{report.declaredTasks}</TableCell>
-                                            <TableCell><Badge variant={getReportStatusVariant(report.status)}>{report.status}</Badge></TableCell>
-                                            <TableCell className="text-right">
-                                                <Button asChild variant="outline" size="sm">
-                                                    <Link href={`/student/reports/${report.id}`}>
-                                                        View Details
-                                                    </Link>
-                                                </Button>
+                         {/* Mobile View */}
+                         <div className="md:hidden space-y-4">
+                            {isLoading ? (
+                                Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)
+                            ) : reports.length > 0 ? (
+                                reports.map((report) => <ReportCard key={report.id} report={report} />)
+                            ) : (
+                                <p className="text-center text-muted-foreground py-10">You have not submitted any reports yet.</p>
+                            )}
+                         </div>
+                         {/* Desktop View */}
+                         <div className="hidden md:block">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>Work Accomplished</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {isLoading ? (
+                                        Array.from({ length: 5 }).map((_, i) => (
+                                            <TableRow key={i}>
+                                                <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                                <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                                <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                                                <TableCell className="text-right"><Skeleton className="h-8 w-16" /></TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : reports.length > 0 ? (
+                                        reports.map((report) => (
+                                            <TableRow key={report.id}>
+                                                <TableCell className="font-medium">{format(report.reportDate, 'PPP')}</TableCell>
+                                                <TableCell className="text-muted-foreground truncate max-w-xs">{report.declaredTasks}</TableCell>
+                                                <TableCell><Badge variant={getReportStatusVariant(report.status)}>{report.status}</Badge></TableCell>
+                                                <TableCell className="text-right">
+                                                    <Button asChild variant="outline" size="sm">
+                                                        <Link href={`/student/reports/${report.id}`}>
+                                                            View Details
+                                                        </Link>
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={4} className="h-24 text-center">
+                                                You have not submitted any reports yet.
                                             </TableCell>
                                         </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center">
-                                            You have not submitted any reports yet.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                                    )}
+                                </TableBody>
+                            </Table>
+                         </div>
                     </TabsContent>
                     <TabsContent value="tasks" className="mt-4">
-                        <Table>
-                             <TableHeader>
-                                <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Task</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="text-right">Action</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                             <TableBody>
-                                {isLoading ? (
-                                    Array.from({ length: 5 }).map((_, i) => (
-                                        <TableRow key={i}>
-                                            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                                            <TableCell><Skeleton className="h-5 w-48" /></TableCell>
-                                            <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                                            <TableCell className="text-right"><Skeleton className="h-8 w-16" /></TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : tasks.length > 0 ? (
-                                    tasks.map((task) => (
-                                        <TableRow key={task.id}>
-                                            <TableCell className="font-medium">{format(task.date, 'PPP')}</TableCell>
-                                            <TableCell className="text-muted-foreground truncate max-w-xs">{task.description}</TableCell>
-                                            <TableCell><Badge variant={getTaskStatusVariant(task.status)}>{task.status}</Badge></TableCell>
-                                            <TableCell className="text-right">
-                                                {task.status === 'Pending' && (
-                                                     <Button size="sm" variant="outline" onClick={() => handleMarkAsComplete(task.id)}>
-                                                        <Check className="mr-2 h-4 w-4" />
-                                                        Mark as Complete
-                                                    </Button>
-                                                )}
+                         {/* Mobile View */}
+                         <div className="md:hidden space-y-4">
+                             {isLoading ? (
+                                Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)
+                            ) : tasks.length > 0 ? (
+                                tasks.map((task) => <TaskCard key={task.id} task={task} />)
+                            ) : (
+                                <p className="text-center text-muted-foreground py-10">You have not declared any tasks yet.</p>
+                            )}
+                         </div>
+                         {/* Desktop View */}
+                         <div className="hidden md:block">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>Task</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead className="text-right">Action</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {isLoading ? (
+                                        Array.from({ length: 5 }).map((_, i) => (
+                                            <TableRow key={i}>
+                                                <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                                <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                                <TableCell><Skeleton className="h-6 w-20" /></TableCell>
+                                                <TableCell className="text-right"><Skeleton className="h-8 w-16" /></TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : tasks.length > 0 ? (
+                                        tasks.map((task) => (
+                                            <TableRow key={task.id}>
+                                                <TableCell className="font-medium">{format(task.date, 'PPP')}</TableCell>
+                                                <TableCell className="text-muted-foreground truncate max-w-xs">{task.description}</TableCell>
+                                                <TableCell><Badge variant={getTaskStatusVariant(task.status)}>{task.status}</Badge></TableCell>
+                                                <TableCell className="text-right">
+                                                    {task.status === 'Pending' && (
+                                                        <Button size="sm" variant="outline" onClick={() => handleMarkAsComplete(task.id)}>
+                                                            <Check className="mr-2 h-4 w-4" />
+                                                            Mark as Complete
+                                                        </Button>
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={4} className="h-24 text-center">
+                                                You have not declared any tasks yet.
                                             </TableCell>
                                         </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center">
-                                            You have not declared any tasks yet.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
                     </TabsContent>
                 </Tabs>
             </CardContent>

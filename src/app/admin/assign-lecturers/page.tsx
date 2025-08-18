@@ -75,6 +75,34 @@ export default function AssignLecturersPage() {
         if (!departmentId) return [];
         return lecturers.filter(l => l.departmentId === departmentId);
     }
+    
+    const StudentCard = ({ student }: { student: UserProfile }) => (
+         <Card>
+            <CardContent className="pt-6">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <div className="font-medium">{student.fullName}</div>
+                        <div className="text-sm text-muted-foreground">{student.email}</div>
+                         <div className="text-sm text-muted-foreground mt-2">
+                           <p><strong>Department:</strong> {student.departmentName || 'N/A'}</p>
+                        </div>
+                    </div>
+                    <Button onClick={() => openAssignDialog(student)} size="sm" variant={student.lecturerId ? 'outline' : 'default'}>
+                        {student.lecturerId ? 'Re-assign' : 'Assign'}
+                    </Button>
+                </div>
+                 <div className="mt-4">
+                     {student.assignedLecturerName ? (
+                        <div className="flex items-center">
+                            <Badge variant="secondary">{student.assignedLecturerName}</Badge>
+                        </div>
+                    ) : (
+                        <Badge variant="outline">Unassigned</Badge>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    );
 
     return (
         <>
@@ -84,58 +112,81 @@ export default function AssignLecturersPage() {
                     <CardDescription>Assign or re-assign supervising lecturers to students for the active internship term.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Student Name</TableHead>
-                                <TableHead>Department</TableHead>
-                                <TableHead>Assigned Lecturer</TableHead>
-                                <TableHead className="text-right">Action</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {isLoading ? (
-                                Array.from({ length: 5 }).map((_, i) => (
-                                    <TableRow key={i}>
-                                        <TableCell><Skeleton className="h-5 w-48" /></TableCell>
-                                        <TableCell><Skeleton className="h-5 w-40" /></TableCell>
-                                        <TableCell><Skeleton className="h-5 w-48" /></TableCell>
-                                        <TableCell className="text-right"><Skeleton className="h-9 w-28 ml-auto" /></TableCell>
-                                    </TableRow>
-                                ))
-                            ) : students.length > 0 ? (
-                                students.map((student) => (
-                                    <TableRow key={student.uid}>
-                                        <TableCell>
-                                            <div className="font-medium">{student.fullName}</div>
-                                            <div className="text-sm text-muted-foreground">{student.email}</div>
-                                        </TableCell>
-                                        <TableCell>{student.departmentName || 'N/A'}</TableCell>
-                                        <TableCell>
-                                            {student.assignedLecturerName ? (
-                                                <div className="flex items-center">
-                                                    <Badge variant="secondary">{student.assignedLecturerName}</Badge>
-                                                </div>
-                                            ) : (
-                                                <Badge variant="outline">Unassigned</Badge>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <Button onClick={() => openAssignDialog(student)} variant={student.lecturerId ? 'outline' : 'default'}>
-                                                {student.lecturerId ? 'Re-assign' : 'Assign Lecturer'}
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
+                    {/* Mobile View */}
+                    <div className="md:hidden">
+                         {isLoading ? (
+                            <div className="space-y-4">
+                                <Skeleton className="h-28 w-full" />
+                                <Skeleton className="h-28 w-full" />
+                                <Skeleton className="h-28 w-full" />
+                            </div>
+                        ) : students.length > 0 ? (
+                            <div className="space-y-4">
+                                {students.map((student) => (
+                                    <StudentCard key={student.uid} student={student} />
+                                ))}
+                            </div>
+                        ) : (
+                           <div className="text-center py-10 text-muted-foreground">
+                                No active students found.
+                           </div>
+                        )}
+                    </div>
+                    {/* Desktop View */}
+                    <div className="hidden md:block">
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell colSpan={4} className="h-24 text-center">
-                                        No active students found.
-                                    </TableCell>
+                                    <TableHead>Student Name</TableHead>
+                                    <TableHead>Department</TableHead>
+                                    <TableHead>Assigned Lecturer</TableHead>
+                                    <TableHead className="text-right">Action</TableHead>
                                 </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {isLoading ? (
+                                    Array.from({ length: 5 }).map((_, i) => (
+                                        <TableRow key={i}>
+                                            <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                                            <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                                            <TableCell className="text-right"><Skeleton className="h-9 w-28 ml-auto" /></TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : students.length > 0 ? (
+                                    students.map((student) => (
+                                        <TableRow key={student.uid}>
+                                            <TableCell>
+                                                <div className="font-medium">{student.fullName}</div>
+                                                <div className="text-sm text-muted-foreground">{student.email}</div>
+                                            </TableCell>
+                                            <TableCell>{student.departmentName || 'N/A'}</TableCell>
+                                            <TableCell>
+                                                {student.assignedLecturerName ? (
+                                                    <div className="flex items-center">
+                                                        <Badge variant="secondary">{student.assignedLecturerName}</Badge>
+                                                    </div>
+                                                ) : (
+                                                    <Badge variant="outline">Unassigned</Badge>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Button onClick={() => openAssignDialog(student)} variant={student.lecturerId ? 'outline' : 'default'}>
+                                                    {student.lecturerId ? 'Re-assign' : 'Assign Lecturer'}
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="h-24 text-center">
+                                            No active students found.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </CardContent>
             </Card>
 
