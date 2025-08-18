@@ -147,7 +147,7 @@ export default function UserManagementPage() {
                     </div>
                      <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost" disabled={!user.uid}>
+                            <Button aria-haspopup="true" size="icon" variant="ghost" disabled={!user.firestoreId}>
                                 <MoreHorizontal className="h-4 w-4" />
                                 <span className="sr-only">Toggle menu</span>
                             </Button>
@@ -226,7 +226,7 @@ export default function UserManagementPage() {
                         ) : users.length > 0 ? (
                             <div className="space-y-4">
                                 {users.map((user) => (
-                                    <UserCard key={user.uid} user={user} />
+                                    <UserCard key={user.firestoreId} user={user} />
                                 ))}
                             </div>
                         ) : (
@@ -260,7 +260,7 @@ export default function UserManagementPage() {
                                     ))
                                 ) : (
                                     users.map((user) => (
-                                        <TableRow key={user.uid}>
+                                        <TableRow key={user.firestoreId}>
                                             <TableCell className="font-medium">
                                                 {user.role === 'student' && user.uid ? (
                                                     <Link href={`/admin/students/${user.uid}`} className="hover:underline text-primary">
@@ -281,7 +281,7 @@ export default function UserManagementPage() {
                                             <TableCell>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
-                                                        <Button aria-haspopup="true" size="icon" variant="ghost" disabled={!user.uid}>
+                                                        <Button aria-haspopup="true" size="icon" variant="ghost" disabled={!user.firestoreId}>
                                                             <MoreHorizontal className="h-4 w-4" />
                                                             <span className="sr-only">Toggle menu</span>
                                                         </Button>
@@ -395,5 +395,3 @@ export default function UserManagementPage() {
         </>
     )
 }
-
-    
