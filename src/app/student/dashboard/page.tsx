@@ -346,8 +346,8 @@ export default function StudentDashboardPage() {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle className="font-bold text-destructive">Confidential Reporting</AlertTitle>
           <AlertDescription>
-            <div className="flex justify-between items-center">
-                <p>Your safety is important. If you experience any form of abuse or harassment, please report it immediately.</p>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <p className="flex-grow">Your safety is important. If you experience any form of abuse or harassment, please report it immediately.</p>
                 <ReportAbuseDialog />
             </div>
           </AlertDescription>
