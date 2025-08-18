@@ -6,6 +6,7 @@ import { collection, addDoc, getDocs, query, where, Timestamp, serverTimestamp, 
 import { startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { getUserById } from './userService';
 import { createNotification } from './notificationsService';
+import { getInternshipProfileByStudentId } from './internshipProfileService';
 
 export interface DailyTask {
     id: string;
@@ -22,34 +23,37 @@ export interface DailyTask {
 
 export interface NewDailyTask {
     studentId: string;
-    internshipId: string;
-    supervisorId: string;
+    // supervisorId is removed from here and will be fetched on the server
     date: Date;
     description: string;
     learningObjectives: string;
 }
 
-const tasksCollectionRef = collection(db, 'daily_tasks');
-
 export async function createTask(taskData: NewDailyTask): Promise<void> {
+    const studentProfile = await getUserById(taskData.studentId);
+    if (!studentProfile) throw new Error("Student not found.");
+
+    const internshipProfile = await getInternshipProfileByStudentId(taskData.studentId);
+    if (!internshipProfile || !internshipProfile.supervisorId) {
+        throw new Error("Internship profile or supervisor information is missing.");
+    }
+    
     await addDoc(tasksCollectionRef, {
         ...taskData,
+        internshipId: internshipProfile.id,
+        supervisorId: internshipProfile.supervisorId, // Securely set supervisor ID
         status: 'Pending',
         createdAt: serverTimestamp(),
     });
     
-    const supervisorProfile = await getUserById(taskData.supervisorId);
-    const studentProfile = await getUserById(taskData.studentId);
-
-    if (supervisorProfile && studentProfile) {
-        await createNotification({
-            userId: supervisorProfile.uid,
-            type: 'TASK_DECLARED',
-            title: 'New Task Declared',
-            message: `${studentProfile.fullName} has declared a new task for today.`,
-            href: '/supervisor/tasks'
-        });
-    }
+    // Now that we have the secure supervisorId, we can notify them.
+    await createNotification({
+        userId: internshipProfile.supervisorId, // This is the firestore ID, but createNotification needs auth UID
+        type: 'TASK_DECLARED',
+        title: 'New Task Declared',
+        message: `${studentProfile.fullName} has declared a new task for today.`,
+        href: '/supervisor/tasks'
+    });
 }
 
 export async function getTasksByDate(studentId: string, date: Date): Promise<DailyTask[]> {

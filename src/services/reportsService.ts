@@ -27,7 +27,6 @@ export interface Report {
 export interface NewReportData {
     studentId: string;
     internshipId: string;
-    lecturerId: string;
     reportDate: Date;
     declaredTasks: string;
     fullReport: string; // Added field
@@ -35,40 +34,40 @@ export interface NewReportData {
 }
 
 export async function createReport(reportData: NewReportData): Promise<Report> {
+    const student = await getUserById(reportData.studentId);
+    if (!student || !student.lecturerId) {
+        throw new Error("Student or assigned lecturer not found.");
+    }
+    
     const dataToSave = {
         ...reportData,
+        lecturerId: student.lecturerId, // Securely set lecturer ID from student's profile
         status: 'Pending' as const,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
     };
 
     const newDocRef = await addDoc(collection(db, 'reports'), dataToSave);
+    
+    await createAuditLog({
+        userId: student.uid!,
+        userName: student.fullName,
+        userEmail: student.email,
+        action: 'Submit Report',
+        details: `Student ${student.fullName} submitted a daily report.`,
+    });
 
-    const student = await getUserById(reportData.studentId);
-    if (student) {
-        await createAuditLog({
-            userId: student.uid!,
-            userName: student.fullName,
-            userEmail: student.email,
-            action: 'Submit Report',
-            details: `Student ${student.fullName} submitted a daily report.`,
-        });
-
-        if (reportData.lecturerId) {
-             await createNotification({
-                userId: reportData.lecturerId,
-                type: 'NEW_REPORT_SUBMITTED',
-                title: 'New Report Submitted',
-                message: `${student.fullName} has submitted a new daily report for your review.`,
-                href: '/lecturer/reports'
-            });
-        }
-    }
+    await createNotification({
+        userId: student.lecturerId,
+        type: 'NEW_REPORT_SUBMITTED',
+        title: 'New Report Submitted',
+        message: `${student.fullName} has submitted a new daily report for your review.`,
+        href: '/lecturer/reports'
+    });
 
     return {
         id: newDocRef.id,
-        ...reportData,
-        status: 'Pending',
+        ...dataToSave,
         createdAt: new Date(),
         updatedAt: new Date(),
     } as Report;

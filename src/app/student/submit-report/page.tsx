@@ -99,10 +99,9 @@ export default function SubmitReportPage() {
 
     setIsSubmitting(true);
     try {
-        const reportData: NewReportData = {
+        const reportData: Omit<NewReportData, 'lecturerId'> = {
             studentId: user.uid,
             internshipId: profile.id,
-            lecturerId: user.lecturerId || '', 
             reportDate: reportDate,
             declaredTasks: formData.declaredTasks,
             fullReport: formData.fullReport,
