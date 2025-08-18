@@ -226,6 +226,7 @@ export async function getAllReports(): Promise<Report[]> {
             studentName: student?.fullName || 'Unknown Student',
             reportDate: (data.reportDate as Timestamp).toDate(),
             createdAt: (data.createdAt as Timestamp).toDate(),
+            updatedAt: (data.updatedAt as Timestamp)?.toDate(),
         } as Report & { studentName: string };
     }));
     
