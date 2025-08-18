@@ -16,6 +16,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useRole } from '@/hooks/use-role';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { MoreHorizontal } from 'lucide-react';
 
 export default function LecturerStudentsPage() {
     const { user } = useRole();
@@ -59,11 +61,16 @@ export default function LecturerStudentsPage() {
                            <p><strong>Department:</strong> {student.departmentName || 'N/A'}</p>
                         </div>
                     </div>
-                    <Button asChild variant="outline" size="sm">
-                        <Link href={`/lecturer/students/${student.uid}`}>
-                            View
-                        </Link>
-                    </Button>
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem asChild>
+                                <Link href={`/lecturer/students/${student.uid}`}>View Details</Link>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
                 <div className="mt-4">
                     <Badge variant={getStatusVariant(student.status)}>{student.status || 'inactive'}</Badge>
@@ -146,3 +153,5 @@ export default function LecturerStudentsPage() {
         </Card>
     )
 }
+
+    

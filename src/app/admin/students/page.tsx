@@ -15,6 +15,8 @@ import { getAllUsers, type UserProfile } from '@/services/userService';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { MoreHorizontal } from 'lucide-react';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 
 export default function StudentsPage() {
     const [students, setStudents] = useState<UserProfile[]>([]);
@@ -57,11 +59,18 @@ export default function StudentsPage() {
                            <p><strong>Lecturer:</strong> {student.assignedLecturerName || 'Unassigned'}</p>
                         </div>
                     </div>
-                    <Button asChild variant="outline" size="sm">
-                        <Link href={`/admin/students/${student.uid}`}>
-                            View
-                        </Link>
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem asChild>
+                                <Link href={`/admin/students/${student.uid}`}>
+                                    View Details
+                                </Link>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
                 <div className="mt-4">
                     <Badge variant={getStatusVariant(student.status)}>{student.status || 'inactive'}</Badge>
@@ -154,3 +163,5 @@ export default function StudentsPage() {
         </Card>
     )
 }
+
+    

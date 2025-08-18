@@ -16,6 +16,8 @@ import { getInternsBySupervisor, type UserProfile } from '@/services/userService
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRole } from '@/hooks/use-role';
 import { Button } from '@/components/ui/button';
+import { MoreHorizontal } from 'lucide-react';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 
 export default function SupervisorInternsPage() {
     const { user } = useRole();
@@ -57,11 +59,16 @@ export default function SupervisorInternsPage() {
                            <p><strong>Department:</strong> {intern.departmentName || 'N/A'}</p>
                         </div>
                     </div>
-                     <Button asChild variant="outline" size="sm">
-                        <Link href={`/supervisor/interns/${intern.uid}`}>
-                            View Profile
-                        </Link>
-                    </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem asChild>
+                                <Link href={`/supervisor/interns/${intern.uid}`}>View Profile</Link>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
                 <div className="mt-4">
                     <Badge variant={getStatusVariant(intern.status)}>{intern.status}</Badge>
@@ -142,3 +149,5 @@ export default function SupervisorInternsPage() {
         </Card>
     )
 }
+
+    

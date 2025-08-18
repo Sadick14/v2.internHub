@@ -158,32 +158,37 @@ export default function UserManagementPage() {
                             <DropdownMenuItem onClick={() => openEditDialog(user)} disabled={user.status === 'pending'}>Edit User</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleResetPassword(user.email)} disabled={user.status === 'pending'}>Reset Password</DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <div className={`relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 ${user.status === 'active' ? 'text-destructive' : ''}`}>
-                                        {user.status === 'active' ? 'Deactivate' : 'Activate'}
-                                    </div>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This will {user.status === 'active' ? 'deactivate' : 'activate'} the user account. They will {user.status === 'active' ? 'lose' : 'gain'} access to the system.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => handleToggleUserStatus(user)}>{user.status === 'active' ? 'Deactivate' : 'Activate'}</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
+                             <DropdownMenuItem
+                                onSelect={(e) => e.preventDefault()}
+                                className={user.status === 'active' ? 'text-destructive' : ''}
+                            >
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                       <div className="w-full text-left">
+                                            {user.status === 'active' ? 'Deactivate' : 'Activate'}
+                                        </div>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This will {user.status === 'active' ? 'deactivate' : 'activate'} the user account. They will {user.status === 'active' ? 'lose' : 'gain'} access to the system.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleToggleUserStatus(user)}>{user.status === 'active' ? 'Deactivate' : 'Activate'}</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
                  <div className="text-sm text-muted-foreground mt-2">
                     <p><strong>Role:</strong> <span className="capitalize">{user.role}</span></p>
                     <p><strong>Department:</strong> {user.departmentName || 'N/A'}</p>
-                    <p><strong>Assigned Lecturer:</strong> {user.assignedLecturerName || 'N/A'}</p>
+                    {user.role === 'student' && <p><strong>Assigned Lecturer:</strong> {user.assignedLecturerName || 'N/A'}</p>}
                 </div>
                  <div className="mt-4">
                     <Badge variant={getStatusVariant(user.status)}>{user.status || 'inactive'}</Badge>
@@ -287,25 +292,27 @@ export default function UserManagementPage() {
                                                         <DropdownMenuItem onClick={() => openEditDialog(user)} disabled={user.status === 'pending'}>Edit User</DropdownMenuItem>
                                                         <DropdownMenuItem onClick={() => handleResetPassword(user.email)} disabled={user.status === 'pending'}>Reset Password</DropdownMenuItem>
                                                         <DropdownMenuSeparator />
-                                                        <AlertDialog>
-                                                            <AlertDialogTrigger asChild>
-                                                                <div className={`relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 ${user.status === 'active' ? 'text-destructive' : ''}`}>
-                                                                    {user.status === 'active' ? 'Deactivate' : 'Activate'}
-                                                                </div>
-                                                            </AlertDialogTrigger>
-                                                            <AlertDialogContent>
-                                                                <AlertDialogHeader>
-                                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                                    <AlertDialogDescription>
-                                                                        This will {user.status === 'active' ? 'deactivate' : 'activate'} the user account. They will {user.status === 'active' ? 'lose' : 'gain'} access to the system.
-                                                                    </AlertDialogDescription>
-                                                                </AlertDialogHeader>
-                                                                <AlertDialogFooter>
-                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                    <AlertDialogAction onClick={() => handleToggleUserStatus(user)}>{user.status === 'active' ? 'Deactivate' : 'Activate'}</AlertDialogAction>
-                                                                </AlertDialogFooter>
-                                                            </AlertDialogContent>
-                                                        </AlertDialog>
+                                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className={user.status === 'active' ? 'text-destructive focus:bg-destructive/10' : ''}>
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <div className="w-full text-left">
+                                                                        {user.status === 'active' ? 'Deactivate' : 'Activate'}
+                                                                    </div>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                                        <AlertDialogDescription>
+                                                                            This will {user.status === 'active' ? 'deactivate' : 'activate'} the user account. They will {user.status === 'active' ? 'lose' : 'gain'} access to the system.
+                                                                        </AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                        <AlertDialogAction onClick={() => handleToggleUserStatus(user)}>{user.status === 'active' ? 'Deactivate' : 'Activate'}</AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+                                                        </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </TableCell>
@@ -388,3 +395,5 @@ export default function UserManagementPage() {
         </>
     )
 }
+
+    

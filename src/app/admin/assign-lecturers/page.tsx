@@ -10,6 +10,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getAllUsers, assignLecturerToStudent, type UserProfile } from '@/services/userService';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { MoreHorizontal } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export default function AssignLecturersPage() {
     const [students, setStudents] = useState<UserProfile[]>([]);
@@ -87,9 +89,16 @@ export default function AssignLecturersPage() {
                            <p><strong>Department:</strong> {student.departmentName || 'N/A'}</p>
                         </div>
                     </div>
-                    <Button onClick={() => openAssignDialog(student)} size="sm" variant={student.lecturerId ? 'outline' : 'default'}>
-                        {student.lecturerId ? 'Re-assign' : 'Assign'}
-                    </Button>
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => openAssignDialog(student)}>
+                                {student.lecturerId ? 'Re-assign' : 'Assign'} Lecturer
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
                  <div className="mt-4">
                      {student.assignedLecturerName ? (
@@ -225,3 +234,5 @@ export default function AssignLecturersPage() {
         </>
     )
 }
+
+    
