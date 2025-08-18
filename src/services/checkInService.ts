@@ -30,38 +30,48 @@ export interface NewCheckIn {
 
 const checkInCollectionRef = collection(db, 'check_ins');
 
-async function reverseGeocodeNominatim(lat: number, lng: number): Promise<string | null> {
-  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
-  
-  try {
-    const response = await fetch(url, {
-        headers: {
-            'User-Agent': 'InternTrackApp/1.0 (internship.management.app)'
+async function reverseGeocodeNominatim(lat: number, lng: number): Promise<string> {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'User-Agent': 'InternHubApp/1.0 (For HTU Internship Management)',
+                'Accept-Language': 'en',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Nominatim API failed with status: ${response.status}`);
         }
-    });
-    const data = await response.json();
-    
-    if (data && data.address) {
-      // Construct a concise address from available components
-      const addressParts = [
-        data.address.road || data.address.pedestrian,
-        data.address.suburb,
-        data.address.city || data.address.town || data.address.village,
-        data.address.state,
-        data.address.country
-      ];
-      const address = addressParts.filter(Boolean).join(', ');
-      
-      return address || data.display_name;
-    } else {
-      console.error('Geocoding failed, no address found in response:', data);
-      return `Location at ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        
+        const data = await response.json();
+
+        if (data && data.address) {
+            const addr = data.address;
+            const addressParts = [
+                addr.road || addr.pedestrian,
+                addr.neighbourhood || addr.suburb,
+                addr.city || addr.town || addr.village,
+                addr.country,
+            ];
+            
+            const constructedAddress = addressParts.filter(Boolean).join(', ');
+            
+            // Return the detailed display_name if address construction is too sparse.
+            if (constructedAddress.split(',').length < 2 && data.display_name) {
+                return data.display_name;
+            }
+
+            return constructedAddress || `Unknown Location at ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        } else {
+            console.warn('Geocoding response did not contain address details.', data);
+            return data.display_name || `Location at ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        }
+    } catch (error) {
+        console.error('Error during reverse geocoding:', error);
+        return `Failed to resolve address (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
     }
-  } catch (error) {
-    console.error('Error fetching geocoding data:', error);
-    // Fallback to coordinates on error
-    return `Location at ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-  }
 }
 
 
