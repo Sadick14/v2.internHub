@@ -119,8 +119,7 @@ export async function createNotification(notificationData: NewAppNotification): 
 export async function getNotifications(userId: string): Promise<AppNotification[]> {
     const q = query(
         notificationsCollectionRef, 
-        where('userId', '==', userId),
-        orderBy('createdAt', 'desc')
+        where('userId', '==', userId)
     );
     const snapshot = await getDocs(q);
 
@@ -133,7 +132,7 @@ export async function getNotifications(userId: string): Promise<AppNotification[
         } as AppNotification;
     });
 
-    return notifications;
+    return notifications.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
 
 export async function markNotificationAsRead(notificationId: string): Promise<void> {
