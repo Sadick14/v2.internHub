@@ -1,4 +1,4 @@
-
+'use server';
 
 import { db } from '@/lib/firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, Timestamp, query, where, DocumentReference } from 'firebase/firestore';
@@ -7,7 +7,7 @@ import { getFacultyById, getDepartmentById } from './universityService';
 import { createAuditLog } from './auditLogService';
 import { auth } from '@/lib/firebase';
 import { createNotification } from './notificationsService';
-import { getInternshipProfileByStudentId, type InternshipProfile } from './internshipProfileService';
+import type { InternshipProfile } from './internshipProfileService';
 import { getReportsByStudentId, type Report } from './reportsService';
 import { getAllTasksByStudentId, type DailyTask } from './tasksService';
 import { getCheckInsByStudentId, type CheckIn } from './checkInService';
@@ -74,12 +74,6 @@ const enrichUser = async (userDoc: any): Promise<UserProfile> => {
         }
     }
 
-     let companyName = '';
-    if (user.role === 'student' && user.internshipId) {
-        const profile = await getInternshipProfileByStudentId(user.uid);
-        companyName = profile?.companyName || '';
-    }
-
     return { 
         ...user, 
         uid: user.uid!,
@@ -87,7 +81,7 @@ const enrichUser = async (userDoc: any): Promise<UserProfile> => {
         facultyName, 
         departmentName, 
         assignedLecturerName,
-        companyName
+        companyName: ''
     };
 };
 
