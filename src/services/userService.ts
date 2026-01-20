@@ -1,12 +1,13 @@
 'use server';
 
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, Timestamp, query, where, DocumentReference } from 'firebase/firestore';
-import type { Role } from '@/hooks/use-role';
 import { getFacultyById, getDepartmentById } from './universityService';
 import { createAuditLog } from './auditLogService';
-import { auth } from '@/lib/firebase';
 import { createNotification } from './notificationsService';
+
+// Re-export Role type for other services
+export type { Role } from '@/hooks/use-role';
 import type { InternshipProfile } from './internshipProfileService';
 import { getReportsByStudentId, type Report } from './reportsService';
 import { getAllTasksByStudentId, type DailyTask } from './tasksService';

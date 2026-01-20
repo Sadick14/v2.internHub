@@ -1,4 +1,3 @@
-
 'use server';
 
 import { getAllUsers, type Role, type UserProfile } from "./userService";
