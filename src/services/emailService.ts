@@ -12,7 +12,7 @@ const MAX_WIDTH = '600px';
 const BORDER_RADIUS = '8px';
 const BOX_SHADOW = '0 4px 15px rgba(0,0,0,0.1)';
 const PADDING = '20px';
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://v2-intern-hub.vercel.app?_vercel_share=rcXpYCmxTH7pLPXw1YACBNSXNhrY1KoT';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://v2-intern-hub.vercel.app/';
 
 export type UserType = 'student' | 'supervisor' | 'lecturer' | 'hod' | 'admin';
 
