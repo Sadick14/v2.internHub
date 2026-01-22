@@ -49,6 +49,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { createAbuseReport } from '@/services/abuseReportsService';
+import { TrendingUp } from 'lucide-react';
+import { subscribeToReportsByStudent } from '@/services/client/reportsClient';
+import { subscribeToTodayCheckIn } from '@/services/client/checkInClient';
 
 const StatCard = ({ icon: Icon, label, value, color = 'primary' }: { icon: React.ElementType, label: string, value: string | number, color?: string }) => (
     <div className="stat-card bg-white rounded-xl shadow-sm p-6 flex items-center">
@@ -143,6 +146,7 @@ export default function StudentDashboardPage() {
       if (!user || !user.uid) return;
       setDataLoading(true);
       
+      // Initial fetch
       const [reportsData, profileData, checkInData] = await Promise.all([
         getReportsByStudentId(user.uid),
         getInternshipProfileByStudentId(user.uid),
@@ -151,8 +155,22 @@ export default function StudentDashboardPage() {
       setReports(reportsData);
       setProfile(profileData);
       setCheckIn(checkInData);
-
       setDataLoading(false);
+
+      // Set up real-time listeners
+      const unsubscribeReports = subscribeToReportsByStudent(user.uid, (updatedReports) => {
+        setReports(updatedReports);
+      });
+
+      const unsubscribeCheckIn = subscribeToTodayCheckIn(user.uid, (updatedCheckIn) => {
+        setCheckIn(updatedCheckIn);
+      });
+
+      // Cleanup listeners on unmount
+      return () => {
+        unsubscribeReports();
+        unsubscribeCheckIn();
+      };
     }
     fetchData();
   }, [user]);
@@ -290,7 +308,8 @@ export default function StudentDashboardPage() {
               <h3 className="text-lg font-semibold text-gray-800 mb-6">Quick Actions</h3>
               <div className="space-y-3">
                   <Button asChild className="w-full justify-start"><Link href="/student/daily-tasks"><ListChecks className="mr-2"/> Declare Tasks</Link></Button>
-                  <Button asChild className="w-full justify-start"><Link href="/student/reports"><FileText className="mr-2"/> View Report History</Link></Button>
+                  <Button asChild className="w-full justify-start" variant="outline"><Link href="/student/reports"><FileText className="mr-2"/> View Report History</Link></Button>
+                  <Button asChild className="w-full justify-start" variant="secondary"><Link href="/student/progress"><TrendingUp className="mr-2"/> View Progress & Analytics</Link></Button>
               </div>
           </div>
       </div>
