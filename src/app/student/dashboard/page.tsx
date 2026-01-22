@@ -281,37 +281,40 @@ export default function StudentDashboardPage() {
         </Alert>
       )}
 
-       {!checkIn && access.canAccessActivities ? (
-        <Alert className="bg-blue-50 border-blue-200 text-blue-800">
-             <MapPin className="h-4 w-4 !text-blue-600" />
-            <AlertTitle className="font-bold text-blue-900">Good Morning!</AlertTitle>
-            <AlertDescription>
-                 <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
-                    <p className="flex-grow">Your first step today is to check in at your internship location.</p>
-                    <Button asChild className="w-full sm:w-auto">
-                        <Link href="/student/daily-check-in">
-                            <MapPin className="mr-2 h-4 w-4" /> Go to Daily Check-in
-                        </Link>
-                    </Button>
-                </div>
-            </AlertDescription>
-        </Alert>
-       ) : access.canAccessActivities ? (
-        <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
-            <CheckCircle className="h-4 w-4 !text-green-600" />
-            <AlertTitle className="font-bold text-green-900">Checked In Successfully!</AlertTitle>
-            <AlertDescription>
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
-                    <p className="flex-grow">Great work! Your next step is to submit your daily report.</p>
-                     <Button asChild variant="secondary" className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto">
-                        <Link href="/student/submit-report">
-                            <FileText className="mr-2 h-4 w-4" /> Submit Daily Report
-                        </Link>
-                    </Button>
-                </div>
-            </AlertDescription>
-        </Alert>
-       ) : null}
+       {access.canAccessActivities && (
+         !checkIn ? (
+          <Alert className="bg-blue-50 border-blue-200 text-blue-800">
+               <MapPin className="h-4 w-4 !text-blue-600" />
+              <AlertTitle className="font-bold text-blue-900">Good Morning!</AlertTitle>
+              <AlertDescription>
+                   <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
+                      <p className="flex-grow">Your first step today is to check in at your internship location.</p>
+                      <Button asChild className="w-full sm:w-auto">
+                          <Link href="/student/daily-check-in">
+                              <MapPin className="mr-2 h-4 w-4" /> Go to Daily Check-in
+                          </Link>
+                      </Button>
+                  </div>
+              </AlertDescription>
+          </Alert>
+         ) : (
+          <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
+              <CheckCircle className="h-4 w-4 !text-green-600" />
+              <AlertTitle className="font-bold text-green-900">Checked In Successfully!</AlertTitle>
+              <AlertDescription>
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
+                      <p className="flex-grow">Great work! Your next step is to submit your daily report.</p>
+                       <Button asChild variant="secondary" className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto">
+                          <Link href="/student/submit-report">
+                              <FileText className="mr-2 h-4 w-4" /> Submit Daily Report
+                          </Link>
+                      </Button>
+                  </div>
+              </AlertDescription>
+          </Alert>
+         )
+       )}
+
 
 
        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">

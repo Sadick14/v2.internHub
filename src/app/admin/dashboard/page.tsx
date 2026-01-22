@@ -157,7 +157,9 @@ export default function AdminDashboardPage() {
       return 'outline';
   }
 
-  const LogCard = ({ log }: { log: AuditLog }) => (
+  const LogCard = ({ log }: { log: AuditLog }) => {
+    const timestamp = log.timestamp instanceof Date ? log.timestamp : new Date(log.timestamp);
+    return (
         <Card>
             <CardContent className="pt-6">
                 <div className="flex justify-between items-start">
@@ -171,11 +173,12 @@ export default function AdminDashboardPage() {
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">{log.details}</p>
                 <p className="text-xs text-muted-foreground mt-2 text-right">
-                    {format(log.timestamp, 'Pp')}
+                    {format(timestamp, 'Pp')}
                 </p>
             </CardContent>
         </Card>
     );
+  };
 
   // Analytics calculations
   const students = users.filter(u => u.role === 'student' && u.status === 'active');
@@ -450,7 +453,9 @@ export default function AdminDashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {auditLogs.slice(0, 5).map((log) => (
+                {auditLogs.slice(0, 5).map((log) => {
+                  const timestamp = log.timestamp instanceof Date ? log.timestamp : new Date(log.timestamp);
+                  return (
                   <TableRow key={log.id}>
                     <TableCell>
                         <div className="font-medium">{log.userName}</div>
@@ -463,10 +468,11 @@ export default function AdminDashboardPage() {
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground truncate max-w-sm">{log.details}</TableCell>
                     <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                        {format(log.timestamp, 'Pp')}
+                        {format(timestamp, 'Pp')}
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
