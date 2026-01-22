@@ -52,6 +52,7 @@ import { createAbuseReport } from '@/services/abuseReportsService';
 import { TrendingUp } from 'lucide-react';
 import { subscribeToReportsByStudent } from '@/services/client/reportsClient';
 import { subscribeToTodayCheckIn } from '@/services/client/checkInClient';
+import { PWAInstallPrompt } from '@/components/layout/pwa-install-prompt';
 
 const StatCard = ({ icon: Icon, label, value, color = 'primary' }: { icon: React.ElementType, label: string, value: string | number, color?: string }) => (
     <div className="stat-card bg-white rounded-xl shadow-sm p-6 flex items-center">
@@ -245,6 +246,8 @@ export default function StudentDashboardPage() {
 
   return (
      <div className="space-y-6">
+       <PWAInstallPrompt />
+       
        <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Welcome back, {user?.name || 'Student'}!</h1>
           <p className="text-gray-600">Here's what's happening with your internship today.</p>

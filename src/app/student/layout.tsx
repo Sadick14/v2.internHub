@@ -54,6 +54,7 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
     { type: 'separator', label: 'History & Progress' },
     { href: '/student/attendance', label: 'Attendance History', icon: CalendarCheck },
     { href: '/student/reports', label: 'Report History', icon: ClipboardList },
+    { href: '/student/progress', label: 'Progress & Analytics', icon: TrendingUp },
     { href: '/student/progress-evaluation', label: 'Progress Evaluation', icon: TrendingUp },
   ];
 

@@ -15,7 +15,9 @@ import {
   User,
   FileText,
   GraduationCap,
-  Megaphone
+  Megaphone,
+  BarChart3,
+  Settings
 } from 'lucide-react';
 
 import { UserNav } from '@/components/layout/user-nav';
@@ -46,6 +48,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   const navItems = [
     { href: '/admin/dashboard', label: 'Dashboard', icon: Home },
+    { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
     { href: '/admin/users', label: 'User Management', icon: Users },
     { href: '/admin/students', label: 'Students', icon: User },
     { href: '/admin/reports', label: 'Reports', icon: FileText },
@@ -56,6 +59,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     { href: '/admin/internship-terms', label: 'Internship Terms', icon: CalendarClock },
     { href: '/admin/audit-logs', label: 'Audit Logs', icon: Shield },
     { href: '/admin/abuse-reports', label: 'Abuse Reports', icon: Shield },
+    { href: '/admin/settings', label: 'Settings', icon: Settings },
   ];
 
   if (!isMounted || loading || !user) {

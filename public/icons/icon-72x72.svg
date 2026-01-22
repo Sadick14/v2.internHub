@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" width="72" height="72">
+  <rect width="72" height="72" rx="18" fill="#3b82f6"/>
+  <g transform="translate(36, 36)">
+    <path d="M-21.599999999999998,-7.2 L0,-17.28 L21.599999999999998,-7.2 L21.599999999999998,2.88 L18.72,4.32 L18.72,-4.32 L0,-11.52 L-18.72,-4.32 L-18.72,4.32 L-21.599999999999998,2.88 Z" 
+          fill="#ffffff" stroke="#ffffff" stroke-width="1.08"/>
+    <text x="0" y="18" font-family="Arial, sans-serif" font-size="25.2" font-weight="bold" 
+          fill="#ffffff" text-anchor="middle" dominant-baseline="middle">IH</text>
+  </g>
+</svg>

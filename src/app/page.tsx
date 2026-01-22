@@ -61,7 +61,7 @@ export default function WelcomePage() {
             </div>
             <div className="hidden md:flex items-center space-x-4">
               <Link href="/login" className="text-gray-500 hover:text-gray-700 text-sm font-medium">Sign In</Link>
-              <Link href="/dashboard" className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-secondary transition duration-300">Get Started</Link>
+              <Link href="/login" className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-secondary transition duration-300">Portal Login</Link>
             </div>
             <div className="md:hidden flex items-center">
               <button 
@@ -114,11 +114,11 @@ export default function WelcomePage() {
               </div>
               <div className="mt-3 px-2 space-y-1">
                 <Link 
-                  href="/dashboard" 
+                  href="/login" 
                   className="block w-full text-left bg-primary text-white px-3 py-2 rounded-md text-base font-medium hover:bg-secondary transition duration-300"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Get Started
+                  Portal Login
                 </Link>
               </div>
             </div>
@@ -141,14 +141,20 @@ export default function WelcomePage() {
                   Streamline Your <span className="text-success">Internship</span> Management
                 </h1>
                 <p className="mt-4 md:mt-6 text-base md:text-lg text-gray-200 max-w-lg mx-auto md:mx-0">
-                  InternHub simplifies internship management for Ho Technical University. Connect students with industry partners, track progress, and ensure successful outcomes.
+                  Ho Technical University's comprehensive internship management system. Connect students with industry partners, track progress in real-time, and ensure successful outcomes for every intern.
                 </p>
                 <div className="mt-6 md:mt-8 flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 justify-center md:justify-start">
                   <Link 
-                    href="/dashboard" 
+                    href="/login" 
                     className="bg-primary hover:bg-secondary text-white font-medium py-2 px-6 md:py-3 md:px-8 rounded-lg shadow-lg hover:shadow-xl transition duration-300 text-center"
                   >
-                    Get Started
+                    Access Portal
+                  </Link>
+                  <Link 
+                    href="#features" 
+                    className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white font-medium py-2 px-6 md:py-3 md:px-8 rounded-lg border-2 border-white/30 shadow-lg hover:shadow-xl transition duration-300 text-center"
+                  >
+                    Learn More
                   </Link>
                 </div>
               </div>
@@ -185,12 +191,28 @@ export default function WelcomePage() {
         </section>
 
         {/* Stats Section */}
-        <section className="py-8 md:py-12 bg-white">
+        <section className="py-12 md:py-16 bg-gradient-to-br from-blue-600 to-blue-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-3 gap-4 md:gap-8 text-center">
-              <Stat value="50K+" label="Students" />
-              <Stat value="5K+" label="Companies" />
-              <Stat value="98%" label="Success Rate" />
+            <div className="text-center mb-8 md:mb-12">
+              <h2 className="text-2xl md:text-3xl font-bold text-white">Ho Technical University at a Glance</h2>
+              <p className="mt-2 text-blue-100 text-sm md:text-base">Empowering our students with world-class internship management</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center border border-white/20 hover:bg-white/20 transition duration-300">
+                <div className="text-3xl md:text-5xl font-bold text-white">500+</div>
+                <div className="mt-2 text-blue-100 text-sm md:text-base">Active Students</div>
+                <p className="mt-1 text-xs text-blue-200">Currently enrolled in internships</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center border border-white/20 hover:bg-white/20 transition duration-300">
+                <div className="text-3xl md:text-5xl font-bold text-white">50+</div>
+                <div className="mt-2 text-blue-100 text-sm md:text-base">Partner Companies</div>
+                <p className="mt-1 text-xs text-blue-200">Industry leaders collaborating</p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 text-center border border-white/20 hover:bg-white/20 transition duration-300">
+                <div className="text-3xl md:text-5xl font-bold text-white">95%</div>
+                <div className="mt-2 text-blue-100 text-sm md:text-base">Success Rate</div>
+                <p className="mt-1 text-xs text-blue-200">Students completing internships</p>
+              </div>
             </div>
           </div>
         </section>
@@ -199,36 +221,41 @@ export default function WelcomePage() {
         <section id="features" className="py-12 md:py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto">
-              <h2 className="text-2xl md:text-4xl font-bold">Powerful Features for Seamless Management</h2>
+              <h2 className="text-2xl md:text-4xl font-bold">Built for Ho Technical University</h2>
               <p className="mt-2 md:mt-4 text-sm md:text-lg text-gray-600">
-                Designed specifically for technical universities to manage internship programs effectively
+                A complete internship management solution tailored to our university's needs, from student onboarding to final evaluation
               </p>
             </div>
-            <div className="mt-8 md:mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-10">
+            <div className="mt-8 md:mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
               <Feature 
-                icon={<Search className="text-primary text-lg md:text-xl" />} 
-                title="Smart Matching" 
-                description="Connects students with companies based on skills, interests, and career goals." 
+                icon={<Users className="text-primary text-lg md:text-2xl" />} 
+                title="Multi-Role Dashboard" 
+                description="Tailored interfaces for students, lecturers, supervisors, HODs, and administrators with role-specific features and analytics." 
               />
               <Feature 
-                icon={<ChartBar className="text-primary text-lg md:text-xl" />} 
-                title="Progress Tracking" 
-                description="Real-time tracking of student progress with milestone completion and performance metrics." 
+                icon={<ChartBar className="text-primary text-lg md:text-2xl" />} 
+                title="Real-Time Analytics" 
+                description="Live performance metrics, progress tracking, and data visualization for informed decision-making and continuous improvement." 
               />
               <Feature 
-                icon={<Building className="text-primary text-lg md:text-xl" />} 
-                title="Company Partnerships" 
-                description="Manage relationships with industry partners and track internship opportunities." 
+                icon={<CheckCircle className="text-primary text-lg md:text-2xl" />} 
+                title="Daily Check-ins" 
+                description="GPS-verified attendance tracking with manual override options, ensuring accurate location-based monitoring of interns." 
               />
               <Feature 
-                icon={<Calendar className="text-primary text-lg md:text-xl" />} 
-                title="Automated Reporting" 
-                description="Generate comprehensive reports on student performance and program success." 
+                icon={<FileText className="text-primary text-lg md:text-2xl" />} 
+                title="Smart Reporting" 
+                description="AI-powered report summarization, automated submission workflows, and comprehensive evaluation tools for all stakeholders." 
+              />
+              <Feature 
+                icon={<MessageSquare className="text-primary text-lg md:text-2xl" />} 
+                title="Instant Notifications" 
+                description="Real-time alerts for report submissions, approvals, tasks, and system updates keeping everyone informed and engaged." 
               />
               <Feature 
                 icon={<Shield className="text-primary text-lg md:text-xl" />} 
-                title="Secure & Compliant" 
-                description="Ensure data privacy and compliance with university and industry regulations." 
+                title="Security & Privacy" 
+                description="Enterprise-grade security with Firebase authentication, encrypted data storage, and comprehensive audit logging system." 
               />
             </div>
           </div>
@@ -240,7 +267,7 @@ export default function WelcomePage() {
             <div className="text-center">
               <h2 className="text-xs md:text-base font-semibold text-primary uppercase tracking-wide">Process</h2>
               <h3 className="mt-1 md:mt-2 text-xl md:text-3xl font-bold text-gray-900">
-                How InternTrack Works
+                How InternHub Works
               </h3>
               <p className="mt-2 md:mt-4 max-w-2xl mx-auto text-sm md:text-xl text-gray-500">
                 A simple three-step process to streamline your internship management.
@@ -290,27 +317,186 @@ export default function WelcomePage() {
           </div>
         </section>
         
-        {/* CTA Section */}
-        <section className="py-12 md:py-20 bg-primary">
+        {/* Testimonials Section */}
+        <section className="py-12 md:py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h2 className="text-2xl md:text-3xl font-bold text-white">
-                Ready to Transform Your Internship Program?
-              </h2>
-              <p className="mt-2 md:mt-4 max-w-2xl mx-auto text-sm md:text-xl text-blue-100">
-                Join universities using Intern Hub to streamline internship management.
+              <h2 className="text-xs md:text-base font-semibold text-primary uppercase tracking-wide">Testimonials</h2>
+              <h3 className="mt-1 md:mt-2 text-2xl md:text-4xl font-bold text-gray-900">
+                What Our Users Say
+              </h3>
+              <p className="mt-2 md:mt-4 max-w-2xl mx-auto text-sm md:text-lg text-gray-600">
+                Hear from our HTU community - students, lecturers, and supervisors using InternHub every day
               </p>
-              <div className="mt-6 md:mt-10">
-                <Link 
-                  href="/dashboard" 
-                  className="px-6 py-3 md:px-8 md:py-4 bg-white text-primary font-bold rounded-lg shadow-lg hover:bg-gray-100 transition duration-300 inline-block text-sm md:text-base"
-                >
-                  Get Started Today
-                </Link>
+            </div>
+            <div className="mt-8 md:mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+              <div className="bg-gray-50 rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-primary font-bold">AS</div>
+                  <div className="ml-3">
+                    <div className="font-semibold text-gray-900">Abena Serwaa</div>
+                    <div className="text-sm text-gray-600">Computer Science Student</div>
+                  </div>
+                </div>
+                <p className="text-gray-700 text-sm">
+                  "InternHub made tracking my internship progress so easy! The daily check-in and report features helped me stay organized, and my lecturer could monitor my work in real-time."
+                </p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold">KA</div>
+                  <div className="ml-3">
+                    <div className="font-semibold text-gray-900">Dr. Kwame Asante</div>
+                    <div className="text-sm text-gray-600">Lecturer & Coordinator</div>
+                  </div>
+                </div>
+                <p className="text-gray-700 text-sm">
+                  "As a lecturer managing 50+ students, InternHub's analytics dashboard gives me instant visibility into everyone's progress. The automated reporting saves me hours every week!"
+                </p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold">EB</div>
+                  <div className="ml-3">
+                    <div className="font-semibold text-gray-900">Emmanuel Boateng</div>
+                    <div className="text-sm text-gray-600">Company Supervisor</div>
+                  </div>
+                </div>
+                <p className="text-gray-700 text-sm">
+                  "The platform streamlined our intern management process. We can easily evaluate performance, assign tasks, and communicate with the university - all in one place."
+                </p>
               </div>
             </div>
           </div>
         </section>
+
+        {/* Benefits Section */}
+        <section className="py-12 md:py-20 bg-gradient-to-br from-gray-50 to-blue-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-2xl md:text-4xl font-bold text-gray-900">Your Campus Internship Solution</h2>
+              <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
+                Designed and deployed exclusively for Ho Technical University students, faculty, and administrative staff
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                    <Check className="text-green-600 w-5 h-5" />
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900">Easy Setup & Onboarding</h4>
+                  <p className="mt-1 text-sm text-gray-600">Get started in minutes with our intuitive setup wizard and comprehensive user guides.</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                    <Check className="text-green-600 w-5 h-5" />
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900">Mobile-First Design</h4>
+                  <p className="mt-1 text-sm text-gray-600">Fully responsive interface that works seamlessly on phones, tablets, and desktops.</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                    <Check className="text-green-600 w-5 h-5" />
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900">Comprehensive Analytics</h4>
+                  <p className="mt-1 text-sm text-gray-600">Data-driven insights with charts, trends, and performance metrics for better decision-making.</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                    <Check className="text-green-600 w-5 h-5" />
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900">24/7 Support</h4>
+                  <p className="mt-1 text-sm text-gray-600">Dedicated support team ready to help with any questions or technical issues.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-16 md:py-24 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 relative overflow-hidden">
+          <div className="absolute inset-0 bg-grid-white/10"></div>
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div className="text-center">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white">
+                Part of the HTU Community?
+              </h2>
+              <p className="mt-4 md:mt-6 max-w-2xl mx-auto text-base md:text-xl text-blue-100">
+                Access your InternHub account to manage internships, submit reports, track progress, and collaborate with your supervisors and lecturers.
+              </p>
+              <div className="mt-8 md:mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+                <Link 
+                  href="/login" 
+                  className="px-8 py-4 bg-white text-blue-600 font-bold rounded-lg shadow-xl hover:shadow-2xl hover:bg-gray-50 transition duration-300 inline-block text-base"
+                >
+                  Sign In to Your Account
+                </Link>
+                <Link 
+                  href="/register" 
+                  className="px-8 py-4 bg-blue-500 text-white font-bold rounded-lg shadow-xl hover:bg-blue-400 border-2 border-white/30 transition duration-300 inline-block text-base"
+                >
+                  Register (Students Only)
+                </Link>
+              </div>
+              <p className="mt-6 text-sm text-blue-200">✓ HTU Students, Lecturers & Staff  ✓ Secure university authentication  ✓ Available 24/7</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="bg-gray-900 text-gray-300 py-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              <div className="col-span-1 md:col-span-2">
+                <div className="flex items-center mb-4">
+                  <div className="bg-primary w-10 h-10 rounded-lg flex items-center justify-center">
+                    <GraduationCap className="text-white text-xl" />
+                  </div>
+                  <span className="ml-3 text-xl font-bold text-white">Intern<span className="text-primary">Hub</span></span>
+                </div>
+                <p className="text-sm text-gray-400 max-w-md">
+                  Ho Technical University's official internship management platform. Connecting students, lecturers, supervisors, and industry partners for successful internship experiences.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-white mb-4">Quick Links</h4>
+                <ul className="space-y-2 text-sm">
+                  <li><Link href="#features" className="hover:text-primary transition">Features</Link></li>
+                  <li><Link href="#how-it-works" className="hover:text-primary transition">How It Works</Link></li>
+                  <li><Link href="/login" className="hover:text-primary transition">Sign In</Link></li>
+                  <li><Link href="/register" className="hover:text-primary transition">Register</Link></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-white mb-4">Contact</h4>
+                <ul className="space-y-2 text-sm">
+                  <li>Ho Technical University</li>
+                  <li>Ho, Volta Region</li>
+                  <li>Ghana</li>
+                  <li className="mt-4"><a href="mailto:support@internhub.edu.gh" className="hover:text-primary transition">support@internhub.edu.gh</a></li>
+                </ul>
+              </div>
+            </div>
+            <div className="mt-8 pt-8 border-t border-gray-800 text-center text-sm">
+              <p>&copy; {new Date().getFullYear()} InternHub. All rights reserved. Developed for Ho Technical University.</p>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );
