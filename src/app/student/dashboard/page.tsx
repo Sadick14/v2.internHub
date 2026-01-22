@@ -229,10 +229,12 @@ export default function StudentDashboardPage() {
   }
 
   const internshipDurationDays = profile ? differenceInBusinessDays(new Date(profile.endDate), new Date(profile.startDate)) : 0;
-  const daysCompleted = profile ? differenceInBusinessDays(new Date(), new Date(profile.startDate)) : 0;
-  const progressPercentage = internshipDurationDays > 0 ? Math.min(100, Math.round((daysCompleted / internshipDurationDays) * 100)) : 0;
+  const daysCompleted = profile ? Math.max(0, differenceInBusinessDays(new Date(), new Date(profile.startDate))) : 0;
+  const daysRemaining = profile ? Math.max(0, differenceInBusinessDays(new Date(profile.endDate), new Date())) : 0;
+  const progressPercentage = internshipDurationDays > 0 ? Math.min(100, Math.max(0, Math.round((daysCompleted / internshipDurationDays) * 100))) : 0;
   const submittedReportsCount = reports.length;
   const pendingReportsCount = reports.filter(r => r.status === 'Pending').length;
+  const hoursLogged = Math.max(0, daysCompleted * 8);
 
   const getStatusVariant = (status: Report['status']) => {
     switch (status) {
@@ -289,7 +291,7 @@ export default function StudentDashboardPage() {
        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             <StatCard icon={CalendarDays} label="Days Completed" value={`${daysCompleted} / ${internshipDurationDays}`} color="blue-500" />
             <StatCard icon={ListChecks} label="Reports Submitted" value={`${submittedReportsCount}`} color="green-500" />
-            <StatCard icon={Clock} label="Hours Logged" value={`${daysCompleted * 8}`} color="purple-500" />
+            <StatCard icon={Clock} label="Hours Logged" value={`${hoursLogged}`} color="purple-500" />
             <StatCard icon={MapPin} label="Today's Check-in" value={checkIn ? 'Done' : 'Pending'} color="yellow-500" />
         </div>
 
@@ -297,7 +299,7 @@ export default function StudentDashboardPage() {
           <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
               <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-semibold text-gray-800">Internship Progress</h3>
-                  <span className="text-sm text-gray-500">Week {Math.floor(daysCompleted / 5) + 1} of {Math.floor(internshipDurationDays / 5)}</span>
+                  <span className="text-sm text-gray-500">Week {Math.max(1, Math.floor(daysCompleted / 5) + 1)} of {Math.max(1, Math.ceil(internshipDurationDays / 5))}</span>
               </div>
               <Progress value={progressPercentage} className="h-3" />
               <div className="flex justify-between text-sm text-muted-foreground mt-2">

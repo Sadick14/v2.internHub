@@ -116,7 +116,7 @@ export default function StudentProgressPage() {
   // Calculate metrics
   const internshipDays = differenceInBusinessDays(new Date(profile.endDate), new Date(profile.startDate));
   const daysCompleted = Math.max(0, differenceInBusinessDays(new Date(), new Date(profile.startDate)));
-  const progressPercentage = Math.min(100, Math.round((daysCompleted / internshipDays) * 100));
+  const progressPercentage = internshipDays > 0 ? Math.min(100, Math.max(0, Math.round((daysCompleted / internshipDays) * 100))) : 0;
 
   const totalReports = reports.length;
   const approvedReports = reports.filter(r => r.status === 'Approved').length;
@@ -126,7 +126,7 @@ export default function StudentProgressPage() {
 
   const totalCheckIns = checkIns.length;
   const expectedCheckIns = daysCompleted;
-  const attendanceRate = expectedCheckIns > 0 ? Math.round((totalCheckIns / expectedCheckIns) * 100) : 0;
+  const attendanceRate = expectedCheckIns > 0 ? Math.min(100, Math.round((totalCheckIns / expectedCheckIns) * 100)) : 0;
 
   // Calculate streak (consecutive check-ins)
   const sortedCheckIns = [...checkIns].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
