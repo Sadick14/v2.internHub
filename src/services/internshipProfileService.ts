@@ -188,3 +188,13 @@ export async function updateInternshipProfile(profileId: string, details: Partia
         return { success: false, message: `Failed to update profile: ${error.message}` };
     }
 }
+
+export async function getInternshipProfiles(): Promise<InternshipProfile[]> {
+    const profilesCol = collection(db, 'internship_profiles');
+    const snapshot = await getDocs(profilesCol);
+    
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        return serializeProfile({ id: doc.id, ...data });
+    });
+}

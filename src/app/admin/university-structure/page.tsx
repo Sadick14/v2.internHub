@@ -37,6 +37,8 @@ export default function UniversityStructurePage() {
     const [isEditMode, setIsEditMode] = useState(false);
     const [currentFaculty, setCurrentFaculty] = useState<Partial<Faculty> | null>(null);
     const [currentDepartment, setCurrentDepartment] = useState<Partial<Department> | null>(null);
+    const [csvFile, setCsvFile] = useState<File | null>(null);
+    const [isBulkUploading, setIsBulkUploading] = useState(false);
 
     const { toast } = useToast();
 
@@ -157,9 +159,115 @@ export default function UniversityStructurePage() {
         }
     }
     
+    const parseCsv = (text: string) => {
+        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        if (!lines.length) return [];
+        const headers = lines[0].split(',').map(h => h.trim());
+        return lines.slice(1).map(line => {
+            const values = line.split(',').map(v => v.trim());
+            const row: Record<string, string> = {};
+            headers.forEach((h, idx) => {
+                row[h] = values[idx] || '';
+            });
+            return row;
+        });
+    };
+
+    const handleBulkUpload = async () => {
+        if (!csvFile) {
+            toast({ title: "No file", description: "Please choose a CSV file first.", variant: "destructive" });
+            return;
+        }
+        setIsBulkUploading(true);
+        try {
+            const text = await csvFile.text();
+            const rows = parseCsv(text);
+            if (!rows.length) {
+                toast({ title: "Empty file", description: "No rows found in the CSV.", variant: "destructive" });
+                return;
+            }
+
+            let facultiesCreated = 0;
+            let departmentsCreated = 0;
+            const failures: string[] = [];
+            const createdFacultyIds = new Map<string, string>();
+
+            // First pass: Create faculties
+            for (const [idx, row] of rows.entries()) {
+                const rowNum = idx + 2;
+                if (row.type?.toLowerCase() === 'faculty') {
+                    if (!row.name || !row.code) {
+                        failures.push(`Row ${rowNum}: Faculty missing name or code`);
+                        continue;
+                    }
+                    try {
+                        await createFaculty({ name: row.name, code: row.code });
+                        facultiesCreated += 1;
+                    } catch (err: any) {
+                        failures.push(`Row ${rowNum}: ${err?.message || 'Failed to create faculty'}`);
+                    }
+                }
+            }
+
+            // Refresh faculties to get IDs
+            const [updatedFaculties] = await Promise.all([getFaculties()]);
+            const facultyByCode = new Map(updatedFaculties.map(f => [f.code.toLowerCase(), f.id]));
+            const facultyByName = new Map(updatedFaculties.map(f => [f.name.toLowerCase(), f.id]));
+
+            // Second pass: Create departments
+            for (const [idx, row] of rows.entries()) {
+                const rowNum = idx + 2;
+                if (row.type?.toLowerCase() === 'department') {
+                    if (!row.name || !row.code || !row['facultyId(for_department)']) {
+                        failures.push(`Row ${rowNum}: Department missing name, code, or facultyId`);
+                        continue;
+                    }
+                    const facultyRef = row['facultyId(for_department)'].toLowerCase();
+                    const facultyId = facultyByCode.get(facultyRef) || facultyByName.get(facultyRef);
+                    if (!facultyId) {
+                        failures.push(`Row ${rowNum}: Faculty "${row['facultyId(for_department)']}" not found`);
+                        continue;
+                    }
+                    try {
+                        await createDepartment({ name: row.name, code: row.code, facultyId });
+                        departmentsCreated += 1;
+                    } catch (err: any) {
+                        failures.push(`Row ${rowNum}: ${err?.message || 'Failed to create department'}`);
+                    }
+                }
+            }
+
+            await fetchData();
+
+            if (failures.length) {
+                toast({
+                    title: `Imported ${facultiesCreated} faculties, ${departmentsCreated} departments with ${failures.length} errors`,
+                    description: failures.slice(0, 3).join(' | ') + (failures.length > 3 ? '...' : ''),
+                    variant: 'destructive',
+                });
+            } else {
+                toast({ title: 'Bulk import successful', description: `Created ${facultiesCreated} faculties and ${departmentsCreated} departments.` });
+            }
+            setCsvFile(null);
+        } catch (error: any) {
+            toast({ title: 'Error', description: error?.message || 'Failed to process CSV', variant: 'destructive' });
+        } finally {
+            setIsBulkUploading(false);
+        }
+    };
+
     const handleDownloadTemplate = () => {
-        const headers = "type,name,code,facultyId(for_department)";
-        const blob = new Blob([headers], { type: 'text/csv;charset=utf-8;' });
+        let csvContent = "type,name,code,facultyId(for_department)\n";
+        csvContent += "\n# INSTRUCTIONS:\n";
+        csvContent += "# - type: 'faculty' or 'department'\n";
+        csvContent += "# - name: Full name of the faculty or department\n";
+        csvContent += "# - code: Short code (e.g., 'FAST', 'COMPSSA')\n";
+        csvContent += "# - facultyId(for_department): For departments only, use faculty code or name\n";
+        csvContent += "\n# EXAMPLE:\n";
+        csvContent += "# faculty,Faculty of Computing,FAST,\n";
+        csvContent += "# department,Computer Science,COMPSSA,FAST\n";
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
@@ -170,7 +278,7 @@ export default function UniversityStructurePage() {
         document.body.removeChild(link);
         toast({
             title: "Template Downloaded",
-            description: "A CSV template has been downloaded.",
+            description: "A CSV template with examples has been downloaded.",
         });
     };
 
@@ -348,12 +456,13 @@ export default function UniversityStructurePage() {
                                     <span className="text-primary font-medium">Click to upload a file</span>
                                     <span className="text-muted-foreground text-sm">or drag and drop your CSV here</span>
                                 </Label>
-                                <Input id="csv-upload-structure" type="file" accept=".csv" className="hidden" />
+                                <Input id="csv-upload-structure" type="file" accept=".csv" className="hidden" onChange={(e) => setCsvFile(e.target.files?.[0] || null)} />
+                                {csvFile && <p className="text-xs text-muted-foreground">Selected: {csvFile.name}</p>}
                             </div>
                         </CardContent>
                     </Card>
                     <div className="flex items-center gap-4">
-                        <Button>Upload & Import</Button>
+                        <Button onClick={handleBulkUpload} disabled={isBulkUploading || !csvFile}>{isBulkUploading ? 'Uploading...' : 'Upload & Import'}</Button>
                         <Button variant="outline" onClick={handleDownloadTemplate}><FileDown className="mr-2 h-4 w-4" /> Download Template</Button>
                     </div>
                 </CardContent>

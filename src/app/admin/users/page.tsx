@@ -37,6 +37,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 export default function UserManagementPage() {
     const [users, setUsers] = useState<UserProfile[]>([]);
+    const [filteredUsers, setFilteredUsers] = useState<UserProfile[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [roleFilter, setRoleFilter] = useState<Role | 'all'>('all');
     const [isLoading, setIsLoading] = useState(true);
     const [isEditUserOpen, setIsEditUserOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState<UserProfile & { id?: string } | null>(null);
@@ -65,6 +70,29 @@ export default function UserManagementPage() {
     useEffect(() => {
         fetchPageData();
     }, []);
+
+    useEffect(() => {
+        let filtered = users;
+        
+        if (searchTerm) {
+            filtered = filtered.filter(u => 
+                u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                u.email.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+        
+        if (roleFilter !== 'all') {
+            filtered = filtered.filter(u => u.role === roleFilter);
+        }
+        
+        setFilteredUsers(filtered);
+        setCurrentPage(1);
+    }, [users, searchTerm, roleFilter]);
+
+    const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentUsers = filteredUsers.slice(startIndex, endIndex);
 
     const openEditDialog = (user: UserProfile) => {
         setCurrentUser({ ...user });
@@ -215,6 +243,41 @@ export default function UserManagementPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
+                    <div className="flex flex-col md:flex-row gap-4 mb-6">
+                        <Input
+                            placeholder="Search by name or email..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="max-w-sm"
+                        />
+                        <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as Role | 'all')}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Filter by role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Roles</SelectItem>
+                                <SelectItem value="student">Student</SelectItem>
+                                <SelectItem value="lecturer">Lecturer</SelectItem>
+                                <SelectItem value="hod">Head of Department</SelectItem>
+                                <SelectItem value="supervisor">Supervisor</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <div className="ml-auto flex items-center gap-2">
+                            <Label className="text-sm text-muted-foreground">Per page:</Label>
+                            <Select value={itemsPerPage.toString()} onValueChange={(v) => setItemsPerPage(Number(v))}>
+                                <SelectTrigger className="w-[100px]">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="10">10</SelectItem>
+                                    <SelectItem value="25">25</SelectItem>
+                                    <SelectItem value="50">50</SelectItem>
+                                    <SelectItem value="100">100</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
                     {/* Mobile View */}
                     <div className="md:hidden">
                         {isLoading ? (
@@ -223,9 +286,9 @@ export default function UserManagementPage() {
                                 <Skeleton className="h-24 w-full" />
                                 <Skeleton className="h-24 w-full" />
                             </div>
-                        ) : users.length > 0 ? (
+                        ) : currentUsers.length > 0 ? (
                             <div className="space-y-4">
-                                {users.map((user) => (
+                                {currentUsers.map((user) => (
                                     <UserCard key={user.firestoreId} user={user} />
                                 ))}
                             </div>
@@ -259,7 +322,7 @@ export default function UserManagementPage() {
                                         </TableRow>
                                     ))
                                 ) : (
-                                    users.map((user) => (
+                                    currentUsers.map((user) => (
                                         <TableRow key={user.firestoreId}>
                                             <TableCell className="font-medium">
                                                 {user.role === 'student' && user.uid ? (
@@ -322,6 +385,34 @@ export default function UserManagementPage() {
                             </TableBody>
                         </Table>
                     </div>
+                    {filteredUsers.length > 0 && (
+                        <div className="flex items-center justify-between mt-6">
+                            <p className="text-sm text-muted-foreground">
+                                Showing {startIndex + 1} to {Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length} users
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1}
+                                >
+                                    Previous
+                                </Button>
+                                <span className="text-sm">
+                                    Page {currentPage} of {totalPages}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    Next
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 

@@ -185,12 +185,73 @@ export default function InternshipTermsPage() {
         }
     }
 
-    const handleDownloadArchive = (termId: string) => {
-        toast({
-            title: 'Feature In Progress',
-            description: 'The ability to download term archives will be implemented soon.',
-        });
-        console.log(`Request to download archive for term ${termId}`);
+    const [isDownloading, setIsDownloading] = useState<string | null>(null);
+    const [archivePreview, setArchivePreview] = useState<any>(null);
+    const [showArchiveDialog, setShowArchiveDialog] = useState(false);
+
+    const handleShowArchivePreview = async (termId: string, termName: string) => {
+        try {
+            toast({
+                title: 'Loading Preview',
+                description: 'Fetching archive statistics...',
+            });
+
+            const { getTermArchiveData } = await import('@/services/internshipTermsService');
+            const archiveData = await getTermArchiveData(termId);
+            setArchivePreview({ ...archiveData, termId, termName });
+            setShowArchiveDialog(true);
+        } catch (error: any) {
+            toast({
+                title: 'Preview Failed',
+                description: error.message || 'Failed to load archive preview.',
+                variant: 'destructive',
+            });
+        }
+    };
+
+    const handleDownloadArchive = async (termId: string, termName: string, format: 'json' | 'csv' = 'json') => {
+        setIsDownloading(termId);
+        try {
+            toast({
+                title: 'Preparing Archive',
+                description: 'Collecting all term data for export...',
+            });
+
+            const { getTermArchiveData } = await import('@/services/internshipTermsService');
+            const archiveData = await getTermArchiveData(termId);
+
+            if (format === 'json') {
+                // Download as JSON
+                const jsonString = JSON.stringify(archiveData, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${termName.replace(/\s+/g, '_')}_archive_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            } else {
+                // Download as CSV (summary + separate CSV files zipped)
+                const { exportArchiveAsCSV } = await import('@/lib/archiveExport');
+                await exportArchiveAsCSV(archiveData, termName);
+            }
+
+            toast({
+                title: 'Archive Downloaded',
+                description: `Successfully exported ${archiveData.statistics.totalReports} reports, ${archiveData.statistics.totalUsers} users, and more.`,
+            });
+        } catch (error: any) {
+            console.error('Archive download error:', error);
+            toast({
+                title: 'Download Failed',
+                description: error.message || 'Failed to generate archive. Please try again.',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsDownloading(null);
+        }
     };
 
     const handleSendEvalReminders = async () => {
@@ -283,8 +344,16 @@ export default function InternshipTermsPage() {
                                 <Archive className="mr-2 h-4 w-4" /> Archive Term
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleDownloadArchive(term.id)}>
-                                <Download className="mr-2 h-4 w-4" /> Download Archive
+                            {term.status === 'Archived' && (
+                                <DropdownMenuItem onClick={() => handleShowArchivePreview(term.id, term.name)}>
+                                    <Activity className="mr-2 h-4 w-4" /> View Archive Stats
+                                </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem onClick={() => handleDownloadArchive(term.id, term.name, 'json')} disabled={isDownloading === term.id}>
+                                <Download className="mr-2 h-4 w-4" /> {isDownloading === term.id ? 'Downloading...' : 'Download as JSON'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownloadArchive(term.id, term.name, 'csv')} disabled={isDownloading === term.id}>
+                                <Download className="mr-2 h-4 w-4" /> {isDownloading === term.id ? 'Downloading...' : 'Download as CSV'}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -431,8 +500,16 @@ export default function InternshipTermsPage() {
                                                         <Archive className="mr-2 h-4 w-4" /> Archive Term
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
-                                                    <DropdownMenuItem onClick={() => handleDownloadArchive(term.id)}>
-                                                        <Download className="mr-2 h-4 w-4" /> Download Archive
+                                                    {term.status === 'Archived' && (
+                                                        <DropdownMenuItem onClick={() => handleShowArchivePreview(term.id, term.name)}>
+                                                            <Activity className="mr-2 h-4 w-4" /> View Archive Stats
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                    <DropdownMenuItem onClick={() => handleDownloadArchive(term.id, term.name, 'json')} disabled={isDownloading === term.id}>
+                                                        <Download className="mr-2 h-4 w-4" /> {isDownloading === term.id ? 'Downloading...' : 'Download as JSON'}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleDownloadArchive(term.id, term.name, 'csv')} disabled={isDownloading === term.id}>
+                                                        <Download className="mr-2 h-4 w-4" /> {isDownloading === term.id ? 'Downloading...' : 'Download as CSV'}
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -631,6 +708,108 @@ export default function InternshipTermsPage() {
                     </form>
                 </Form>
              </Card>
+
+            {/* Archive Preview Dialog */}
+            <Dialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Archive Statistics - {archivePreview?.termName}</DialogTitle>
+                    </DialogHeader>
+                    {archivePreview && (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <Card>
+                                    <CardHeader className="pb-3">
+                                        <CardTitle className="text-sm">Term Period</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-xs text-muted-foreground">
+                                            {new Date(archivePreview.term.startDate).toLocaleDateString()} - {new Date(archivePreview.term.endDate).toLocaleDateString()}
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardHeader className="pb-3">
+                                        <CardTitle className="text-sm">Status</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <Badge variant="secondary">{archivePreview.term.status}</Badge>
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-base">Data Summary</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div className="space-y-1">
+                                            <p className="text-2xl font-bold">{archivePreview.statistics.totalUsers}</p>
+                                            <p className="text-xs text-muted-foreground">Total Users</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-2xl font-bold">{archivePreview.statistics.totalStudents}</p>
+                                            <p className="text-xs text-muted-foreground">Students</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-2xl font-bold">{archivePreview.statistics.totalLecturers}</p>
+                                            <p className="text-xs text-muted-foreground">Lecturers</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-2xl font-bold">{archivePreview.statistics.totalSupervisors}</p>
+                                            <p className="text-xs text-muted-foreground">Supervisors</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-2xl font-bold">{archivePreview.statistics.totalReports}</p>
+                                            <p className="text-xs text-muted-foreground">Reports</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-2xl font-bold">{archivePreview.statistics.totalProfiles}</p>
+                                            <p className="text-xs text-muted-foreground">Internships</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-2xl font-bold">{archivePreview.statistics.totalEvaluations}</p>
+                                            <p className="text-xs text-muted-foreground">Evaluations</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-2xl font-bold">{archivePreview.statistics.totalCheckIns}</p>
+                                            <p className="text-xs text-muted-foreground">Check-ins</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-2xl font-bold">{archivePreview.statistics.totalTasks}</p>
+                                            <p className="text-xs text-muted-foreground">Tasks</p>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <DialogFooter className="gap-2">
+                                <Button variant="outline" onClick={() => setShowArchiveDialog(false)}>
+                                    Close
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => {
+                                        handleDownloadArchive(archivePreview.termId, archivePreview.termName, 'csv');
+                                        setShowArchiveDialog(false);
+                                    }}
+                                >
+                                    <Download className="mr-2 h-4 w-4" /> Download CSV
+                                </Button>
+                                <Button
+                                    onClick={() => {
+                                        handleDownloadArchive(archivePreview.termId, archivePreview.termName, 'json');
+                                        setShowArchiveDialog(false);
+                                    }}
+                                >
+                                    <Download className="mr-2 h-4 w-4" /> Download JSON
+                                </Button>
+                            </DialogFooter>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

@@ -28,6 +28,8 @@ type InviteFormState = {
 
 export default function InviteUserPage() {
     const { toast } = useToast();
+    const [bulkRole, setBulkRole] = useState<Role>('student');
+    const [csvFile, setCsvFile] = useState<File | null>(null);
     const [formData, setFormData] = useState<InviteFormState>({
         firstName: '',
         lastName: '',
@@ -44,6 +46,7 @@ export default function InviteUserPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isFetchingInvites, setIsFetchingInvites] = useState(true);
     const [isReinviting, setIsReinviting] = useState<string | null>(null);
+    const [isBulkUploading, setIsBulkUploading] = useState(false);
 
     async function fetchPageData() {
         setIsFetchingInvites(true);
@@ -141,23 +144,53 @@ export default function InviteUserPage() {
 
     const handleDownloadTemplate = () => {
         let headers = "firstName,lastName,email";
-        let filename = `${formData.role}_invite_template.csv`;
+        let filename = `${bulkRole}_invite_template.csv`;
+        let csvContent = headers;
 
-        switch(formData.role) {
+        switch(bulkRole) {
             case 'student':
                 headers = "firstName,lastName,email,indexNumber,programOfStudy,facultyCode,departmentCode";
+                csvContent = headers;
                 break;
             case 'lecturer':
             case 'hod':
                 headers = "firstName,lastName,email,facultyCode,departmentCode";
+                csvContent = headers;
                 break;
             case 'supervisor':
             case 'admin':
-                // Default headers are fine
+                csvContent = headers;
                 break;
         }
 
-        const blob = new Blob([headers], { type: 'text/csv;charset=utf-8;' });
+        // Add reference data for faculties and departments if needed
+        if (bulkRole === 'student' || bulkRole === 'lecturer' || bulkRole === 'hod') {
+            csvContent += '\n\n# REFERENCE DATA - Available Faculties (use code OR name):';
+            faculties.forEach(f => {
+                csvContent += `\n# ${f.code} - ${f.name}`;
+            });
+            
+            csvContent += '\n\n# Available Departments (use code OR name):';
+            const deptsByFaculty = new Map<string, Department[]>();
+            departments.forEach(d => {
+                if (!deptsByFaculty.has(d.facultyId)) {
+                    deptsByFaculty.set(d.facultyId, []);
+                }
+                deptsByFaculty.get(d.facultyId)!.push(d);
+            });
+            
+            faculties.forEach(f => {
+                const depts = deptsByFaculty.get(f.id) || [];
+                if (depts.length > 0) {
+                    csvContent += `\n# --- ${f.name} (${f.code}) ---`;
+                    depts.forEach(d => {
+                        csvContent += `\n# ${d.code} - ${d.name}`;
+                    });
+                }
+            });
+        }
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
@@ -168,8 +201,126 @@ export default function InviteUserPage() {
         document.body.removeChild(link);
         toast({
             title: "Template Downloaded",
-            description: `A CSV template for the ${formData.role} role has been downloaded.`,
+            description: `A CSV template for the ${bulkRole} role with reference data has been downloaded.`,
         });
+    };
+
+    const parseCsv = (text: string) => {
+        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        if (!lines.length) return [];
+        const headers = lines[0].split(',').map(h => h.trim());
+        return lines.slice(1).map(line => {
+            const values = line.split(',').map(v => v.trim());
+            const row: Record<string, string> = {};
+            headers.forEach((h, idx) => {
+                row[h] = values[idx] || '';
+            });
+            return row;
+        });
+    };
+
+    const handleBulkUpload = async () => {
+        if (!csvFile) {
+            toast({ title: "No file", description: "Please choose a CSV file first.", variant: "destructive" });
+            return;
+        }
+        setIsBulkUploading(true);
+        try {
+            const text = await csvFile.text();
+            const rows = parseCsv(text);
+            if (!rows.length) {
+                toast({ title: "Empty file", description: "No rows found in the CSV.", variant: "destructive" });
+                return;
+            }
+
+            // Build maps for both code and name lookups (case-insensitive)
+            const facultyByCode = new Map(faculties.map(f => [f.code.toLowerCase(), f.id]));
+            const facultyByName = new Map(faculties.map(f => [f.name.toLowerCase(), f.id]));
+            const deptByCode = new Map(departments.map(d => [d.code.toLowerCase(), d.id]));
+            const deptByName = new Map(departments.map(d => [d.name.toLowerCase(), d.id]));
+
+            const requiredBase = ['firstName', 'lastName', 'email'];
+            const roleSpecific: Record<Role, string[]> = {
+                student: [...requiredBase, 'indexNumber', 'programOfStudy', 'facultyCode', 'departmentCode'],
+                lecturer: [...requiredBase, 'facultyCode', 'departmentCode'],
+                hod: [...requiredBase, 'facultyCode', 'departmentCode'],
+                supervisor: requiredBase,
+                admin: requiredBase,
+            };
+
+            let success = 0;
+            const failures: string[] = [];
+
+            for (const [idx, row] of rows.entries()) {
+                const rowNum = idx + 2; // account for header
+                const missing = roleSpecific[bulkRole].filter(k => !row[k]);
+                if (missing.length) {
+                    failures.push(`Row ${rowNum}: missing ${missing.join(', ')}`);
+                    continue;
+                }
+
+                let facultyId: string | undefined;
+                let departmentId: string | undefined;
+
+                if (bulkRole === 'student' || bulkRole === 'lecturer' || bulkRole === 'hod') {
+                    // Try code first, then name
+                    const facValue = row.facultyCode?.toLowerCase();
+                    facultyId = facultyByCode.get(facValue) || facultyByName.get(facValue);
+                    
+                    const deptValue = row.departmentCode?.toLowerCase();
+                    departmentId = deptByCode.get(deptValue) || deptByName.get(deptValue);
+                    
+                    if (!facultyId) {
+                        failures.push(`Row ${rowNum}: faculty "${row.facultyCode}" not found (tried code and name)`);
+                        continue;
+                    }
+                    if (!departmentId) {
+                        failures.push(`Row ${rowNum}: department "${row.departmentCode}" not found (tried code and name)`);
+                        continue;
+                    }
+                }
+
+                try {
+                    const payload: any = {
+                        firstName: row.firstName,
+                        lastName: row.lastName,
+                        email: row.email,
+                        role: bulkRole,
+                    };
+
+                    if (bulkRole === 'student') {
+                        payload.indexNumber = row.indexNumber;
+                        payload.programOfStudy = row.programOfStudy;
+                        payload.facultyId = facultyId;
+                        payload.departmentId = departmentId;
+                    } else if (bulkRole === 'lecturer' || bulkRole === 'hod') {
+                        payload.facultyId = facultyId;
+                        payload.departmentId = departmentId;
+                    }
+
+                    await createInvite(payload);
+                    success += 1;
+                } catch (err: any) {
+                    failures.push(`Row ${rowNum}: ${err?.message || 'Failed to create invite'}`);
+                }
+            }
+
+            await fetchPageData();
+
+            if (failures.length) {
+                toast({
+                    title: `Uploaded with ${success} success, ${failures.length} failed`,
+                    description: failures.slice(0, 5).join(' | ') + (failures.length > 5 ? ' ...' : ''),
+                    variant: 'destructive',
+                });
+            } else {
+                toast({ title: 'Bulk invites sent', description: `${success} invites created from CSV.` });
+            }
+        } catch (error: any) {
+            toast({ title: 'Error', description: error?.message || 'Failed to process CSV', variant: 'destructive' });
+        } finally {
+            setIsBulkUploading(false);
+        }
     };
     
     return (
@@ -250,13 +401,26 @@ export default function InviteUserPage() {
                     </TabsContent>
                     <TabsContent value="bulk">
                         <div className="space-y-4 pt-4">
+                            <div className="grid gap-2 max-w-sm">
+                                <Label>Role for this CSV</Label>
+                                <Select value={bulkRole} onValueChange={(v) => setBulkRole(v as Role)}>
+                                    <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="student">Student</SelectItem>
+                                        <SelectItem value="lecturer">Lecturer</SelectItem>
+                                        <SelectItem value="hod">Head of Department</SelectItem>
+                                        <SelectItem value="supervisor">Supervisor</SelectItem>
+                                        <SelectItem value="admin">Admin</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                              <div className="text-sm p-4 bg-secondary rounded-md border">
                                 <p className="font-semibold">Instructions:</p>
                                 <ol className="list-decimal list-inside space-y-1 mt-2">
-                                    <li>First, select the desired role (e.g., 'Student') from the 'Single Invite' tab.</li>
-                                    <li>Click 'Download Template' to get the CSV file with the correct columns for that role.</li>
-                                    <li>Fill the template with user data. For faculty and department, use their unique **codes** (e.g. 'FAST', 'COMPSSA'), not their names or system IDs.</li>
-                                    <li>Upload the completed CSV file below and click 'Upload & Send Invites'.</li>
+                                    <li>Select the role for this CSV batch above (all rows must be the same role).</li>
+                                    <li>Click 'Download Template' to get a CSV file with the correct columns.</li>
+                                    <li>Fill the template with user data. For faculty/department, you can use either the code (e.g., 'FAST', 'COMPSSA') or the full name (e.g., 'Faculty of Computing', 'Computer Science').</li>
+                                    <li>Upload the completed CSV and click 'Upload & Send Invites'. Any errors will be reported per row.</li>
                                 </ol>
                             </div>
                             <Card className="bg-muted/40">
@@ -267,12 +431,13 @@ export default function InviteUserPage() {
                                             <span className="text-primary font-medium">Click to upload a file</span>
                                             <span className="text-muted-foreground text-sm">or drag and drop your CSV here</span>
                                         </Label>
-                                        <Input id="csv-upload" type="file" accept=".csv" className="hidden" />
+                                        <Input id="csv-upload" type="file" accept=".csv" className="hidden" onChange={(e) => setCsvFile(e.target.files?.[0] || null)} />
+                                        {csvFile && <p className="text-xs text-muted-foreground">Selected: {csvFile.name}</p>}
                                     </div>
                                 </CardContent>
                             </Card>
                             <div className="flex items-center gap-4">
-                                <Button>Upload & Send Invites</Button>
+                                <Button onClick={handleBulkUpload} disabled={isBulkUploading}>{isBulkUploading ? 'Uploading...' : 'Upload & Send Invites'}</Button>
                                 <Button variant="outline" onClick={handleDownloadTemplate}><FileDown className="mr-2 h-4 w-4" /> Download Template</Button>
                             </div>
                         </div>

@@ -25,6 +25,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export default function LecturerDashboardPage() {
   const { user, loading } = useRole();
@@ -32,6 +34,55 @@ export default function LecturerDashboardPage() {
   const [pendingReportsCount, setPendingReportsCount] = useState(0);
   const [todayCheckIns, setTodayCheckIns] = useState<CheckIn[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const fetchInitialData = async () => {
+      setDataLoading(true);
+      const studentsData = await getStudentsByLecturer(user.uid);
+      setStudents(studentsData);
+
+      if (studentsData.length > 0) {
+        const studentIds = studentsData.map(s => s.uid);
+        const [reportsData, checkInsData] = await Promise.all([
+          getReportsByLecturer(user.uid, ['Pending']),
+          getTodayCheckInsForInterns(studentIds)
+        ]);
+        setPendingReportsCount(reportsData.length);
+        setTodayCheckIns(checkInsData);
+      }
+      setDataLoading(false);
+    };
+
+    // Real-time listener for reports
+    const unsubReports = onSnapshot(
+      query(collection(db, 'reports'), where('lecturerId', '==', user.uid)),
+      async () => {
+        const reportsData = await getReportsByLecturer(user.uid, ['Pending']);
+        setPendingReportsCount(reportsData.length);
+      }
+    );
+
+    // Real-time listener for check-ins
+    const unsubCheckIns = onSnapshot(
+      collection(db, 'check_ins'),
+      async () => {
+        if (students.length > 0) {
+          const studentIds = students.map(s => s.uid);
+          const checkInsData = await getTodayCheckInsForInterns(studentIds);
+          setTodayCheckIns(checkInsData);
+        }
+      }
+    );
+
+    fetchInitialData();
+
+    return () => {
+      unsubReports();
+      unsubCheckIns();
+    };
+  }, [user, students.length]);
 
   useEffect(() => {
     async function fetchData() {
@@ -58,7 +109,7 @@ export default function LecturerDashboardPage() {
     if (user) {
         fetchData();
     }
-  }, [user]);
+  }, []);
 
   if(loading || dataLoading) {
     return (
