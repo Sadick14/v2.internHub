@@ -243,6 +243,9 @@ export default function StudentDashboardPage() {
   const submittedReportsCount = reports.length;
   const pendingReportsCount = reports.filter(r => r.status === 'Pending').length;
   const hoursLogged = Math.max(0, daysCompleted * 8);
+  
+  // Show preparation alert if internship hasn't started yet
+  const showPreparationAlert = !access.isLoading && !access.hasStarted && access.daysUntilStart !== null && access.daysUntilStart > 0;
 
   const getStatusVariant = (status: Report['status']) => {
     switch (status) {
