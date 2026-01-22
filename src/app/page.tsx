@@ -1,3 +1,4 @@
+// Updated: Ho Technical University Private Platform - v2.0
 'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -317,58 +318,6 @@ export default function WelcomePage() {
           </div>
         </section>
         
-        {/* Testimonials Section */}
-        <section className="py-12 md:py-20 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h2 className="text-xs md:text-base font-semibold text-primary uppercase tracking-wide">Testimonials</h2>
-              <h3 className="mt-1 md:mt-2 text-2xl md:text-4xl font-bold text-gray-900">
-                What Our Users Say
-              </h3>
-              <p className="mt-2 md:mt-4 max-w-2xl mx-auto text-sm md:text-lg text-gray-600">
-                Hear from our HTU community - students, lecturers, and supervisors using InternHub every day
-              </p>
-            </div>
-            <div className="mt-8 md:mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-              <div className="bg-gray-50 rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-primary font-bold">AS</div>
-                  <div className="ml-3">
-                    <div className="font-semibold text-gray-900">Abena Serwaa</div>
-                    <div className="text-sm text-gray-600">Computer Science Student</div>
-                  </div>
-                </div>
-                <p className="text-gray-700 text-sm">
-                  "InternHub made tracking my internship progress so easy! The daily check-in and report features helped me stay organized, and my lecturer could monitor my work in real-time."
-                </p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-bold">KA</div>
-                  <div className="ml-3">
-                    <div className="font-semibold text-gray-900">Dr. Kwame Asante</div>
-                    <div className="text-sm text-gray-600">Lecturer & Coordinator</div>
-                  </div>
-                </div>
-                <p className="text-gray-700 text-sm">
-                  "As a lecturer managing 50+ students, InternHub's analytics dashboard gives me instant visibility into everyone's progress. The automated reporting saves me hours every week!"
-                </p>
-              </div>
-              <div className="bg-gray-50 rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold">EB</div>
-                  <div className="ml-3">
-                    <div className="font-semibold text-gray-900">Emmanuel Boateng</div>
-                    <div className="text-sm text-gray-600">Company Supervisor</div>
-                  </div>
-                </div>
-                <p className="text-gray-700 text-sm">
-                  "The platform streamlined our intern management process. We can easily evaluate performance, assign tasks, and communicate with the university - all in one place."
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* Benefits Section */}
         <section className="py-12 md:py-20 bg-gradient-to-br from-gray-50 to-blue-50">
