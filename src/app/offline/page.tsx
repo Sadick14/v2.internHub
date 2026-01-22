@@ -6,9 +6,13 @@ import { Button } from '@/components/ui/button';
 import { WifiOff, RefreshCw } from 'lucide-react';
 
 export default function OfflinePage() {
-  const [isOnline, setIsOnline] = useState(true);
+  const [isOnline, setIsOnline] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+    if (typeof window === 'undefined') return;
+    
     setIsOnline(navigator.onLine);
 
     const handleOnline = () => setIsOnline(true);
@@ -24,13 +28,17 @@ export default function OfflinePage() {
   }, []);
 
   const handleRetry = () => {
-    window.location.reload();
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
   };
 
-  if (isOnline) {
-    handleRetry();
-    return null;
-  }
+  // Check if we're back online after mount
+  useEffect(() => {
+    if (isMounted && isOnline) {
+      handleRetry();
+    }
+  }, [isOnline, isMounted]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
