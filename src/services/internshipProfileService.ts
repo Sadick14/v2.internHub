@@ -32,6 +32,23 @@ export interface InternshipProfileDetails extends Omit<InternshipProfile, 'id' |
     endDate: Date;
 }
 
+// Helper function to serialize Firestore data for server components
+function serializeProfile(data: any): InternshipProfile {
+    const plainObject: any = { id: data.id };
+
+    for (const key in data) {
+        if (key === 'id') continue;
+        if (data[key] instanceof Timestamp) {
+            // Convert to ISO string for serialization
+            plainObject[key] = data[key].toDate().toISOString();
+        } else {
+            plainObject[key] = data[key];
+        }
+    }
+
+    return plainObject as InternshipProfile;
+}
+
 export async function createInternshipProfile(details: InternshipProfileDetails): Promise<{ success: boolean; message: string }> {
     if (!details.studentId || !details.studentName) {
         return { success: false, message: 'Authentication required. User details are missing.' };
@@ -145,19 +162,7 @@ export async function getInternshipProfileByStudentId(studentId: string): Promis
     const profileDoc = snapshot.docs[0];
     const data = profileDoc.data();
     
-    // Manually convert Timestamps to Date objects to ensure serialization.
-    const plainObject: any = { id: profileDoc.id };
-
-    for (const key in data) {
-        if (data[key] instanceof Timestamp) {
-            // Convert to ISO string for serialization
-            plainObject[key] = data[key].toDate().toISOString();
-        } else {
-            plainObject[key] = data[key];
-        }
-    }
-
-    return plainObject as InternshipProfile;
+    return serializeProfile({ id: profileDoc.id, ...data });
 }
 
 export async function updateInternshipProfile(profileId: string, details: Partial<InternshipProfile>): Promise<{ success: boolean; message: string }> {
