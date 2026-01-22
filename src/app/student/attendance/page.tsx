@@ -86,6 +86,7 @@ export default function AttendancePage() {
     }
 
     return (
+        <InternshipGuard>
         <Card>
             <CardHeader>
                 <CardTitle className="font-headline">Attendance Record</CardTitle>

@@ -9,13 +9,21 @@ export function PWARegister() {
       'serviceWorker' in navigator &&
       process.env.NODE_ENV === 'production'
     ) {
+      // Unregister any existing service workers first to avoid conflicts
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => {
+          registration.unregister();
+        });
+      });
+
+      // Register new service worker
       navigator.serviceWorker
-        .register('/service-worker.js')
+        .register('/service-worker.js', { scope: '/' })
         .then((registration) => {
           console.log('Service Worker registered:', registration);
 
           // Check for updates periodically
-          setInterval(() => {
+          const updateInterval = setInterval(() => {
             registration.update();
           }, 60000); // Check every minute
 
@@ -40,15 +48,25 @@ export function PWARegister() {
               });
             }
           });
+
+          // Cleanup interval on unmount
+          return () => clearInterval(updateInterval);
         })
         .catch((error) => {
           console.error('Service Worker registration failed:', error);
+          // Silently fail - app will work without service worker
         });
 
       // Handle controller change (new service worker activated)
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
+      const handleControllerChange = () => {
         window.location.reload();
-      });
+      };
+      
+      navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+
+      return () => {
+        navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+      };
     }
   }, []);
 

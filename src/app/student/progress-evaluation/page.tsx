@@ -127,11 +127,11 @@ export default function ProgressEvaluationPage() {
         )
     }
 
-    const totalDays = differenceInBusinessDays(new Date(profile.endDate), new Date(profile.startDate));
-    const attendanceScore = totalDays > 0 ? (checkIns.length / totalDays) * 100 : 0;
-    const reportsScore = totalDays > 0 ? (reports.length / totalDays) * 100 : 0;
+    const totalDays = Math.max(1, differenceInBusinessDays(new Date(profile.endDate), new Date(profile.startDate)));
+    const attendanceScore = Math.min(100, Math.max(0, totalDays > 0 ? (checkIns.length / totalDays) * 100 : 0));
+    const reportsScore = Math.min(100, Math.max(0, totalDays > 0 ? (reports.length / totalDays) * 100 : 0));
     const approvedTasks = tasks.filter(t => t.status === 'Approved').length;
-    const taskCompletionScore = tasks.length > 0 ? (approvedTasks / tasks.length) * 100 : 0;
+    const taskCompletionScore = Math.min(100, Math.max(0, tasks.length > 0 ? (approvedTasks / tasks.length) * 100 : 0));
 
     const supervisorEval = evaluations.find(e => e.evaluatorRole === 'supervisor');
     const lecturerEval = evaluations.find(e => e.evaluatorRole === 'lecturer');
@@ -158,9 +158,9 @@ export default function ProgressEvaluationPage() {
             </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                 <StatCard icon={CalendarCheck} title="Attendance" value={`${attendanceScore.toFixed(0)}%`} description={`${checkIns.length} / ${totalDays} days`} />
-                 <StatCard icon={ClipboardList} title="Report Submission" value={`${reportsScore.toFixed(0)}%`} description={`${reports.length} / ${totalDays} reports`} />
-                 <StatCard icon={CheckCircle} title="Task Completion" value={`${taskCompletionScore.toFixed(0)}%`} description={`${approvedTasks} / ${tasks.length} daily tasks approved`} />
+                 <StatCard icon={CalendarCheck} title="Attendance" value={`${(isFinite(attendanceScore) ? attendanceScore : 0).toFixed(0)}%`} description={`${checkIns.length} / ${totalDays} days`} />
+                 <StatCard icon={ClipboardList} title="Report Submission" value={`${(isFinite(reportsScore) ? reportsScore : 0).toFixed(0)}%`} description={`${reports.length} / ${totalDays} reports`} />
+                 <StatCard icon={CheckCircle} title="Task Completion" value={`${(isFinite(taskCompletionScore) ? taskCompletionScore : 0).toFixed(0)}%`} description={`${approvedTasks} / ${tasks.length} daily tasks approved`} />
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

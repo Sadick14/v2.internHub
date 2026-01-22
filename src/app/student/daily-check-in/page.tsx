@@ -264,7 +264,7 @@ export default function DailyCheckInPage() {
                  {isFetchingLocation && <p className="text-muted-foreground">Getting your location...</p>}
                  {location && !isSubmitting && (
                     <div className="text-sm bg-muted p-2 rounded-md">
-                        Location Acquired: <span className="font-mono">{location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}</span>
+                        Location Acquired: <span className="font-mono">{(isFinite(location.latitude) ? location.latitude : 0).toFixed(4)}, {(isFinite(location.longitude) ? location.longitude : 0).toFixed(4)}</span>
                     </div>
                  )}
                  

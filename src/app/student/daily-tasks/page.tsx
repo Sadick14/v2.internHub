@@ -122,6 +122,7 @@ export default function DailyTasksPage() {
     }
 
     return (
+        <InternshipGuard>
         <div className="space-y-6">
             <Card>
                 <CardHeader>

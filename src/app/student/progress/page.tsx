@@ -461,7 +461,7 @@ export default function StudentProgressPage() {
               <CardContent>
                 <div className="text-3xl font-bold">{totalReports}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {daysCompleted > 0 ? (totalReports / daysCompleted).toFixed(1) : 0} per day average
+                  {daysCompleted > 0 && isFinite(totalReports / daysCompleted) ? (totalReports / daysCompleted).toFixed(1) : 0} per day average
                 </p>
               </CardContent>
             </Card>

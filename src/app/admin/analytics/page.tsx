@@ -256,19 +256,26 @@ export default function AdminAnalyticsPage() {
     totalUsers: users.length,
     activeUsers: users.filter(u => u.status === 'active').length,
     totalReports: reports.length,
-    avgReportsPerStudent: students.length > 0 ? (reports.length / students.length).toFixed(2) : '0',
+    avgReportsPerStudent: students.length > 0 ? Math.max(0, reports.length / students.length).toFixed(2) : '0',
     approvalRate: (() => {
       const processedReports = reports.filter(r => r.status !== 'Pending').length;
       if (processedReports === 0) return '0';
       const approved = reports.filter(r => r.status === 'Approved').length;
-      return ((approved / processedReports) * 100).toFixed(1);
+      const rate = (approved / processedReports) * 100;
+      return (isFinite(rate) ? rate : 0).toFixed(1);
     })(),
     activeInternships: profiles.filter(p => p.status === 'active').length,
     internshipPlacementRate: students.length > 0
-      ? ((profiles.filter(p => p.status === 'active').length / students.length) * 100).toFixed(1)
+      ? (() => {
+          const rate = (profiles.filter(p => p.status === 'active').length / students.length) * 100;
+          return (isFinite(rate) ? rate : 0).toFixed(1);
+        })()
       : '0',
     avgStudentsPerLecturer: lecturers.length > 0 
-      ? (students.length / lecturers.length).toFixed(1)
+      ? (() => {
+          const avg = students.length / lecturers.length;
+          return (isFinite(avg) ? avg : 0).toFixed(1);
+        })()
       : '0',
   };
 
@@ -298,7 +305,10 @@ export default function AdminAnalyticsPage() {
             <div className="text-2xl font-bold">{statistics.activeUsers}</div>
             <p className="text-xs text-muted-foreground">
               {statistics.totalUsers > 0 
-                ? ((statistics.activeUsers / statistics.totalUsers) * 100).toFixed(1)
+                ? (() => {
+                    const pct = (statistics.activeUsers / statistics.totalUsers) * 100;
+                    return (isFinite(pct) ? pct : 0).toFixed(1);
+                  })()
                 : '0'}% of total
             </p>
           </CardContent>
@@ -452,7 +462,7 @@ export default function AdminAnalyticsPage() {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) => `${name}: ${(isFinite(percent) ? percent * 100 : 0).toFixed(0)}%`}
                         outerRadius={100}
                         fill="#8884d8"
                         dataKey="value"
@@ -485,7 +495,7 @@ export default function AdminAnalyticsPage() {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) => `${name}: ${(isFinite(percent) ? percent * 100 : 0).toFixed(0)}%`}
                         outerRadius={100}
                         fill="#8884d8"
                         dataKey="value"
@@ -717,7 +727,10 @@ export default function AdminAnalyticsPage() {
                         />
                       </div>
                       <span className="text-sm font-bold">
-                        {((statistics.activeUsers / statistics.totalUsers) * 100).toFixed(1)}%
+                        {(() => {
+                          const pct = (statistics.activeUsers / statistics.totalUsers) * 100;
+                          return (isFinite(pct) ? pct : 0).toFixed(1);
+                        })()}%
                       </span>
                     </div>
                   </div>
@@ -754,7 +767,11 @@ export default function AdminAnalyticsPage() {
                       <div className="w-48 h-2 bg-muted rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-purple-500" 
-                          style={{ width: `${Math.min((parseFloat(statistics.avgStudentsPerLecturer) / 15) * 100, 100)}%` }}
+                          style={{ width: `${(() => {
+                            const val = parseFloat(statistics.avgStudentsPerLecturer);
+                            const pct = isFinite(val) ? Math.min((val / 15) * 100, 100) : 0;
+                            return Math.max(0, pct);
+                          })()}%` }}
                         />
                       </div>
                       <span className="text-sm font-bold">{statistics.avgStudentsPerLecturer} avg</span>

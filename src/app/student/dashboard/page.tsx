@@ -234,7 +234,7 @@ export default function StudentDashboardPage() {
   }
 
   // Show preparation guide if internship hasn't started
-  const showPreparationAlert = !access.isLoading && access.profile && !access.hasStarted;
+  const showPreparationAlert = !access.isLoading && !access.hasStarted && access.daysUntilStart !== null && access.daysUntilStart > 0;
 
   const internshipDurationDays = profile ? differenceInBusinessDays(new Date(profile.endDate), new Date(profile.startDate)) : 0;
   const daysCompleted = profile ? Math.max(0, differenceInBusinessDays(new Date(), new Date(profile.startDate))) : 0;
@@ -243,9 +243,6 @@ export default function StudentDashboardPage() {
   const submittedReportsCount = reports.length;
   const pendingReportsCount = reports.filter(r => r.status === 'Pending').length;
   const hoursLogged = Math.max(0, daysCompleted * 8);
-  
-  // Show preparation alert if internship hasn't started yet
-  const showPreparationAlert = !access.isLoading && !access.hasStarted && access.daysUntilStart !== null && access.daysUntilStart > 0;
 
   const getStatusVariant = (status: Report['status']) => {
     switch (status) {
@@ -284,7 +281,7 @@ export default function StudentDashboardPage() {
         </Alert>
       )}
 
-       {!checkIn && access.canAccessActivities && (
+       {!checkIn && access.canAccessActivities ? (
         <Alert className="bg-blue-50 border-blue-200 text-blue-800">
              <MapPin className="h-4 w-4 !text-blue-600" />
             <AlertTitle className="font-bold text-blue-900">Good Morning!</AlertTitle>
@@ -299,7 +296,7 @@ export default function StudentDashboardPage() {
                 </div>
             </AlertDescription>
         </Alert>
-       ) : (
+       ) : access.canAccessActivities ? (
         <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
             <CheckCircle className="h-4 w-4 !text-green-600" />
             <AlertTitle className="font-bold text-green-900">Checked In Successfully!</AlertTitle>
@@ -314,7 +311,7 @@ export default function StudentDashboardPage() {
                 </div>
             </AlertDescription>
         </Alert>
-       )}
+       ) : null}
 
 
        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">

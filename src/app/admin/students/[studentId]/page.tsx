@@ -265,8 +265,8 @@ const MetricDisplay = ({ label, value }: { label: string; value: number }) => (
     <div className="flex justify-between items-center">
         <p className="text-sm text-muted-foreground">{label}</p>
         <div className="flex items-center gap-2">
-            <Progress value={value * 10} className="w-32 h-2" />
-            <span className="font-semibold text-sm">{value.toFixed(1)}/10</span>
+            <Progress value={isFinite(value) ? value * 10 : 0} className="w-32 h-2" />
+            <span className="font-semibold text-sm">{(isFinite(value) ? value : 0).toFixed(1)}/10</span>
         </div>
     </div>
 );
@@ -274,7 +274,7 @@ const MetricDisplay = ({ label, value }: { label: string; value: number }) => (
 
 const EvaluationCard = ({ title, icon: Icon, evaluation }: { title: string, icon: React.ElementType, evaluation: Evaluation }) => {
     const { metrics, comments, evaluatorName } = evaluation;
-    const overallScore = (metrics.overall * 2).toFixed(1);
+    const overallScore = (isFinite(metrics.overall) ? metrics.overall * 2 : 0).toFixed(1);
     
     return (
         <Card>
