@@ -54,10 +54,12 @@ export default function AdminAnalyticsPage() {
   const [faculties, setFaculties] = useState<Faculty[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
       try {
+        setError(null);
         const [usersData, reportsData, profilesData, deptsData] = await Promise.all([
           getAllUsers(),
           getAllReports(),
@@ -75,9 +77,10 @@ export default function AdminAnalyticsPage() {
         setDepartments(deptsData);
         setFaculties(facultiesData);
         setAuditLogs(logsData);
-        setLoading(false);
       } catch (error) {
         console.error('Error fetching analytics data:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load analytics data');
+      } finally {
         setLoading(false);
       }
     }
@@ -97,6 +100,25 @@ export default function AdminAnalyticsPage() {
         </div>
         <Skeleton className="h-96 w-full" />
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-destructive">Error Loading Analytics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          >
+            Retry
+          </button>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -235,9 +257,12 @@ export default function AdminAnalyticsPage() {
     activeUsers: users.filter(u => u.status === 'active').length,
     totalReports: reports.length,
     avgReportsPerStudent: students.length > 0 ? (reports.length / students.length).toFixed(2) : '0',
-    approvalRate: reports.length > 0 
-      ? ((reports.filter(r => r.status === 'Approved').length / reports.filter(r => r.status !== 'Pending').length) * 100).toFixed(1)
-      : '0',
+    approvalRate: (() => {
+      const processedReports = reports.filter(r => r.status !== 'Pending').length;
+      if (processedReports === 0) return '0';
+      const approved = reports.filter(r => r.status === 'Approved').length;
+      return ((approved / processedReports) * 100).toFixed(1);
+    })(),
     activeInternships: profiles.filter(p => p.status === 'active').length,
     internshipPlacementRate: students.length > 0
       ? ((profiles.filter(p => p.status === 'active').length / students.length) * 100).toFixed(1)
@@ -272,7 +297,9 @@ export default function AdminAnalyticsPage() {
           <CardContent>
             <div className="text-2xl font-bold">{statistics.activeUsers}</div>
             <p className="text-xs text-muted-foreground">
-              {((statistics.activeUsers / statistics.totalUsers) * 100).toFixed(1)}% of total
+              {statistics.totalUsers > 0 
+                ? ((statistics.activeUsers / statistics.totalUsers) * 100).toFixed(1)
+                : '0'}% of total
             </p>
           </CardContent>
         </Card>

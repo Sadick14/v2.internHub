@@ -9,7 +9,7 @@ export function subscribeToTodayCheckIn(
   studentId: string,
   callback: (checkIn: CheckIn | null) => void
 ): () => void {
-  const checkInsCol = collection(db, 'check-ins');
+  const checkInsCol = collection(db, 'check_ins');
   const todayDate = format(new Date(), 'yyyy-MM-dd');
   
   const q = query(

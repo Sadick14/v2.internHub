@@ -47,6 +47,7 @@ export default function StudentLayout({ children }: { children: ReactNode }) {
     { href: '/student/dashboard', label: 'Dashboard', icon: Home },
     { href: '/student/internship-setup', label: 'Internship Profile', icon: Briefcase },
     { href: '/student/supervisors', label: 'Supervisors', icon: Users },
+    { href: '/student/preparation', label: 'Preparation Guide', icon: GraduationCap },
     { type: 'separator', label: 'Daily Activities' },
     { href: '/student/daily-check-in', label: 'Daily Check-in', icon: MapPin },
     { href: '/student/daily-tasks', label: 'Declare Daily Tasks', icon: ListTodo },

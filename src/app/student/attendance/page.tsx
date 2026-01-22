@@ -11,6 +11,7 @@ import { isSameDay } from 'date-fns';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Map } from 'lucide-react';
+import { InternshipGuard } from '@/components/guards/internship-guard';
 
 
 const MapDialog = ({ checkIn }: { checkIn: CheckIn }) => {
@@ -90,20 +91,22 @@ export default function AttendancePage() {
                 <CardTitle className="font-headline">Attendance Record</CardTitle>
                 <CardDescription>A calendar view of your check-in history. Select a day to see details.</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col md:flex-row gap-8">
-                <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    className="rounded-md border"
-                    modifiers={{ checkedIn: checkedInDays }}
-                    modifiersStyles={{
-                         checkedIn: { 
-                             color: 'hsl(var(--primary-foreground))',
-                             backgroundColor: 'hsl(var(--primary))'
-                         }
-                    }}
-                />
+            <CardContent className="flex flex-col md:flex-row gap-6 md:gap-8">
+                <div className="w-full md:w-auto">
+                    <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        className="rounded-md border mx-auto max-w-full"
+                        modifiers={{ checkedIn: checkedInDays }}
+                        modifiersStyles={{
+                             checkedIn: { 
+                                 color: 'hsl(var(--primary-foreground))',
+                                 backgroundColor: 'hsl(var(--primary))'
+                             }
+                        }}
+                    />
+                </div>
                  <div className="flex-1">
                     <h3 className="text-lg font-semibold mb-4">Details for {selectedDate ? selectedDate.toLocaleDateString() : '...'}</h3>
                     {selectedDayCheckIn ? (
@@ -131,5 +134,6 @@ export default function AttendancePage() {
                  </div>
             </CardContent>
         </Card>
+        </InternshipGuard>
     )
 }

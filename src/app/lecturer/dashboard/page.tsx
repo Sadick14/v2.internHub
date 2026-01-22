@@ -51,9 +51,14 @@ export default function LecturerDashboardPage() {
         ]);
         setPendingReportsCount(reportsData.length);
         setTodayCheckIns(checkInsData);
+      } else {
+        setPendingReportsCount(0);
+        setTodayCheckIns([]);
       }
       setDataLoading(false);
     };
+
+    fetchInitialData();
 
     // Real-time listener for reports
     const unsubReports = onSnapshot(
@@ -68,48 +73,20 @@ export default function LecturerDashboardPage() {
     const unsubCheckIns = onSnapshot(
       collection(db, 'check_ins'),
       async () => {
-        if (students.length > 0) {
-          const studentIds = students.map(s => s.uid);
+        const studentsData = await getStudentsByLecturer(user.uid);
+        if (studentsData.length > 0) {
+          const studentIds = studentsData.map(s => s.uid);
           const checkInsData = await getTodayCheckInsForInterns(studentIds);
           setTodayCheckIns(checkInsData);
         }
       }
     );
 
-    fetchInitialData();
-
     return () => {
       unsubReports();
       unsubCheckIns();
     };
-  }, [user, students.length]);
-
-  useEffect(() => {
-    async function fetchData() {
-        if (!user?.uid) return;
-        setDataLoading(true);
-        const studentsData = await getStudentsByLecturer(user.uid);
-        setStudents(studentsData);
-
-        if (studentsData.length > 0) {
-            const studentIds = studentsData.map(s => s.uid);
-            const [reportsData, checkInsData] = await Promise.all([
-                getReportsByLecturer(user.uid, ['Pending']),
-                getTodayCheckInsForInterns(studentIds)
-            ]);
-            setPendingReportsCount(reportsData.length);
-            setTodayCheckIns(checkInsData);
-        } else {
-            setPendingReportsCount(0);
-            setTodayCheckIns([]);
-        }
-
-        setDataLoading(false);
-    }
-    if (user) {
-        fetchData();
-    }
-  }, []);
+  }, [user]);
 
   if(loading || dataLoading) {
     return (

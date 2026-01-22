@@ -18,6 +18,7 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { getInternshipProfileByStudentId, type InternshipProfile } from "@/services/internshipProfileService";
+import { InternshipGuard } from '@/components/guards/internship-guard';
 
 
 export default function SubmitReportPage() {
@@ -122,6 +123,7 @@ export default function SubmitReportPage() {
   }
 
   return (
+    <InternshipGuard>
     <form onSubmit={handleSubmit}>
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
@@ -141,7 +143,7 @@ export default function SubmitReportPage() {
                           {reportDate ? format(reportDate, "PPP") : <span>Pick a date</span>}
                       </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
+                  <PopoverContent className="w-auto p-0" align="center" side="bottom">
                       <Calendar mode="single" selected={reportDate} onSelect={setReportDate} initialFocus />
                   </PopoverContent>
               </Popover>
@@ -218,5 +220,6 @@ export default function SubmitReportPage() {
         </div>
       </div>
     </form>
+    </InternshipGuard>
   );
 }

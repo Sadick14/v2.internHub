@@ -15,7 +15,8 @@ import {
   Shield,
   Loader2,
   CheckCircle,
-  GraduationCap
+  GraduationCap,
+  BookOpen
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -53,6 +54,7 @@ import { TrendingUp } from 'lucide-react';
 import { subscribeToReportsByStudent } from '@/services/client/reportsClient';
 import { subscribeToTodayCheckIn } from '@/services/client/checkInClient';
 import { PWAInstallPrompt } from '@/components/layout/pwa-install-prompt';
+import { useInternshipAccess } from '@/hooks/use-internship-access';
 
 const StatCard = ({ icon: Icon, label, value, color = 'primary' }: { icon: React.ElementType, label: string, value: string | number, color?: string }) => (
     <div className="stat-card bg-white rounded-xl shadow-sm p-6 flex items-center">
@@ -141,10 +143,12 @@ export default function StudentDashboardPage() {
   const [profile, setProfile] = useState<InternshipProfile | null>(null);
   const [checkIn, setCheckIn] = useState<CheckIn | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
+  const access = useInternshipAccess(user?.uid);
 
   useEffect(() => {
+    if (!user || !user.uid) return;
+    
     async function fetchData() {
-      if (!user || !user.uid) return;
       setDataLoading(true);
       
       // Initial fetch
@@ -157,23 +161,24 @@ export default function StudentDashboardPage() {
       setProfile(profileData);
       setCheckIn(checkInData);
       setDataLoading(false);
-
-      // Set up real-time listeners
-      const unsubscribeReports = subscribeToReportsByStudent(user.uid, (updatedReports) => {
-        setReports(updatedReports);
-      });
-
-      const unsubscribeCheckIn = subscribeToTodayCheckIn(user.uid, (updatedCheckIn) => {
-        setCheckIn(updatedCheckIn);
-      });
-
-      // Cleanup listeners on unmount
-      return () => {
-        unsubscribeReports();
-        unsubscribeCheckIn();
-      };
     }
+    
     fetchData();
+
+    // Set up real-time listeners
+    const unsubscribeReports = subscribeToReportsByStudent(user.uid, (updatedReports) => {
+      setReports(updatedReports);
+    });
+
+    const unsubscribeCheckIn = subscribeToTodayCheckIn(user.uid, (updatedCheckIn) => {
+      setCheckIn(updatedCheckIn);
+    });
+
+    // Cleanup listeners on unmount
+    return () => {
+      unsubscribeReports();
+      unsubscribeCheckIn();
+    };
   }, [user]);
 
   if (loading || dataLoading) {
@@ -228,6 +233,9 @@ export default function StudentDashboardPage() {
     )
   }
 
+  // Show preparation guide if internship hasn't started
+  const showPreparationAlert = !access.isLoading && access.profile && !access.hasStarted;
+
   const internshipDurationDays = profile ? differenceInBusinessDays(new Date(profile.endDate), new Date(profile.startDate)) : 0;
   const daysCompleted = profile ? Math.max(0, differenceInBusinessDays(new Date(), new Date(profile.startDate))) : 0;
   const daysRemaining = profile ? Math.max(0, differenceInBusinessDays(new Date(profile.endDate), new Date())) : 0;
@@ -255,7 +263,25 @@ export default function StudentDashboardPage() {
           <p className="text-gray-600">Here's what's happening with your internship today.</p>
       </div>
 
-       {!checkIn ? (
+       {showPreparationAlert && (
+        <Alert className="bg-primary/10 border-primary/20">
+          <BookOpen className="h-4 w-4 !text-primary" />
+          <AlertTitle className="font-bold">Internship Starting Soon!</AlertTitle>
+          <AlertDescription>
+            <div className="space-y-2">
+              <p>Your internship at <strong>{profile.companyName}</strong> starts in <strong>{access.daysUntilStart} {access.daysUntilStart === 1 ? 'day' : 'days'}</strong> on {format(new Date(profile.startDate), 'MMMM dd, yyyy')}.</p>
+              <p className="text-sm">Daily activities (check-in, tasks, reports) will be available once your internship begins. Use this time to prepare!</p>
+              <Button asChild variant="outline" size="sm" className="mt-2">
+                <Link href="/student/preparation">
+                  <BookOpen className="mr-2 h-4 w-4" /> View Preparation Guide
+                </Link>
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
+       {!checkIn && access.canAccessActivities && (
         <Alert className="bg-blue-50 border-blue-200 text-blue-800">
              <MapPin className="h-4 w-4 !text-blue-600" />
             <AlertTitle className="font-bold text-blue-900">Good Morning!</AlertTitle>

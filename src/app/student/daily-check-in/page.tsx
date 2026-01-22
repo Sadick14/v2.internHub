@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format, differenceInDays, isSameDay, subDays } from 'date-fns';
+import { InternshipGuard } from '@/components/guards/internship-guard';
 
 type GeolocationData = {
     latitude: number;
@@ -219,6 +220,7 @@ export default function DailyCheckInPage() {
         const streak = calculateStreak(allCheckIns);
 
         return (
+            <InternshipGuard>
             <Card className="max-w-md mx-auto">
                 <CardHeader>
                     <CardTitle className="font-headline text-center">You are Checked In for Today</CardTitle>
@@ -243,10 +245,12 @@ export default function DailyCheckInPage() {
                     </Button>
                 </CardContent>
             </Card>
+            </InternshipGuard>
         )
     }
 
     return (
+        <InternshipGuard>
         <Card className="max-w-md mx-auto">
             <CardHeader>
                 <CardTitle className="font-headline text-center">Daily Attendance Check-in</CardTitle>
@@ -307,5 +311,6 @@ export default function DailyCheckInPage() {
 
             </CardContent>
         </Card>
+        </InternshipGuard>
     )
 }

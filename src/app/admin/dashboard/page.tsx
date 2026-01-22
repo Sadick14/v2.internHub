@@ -41,29 +41,46 @@ export default function AdminDashboardPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [profiles, setProfiles] = useState<InternshipProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Real-time listeners for all data
     const unsubUsers = onSnapshot(collection(db, 'users'), async () => {
-      const data = await getAllUsers();
-      setUsers(data);
+      try {
+        const data = await getAllUsers();
+        setUsers(data);
+      } catch (err) {
+        console.error('Error loading users:', err);
+      }
     });
 
     const unsubInvites = onSnapshot(collection(db, 'invites'), async () => {
-      const data = await getPendingInvites();
-      setPendingInvites(data);
+      try {
+        const data = await getPendingInvites();
+        setPendingInvites(data);
+      } catch (err) {
+        console.error('Error loading invites:', err);
+      }
     });
 
     const unsubFaculties = onSnapshot(collection(db, 'faculties'), async () => {
-      const data = await getFaculties();
-      setFaculties(data);
+      try {
+        const data = await getFaculties();
+        setFaculties(data);
+      } catch (err) {
+        console.error('Error loading faculties:', err);
+      }
     });
 
     const unsubAuditLogs = onSnapshot(
       query(collection(db, 'audit_logs'), orderBy('timestamp', 'desc'), limit(10)),
       async () => {
-        const data = await getAuditLogs();
-        setAuditLogs(data.slice(0, 10));
+        try {
+          const data = await getAuditLogs();
+          setAuditLogs(data.slice(0, 10));
+        } catch (err) {
+          console.error('Error loading audit logs:', err);
+        }
       }
     );
 
@@ -84,6 +101,10 @@ export default function AdminDashboardPage() {
       setAuditLogs(logsData.slice(0, 10));
       setReports(reportsData);
       setProfiles(profilesData);
+      setLoading(false);
+    }).catch((err) => {
+      console.error('Error loading dashboard data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
       setLoading(false);
     });
 
@@ -107,6 +128,25 @@ export default function AdminDashboardPage() {
         </div>
         <Skeleton className="h-96 w-full" />
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-destructive">Error Loading Dashboard</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          >
+            Retry
+          </button>
+        </CardContent>
+      </Card>
     );
   }
 

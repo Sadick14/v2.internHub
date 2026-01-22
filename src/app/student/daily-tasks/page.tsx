@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format, startOfDay } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { InternshipGuard } from '@/components/guards/internship-guard';
 
 const taskSchema = z.object({
   description: z.string().min(5, 'Task description must be at least 5 characters.'),
@@ -237,5 +238,6 @@ export default function DailyTasksPage() {
                 </CardContent>
             </Card>
         </div>
+        </InternshipGuard>
     );
 }
